@@ -1,0 +1,112 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kube-upgrade
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: upgrade-daemon
+  namespace: kube-upgrade
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: upgrade-daemon-leases
+  namespace: kube-upgrade
+rules:
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: upgrade-daemon-leases
+  namespace: kube-upgrade
+subjects:
+  - kind: ServiceAccount
+    name: upgrade-daemon
+roleRef:
+  kind: Role
+  name: upgrade-daemon-leases
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: upgrade-daemon
+  namespace: kube-upgrade
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["patch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list"]
+  - apiGroups: [""]
+    resources: ["pods/eviction"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: upgrade-daemon
+  namespace: kube-upgrade
+subjects:
+  - kind: ServiceAccount
+    name: upgrade-daemon
+    namespace: kube-upgrade
+roleRef:
+  kind: ClusterRole
+  name: upgrade-daemon
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: upgrade-daemon
+  namespace: kube-upgrade
+  labels:
+    app: upgrade-daemon
+spec:
+  selector:
+    matchLabels:
+      app: upgrade-daemon
+  template:
+    metadata:
+      labels:
+        app: upgrade-daemon
+    spec:
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+          operator: Exists
+      serviceAccountName: upgrade-daemon
+      containers:
+        - name: upgrade-daemon
+          image: ghcr.io/heathcliff26/kube-upgrade-daemon:latest
+          env:
+            - name: UPGRADE_GROUP
+              value: default
+            - name: POD_NODE
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: POD_CHROOT
+              value: "/host"
+          volumeMounts:
+            - mountPath: /host
+              name: hostfs
+      volumes:
+        - name: hostfs
+          hostPath:
+            path: /
+            type: Directory
+      securityContext:
+        runAsGroup: 0
+        runAsUser: 0

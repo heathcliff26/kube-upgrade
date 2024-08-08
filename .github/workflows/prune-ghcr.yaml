@@ -1,0 +1,51 @@
+---
+name: Prune ghcr.io
+
+on:
+  workflow_dispatch:
+    inputs:
+      keep:
+        description: "The number of versions to keep"
+        type: string
+        default: "50"
+        required: true
+      delete-tagged:
+        description: "Delete tagged versions"
+        type: boolean
+        default: false
+      ignore-versions:
+        description: "Versions to ignore"
+        type: string
+        default: "(latest|rolling)"
+        required: false
+
+jobs:
+  prune-daemon:
+    uses: heathcliff26/ci/.github/workflows/prune-ghcr.yaml@main
+    permissions:
+      packages: write
+    with:
+      app: "kube-upgrade-daemon"
+      keep: "${{ inputs.keep }}"
+      ignore-versions: "${{ inputs.ignore-versions }}"
+      delete-tagged: ${{ inputs.delete-tagged }}
+
+  prune-handler:
+    uses: heathcliff26/ci/.github/workflows/prune-ghcr.yaml@main
+    permissions:
+      packages: write
+    with:
+      app: "kube-upgrade-handler"
+      keep: "${{ inputs.keep }}"
+      ignore-versions: "${{ inputs.ignore-versions }}"
+      delete-tagged: ${{ inputs.delete-tagged }}
+
+  prune-operator:
+    uses: heathcliff26/ci/.github/workflows/prune-ghcr.yaml@main
+    permissions:
+      packages: write
+    with:
+      app: "kube-upgrade-operator"
+      keep: "${{ inputs.keep }}"
+      ignore-versions: "${{ inputs.ignore-versions }}"
+      delete-tagged: ${{ inputs.delete-tagged }}
