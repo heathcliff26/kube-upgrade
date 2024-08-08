@@ -1,0 +1,91 @@
+---
+name: CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Use to set tag, default: rolling"
+        type: string
+        default: "rolling"
+        required: false
+      dry-run:
+        description: "Do not push image"
+        type: boolean
+        default: false
+        required: false
+      latest:
+        description: "Tag latest"
+        type: boolean
+        default: false
+        required: false
+  push:
+    branches: ["main"]
+    paths:
+      - "go.mod"
+      - "go.sum"
+      - "*.go"
+      - "**/*.go"
+      - "Dockerfile"
+  pull_request:
+    branches: ["main"]
+  merge_group:
+    branches: ["main"]
+
+jobs:
+  lint:
+    uses: heathcliff26/ci/.github/workflows/golang-lint.yaml@main
+
+  unit-tests:
+    uses: heathcliff26/ci/.github/workflows/golang-unit-tests.yaml@main
+
+  build-daemon:
+    uses: heathcliff26/ci/.github/workflows/build-container.yaml@main
+    needs:
+      - lint
+      - unit-tests
+    permissions:
+      contents: read
+      packages: write
+    with:
+      app: kube-upgrade-daemon
+      dockerfile: cmd/upgrade-daemon/Dockerfile
+      tag: "${{ inputs.tag == '' && 'rolling' || inputs.tag }}"
+      tags: "${{ inputs.latest == true && 'type=raw,value=latest' || '' }}"
+      dry-run: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' || inputs.dry-run == 'true' }}
+      build-args: "RELEASE_VERSION=${{ inputs.tag == '' && 'rolling' || inputs.tag }}"
+    secrets: inherit
+
+  build-handler:
+    uses: heathcliff26/ci/.github/workflows/build-container.yaml@main
+    needs:
+      - lint
+      - unit-tests
+    permissions:
+      contents: read
+      packages: write
+    with:
+      app: kube-upgrade-handler
+      dockerfile: cmd/upgrade-handler/Dockerfile
+      tag: "${{ inputs.tag == '' && 'rolling' || inputs.tag }}"
+      tags: "${{ inputs.latest == true && 'type=raw,value=latest' || '' }}"
+      dry-run: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' || inputs.dry-run == 'true' }}
+      build-args: "RELEASE_VERSION=${{ inputs.tag == '' && 'rolling' || inputs.tag }}"
+    secrets: inherit
+
+  build-operator:
+    uses: heathcliff26/ci/.github/workflows/build-container.yaml@main
+    needs:
+      - lint
+      - unit-tests
+    permissions:
+      contents: read
+      packages: write
+    with:
+      app: kube-upgrade-operator
+      dockerfile: cmd/upgrade-operator/Dockerfile
+      tag: "${{ inputs.tag == '' && 'rolling' || inputs.tag }}"
+      tags: "${{ inputs.latest == true && 'type=raw,value=latest' || '' }}"
+      dry-run: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' || inputs.dry-run == 'true' }}
+      build-args: "RELEASE_VERSION=${{ inputs.tag == '' && 'rolling' || inputs.tag }}"
+    secrets: inherit
