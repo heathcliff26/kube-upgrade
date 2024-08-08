@@ -1,0 +1,9 @@
+# Ignore binaries
+/bin
+/release
+
+# Generated go-test coverage reports
+coverprofiles/
+
+# Ignore test files
+test-*.yaml

@@ -1,0 +1,4 @@
+---
+logLevel: not-a-log-level
+fleetlock:
+  url: http://fleetlock.example.com

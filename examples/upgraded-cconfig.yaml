@@ -1,0 +1,21 @@
+---
+# Used to control the log level
+logLevel: info
+# The path to the kubeconfig file
+kubeconfig: /etc/kubernetes/kubelet.conf
+# The container image repository for os rebases
+image: ghcr.io/heathcliff26/fcos-k8s
+# Configuration for fleetlock locking
+fleetlock:
+  # Required: URL to the fleetlock server
+  url: http://fleetlock.example.com
+  # The node group to use for fleetlock
+  group: default
+# The path to the rpm-ostree binary
+rpm-ostree-path: /usr/bin/rpm-ostree
+# The path to the kubeadm binary
+kubeadm-path: /usr/bin/kubeadm
+# The interval between regular checks
+check-interval: 3h
+# The interval between retries when an operation fails
+retry-interval: 5m
