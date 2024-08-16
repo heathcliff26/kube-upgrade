@@ -41,4 +41,5 @@ jobs:
       draft: ${{ inputs.draft }}
       update: ${{ inputs.update }}
       tag: ${{ inputs.tag }}
-      artifacts: "release/*"
+      release-artifacts: "release/*"
+      artifacts: "upgraded-*"
