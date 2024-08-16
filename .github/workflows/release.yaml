@@ -24,9 +24,13 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/ci.yaml
+    permissions:
+      contents: read
+      packages: write
     with:
       tag: ${{ inputs.tag }}
       latest: ${{ inputs.latest }}
+    secrets: inherit
 
   release:
     uses: heathcliff26/ci/.github/workflows/golang-release.yaml@main
