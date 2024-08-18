@@ -24,6 +24,9 @@ coverprofile:
 lint:
 	golangci-lint run -v
 
+fmt:
+	gofmt -s -w ./cmd ./pkg
+
 clean:
 	rm -rf bin
 
@@ -35,5 +38,6 @@ clean:
 	update-deps \
 	coverprofile \
 	lint \
+	fmt \
 	clean \
 	$(NULL)
