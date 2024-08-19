@@ -24,11 +24,17 @@ coverprofile:
 lint:
 	golangci-lint run -v
 
+generate: controller-gen
+	hack/generate.sh
+
 fmt:
 	gofmt -s -w ./cmd ./pkg
 
 clean:
 	rm -rf bin
+
+controller-gen:
+	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.15.0
 
 .PHONY: \
 	default \
@@ -38,6 +44,8 @@ clean:
 	update-deps \
 	coverprofile \
 	lint \
+	generate \
 	fmt \
 	clean \
+	controller-gen \
 	$(NULL)
