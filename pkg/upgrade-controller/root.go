@@ -1,10 +1,9 @@
 package upgradecontroller
 
 import (
-	"fmt"
-	"os"
-
+	"github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller"
 	"github.com/heathcliff26/kube-upgrade/pkg/version"
+	"k8s.io/klog/v2"
 
 	"github.com/spf13/cobra"
 )
@@ -15,7 +14,7 @@ func Execute() {
 	cmd := NewUpgradeController()
 	err := cmd.Execute()
 	if err != nil {
-		exitError(cmd, err)
+		klog.Fatalf("Failed to execute command: %v", err)
 	}
 }
 
@@ -30,7 +29,7 @@ func NewUpgradeController() *cobra.Command {
 		Use:   Name,
 		Short: Name + " runs the controller to orchestrate cluster wide kubernetes upgrades.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			run(cmd)
+			run()
 			return nil
 		},
 	}
@@ -42,12 +41,13 @@ func NewUpgradeController() *cobra.Command {
 	return rootCmd
 }
 
-func run(cmd *cobra.Command) {
-
-}
-
-// Print the error information on stderr and exit with code 1
-func exitError(cmd *cobra.Command, err error) {
-	fmt.Fprintln(cmd.Root().ErrOrStderr(), "Fatal: "+err.Error())
-	os.Exit(1)
+func run() {
+	ctrl, err := controller.NewController(Name)
+	if err != nil {
+		klog.Fatalf("Failed to create controller: %v", err)
+	}
+	err = ctrl.Run()
+	if err != nil {
+		klog.Fatalf("Controller exited with error: %v", err)
+	}
 }
