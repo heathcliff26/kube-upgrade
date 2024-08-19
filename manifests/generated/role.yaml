@@ -1,0 +1,33 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: upgrade-controller
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - list
+  - update
+- apiGroups:
+  - kubeupgrade.heathcliff.eu
+  resources:
+  - kubeupgradeplans
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kubeupgrade.heathcliff.eu
+  resources:
+  - kubeupgradeplans/status
+  verbs:
+  - get
+  - patch
+  - update
