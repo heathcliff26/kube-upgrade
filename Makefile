@@ -27,11 +27,14 @@ lint:
 generate: controller-gen
 	hack/generate.sh
 
+manifests:
+	hack/manifests.sh
+
 fmt:
 	gofmt -s -w ./cmd ./pkg
 
 clean:
-	rm -rf bin
+	rm -rf bin manifests/release
 
 controller-gen:
 	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.15.0
@@ -45,6 +48,7 @@ controller-gen:
 	coverprofile \
 	lint \
 	generate \
+	manifests \
 	fmt \
 	clean \
 	controller-gen \

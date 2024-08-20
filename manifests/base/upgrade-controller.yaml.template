@@ -1,0 +1,99 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ${KUBE_UPGRADE_NAMESPACE}
+${kube_upgrade_crd}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: upgrade-controller
+  namespace: ${KUBE_UPGRADE_NAMESPACE}
+${kube_upgrade_rbac_cluster_role}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: upgrade-controller
+  namespace: ${KUBE_UPGRADE_NAMESPACE}
+subjects:
+  - kind: ServiceAccount
+    name: upgrade-controller
+    namespace: ${KUBE_UPGRADE_NAMESPACE}
+roleRef:
+  kind: ClusterRole
+  name: upgrade-controller
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: upgrade-controller
+  namespace: ${KUBE_UPGRADE_NAMESPACE}
+rules:
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["create", "get", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: upgrade-controller
+  namespace: ${KUBE_UPGRADE_NAMESPACE}
+subjects:
+  - kind: ServiceAccount
+    name: upgrade-controller
+roleRef:
+  kind: Role
+  name: upgrade-controller
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: upgrade-controller
+  namespace: ${KUBE_UPGRADE_NAMESPACE}
+  labels:
+    app: kube-upgrade
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kube-upgrade
+  template:
+    metadata:
+      labels:
+        app: kube-upgrade
+    spec:
+      serviceAccountName: upgrade-controller
+      containers:
+        - name: upgrade-controller
+          image: ${REPOSITORY}/kube-upgrade-controller:${TAG}
+          imagePullPolicy: Always
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          ports:
+            - name: probe
+              containerPort: 9090
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: probe
+            initialDelaySeconds: 5
+            periodSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: probe
+            initialDelaySeconds: 5
+            periodSeconds: 1
