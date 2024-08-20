@@ -71,7 +71,8 @@ jobs:
       release: "${{ github.event_name == 'pull_request' && 'dev' || inputs.tag == '' && 'rolling' || inputs.tag }}"
       goos: "linux"
       goarch: "${{ matrix.arch }}"
-      artifact: "upgraded-${{ matrix.arch }}"
+      artifact: "bin/upgraded-${{ matrix.arch }}"
+      artifact-name: "upgraded-${{ matrix.arch }}"
       cmd: "hack/build.sh upgraded upgraded-${{ matrix.arch }}"
     secrets: inherit
 
@@ -90,4 +91,15 @@ jobs:
       tags: "${{ inputs.latest == true && 'type=raw,value=latest' || '' }}"
       dry-run: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' || inputs.dry-run == 'true' }}
       build-args: "RELEASE_VERSION=${{ inputs.tag == '' && 'rolling' || inputs.tag }}"
+    secrets: inherit
+
+  build-manifests:
+    uses: heathcliff26/ci/.github/workflows/golang-build.yaml@main
+    if: ${{ github.event_name != 'pull_request' && github.event_name != 'merge_group' }}
+    with:
+      release: "${{ github.event_name == 'pull_request' && 'dev' || inputs.tag == '' && 'rolling' || inputs.tag }}"
+      artifact: "manifests/release/*.yaml"
+      artifact-name: "manifests"
+      cmd: "make manifests"
+      cache: false
     secrets: inherit
