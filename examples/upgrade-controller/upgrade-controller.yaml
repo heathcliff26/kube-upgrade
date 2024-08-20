@@ -1,0 +1,240 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kube-upgrade
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.15.0
+  name: kubeupgradeplans.kubeupgrade.heathcliff.eu
+spec:
+  group: kubeupgrade.heathcliff.eu
+  names:
+    kind: KubeUpgradePlan
+    listKind: KubeUpgradePlanList
+    plural: kubeupgradeplans
+    shortNames:
+    - plan
+    singular: kubeupgradeplan
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - description: The targeted kubernetes version
+      jsonPath: .spec.kubernetesVersion
+      name: Version
+      type: string
+    - description: A summary of the overall status of the cluster
+      jsonPath: .status.summary
+      name: Status
+      type: string
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              groups:
+                additionalProperties:
+                  properties:
+                    dependsOn:
+                      description: |-
+                        Specify group(s) that should be upgraded first.
+                        Should be used to ensure control-plane nodes are upgraded first.
+                      example: control-plane
+                      items:
+                        type: string
+                      type: array
+                    labels:
+                      additionalProperties:
+                        type: string
+                      description: The labels by which to filter for this group
+                      example: node-role.kubernetes.io/control-plane;node-role.kubernetes.io/compute
+                      minProperties: 1
+                      type: object
+                  required:
+                  - labels
+                  type: object
+                description: |-
+                  The different groups in which the nodes will be upgraded.
+                  At minimum needs to separate control-plane from compute nodes, to ensure that control-plane nodes will be upgraded first.
+                minProperties: 1
+                type: object
+              kubernetesVersion:
+                description: |-
+                  The kubernetes version the cluster should be at.
+                  If the actual version differs, the cluster will be upgraded
+                example: v1.31.0
+                pattern: v[0-9]+\.[0-9]+\.[0-9]+
+                type: string
+            required:
+            - groups
+            - kubernetesVersion
+            type: object
+          status:
+            properties:
+              groups:
+                additionalProperties:
+                  type: string
+                description: The current status of each group
+                type: object
+              summary:
+                description: A summary of the overall status of the cluster
+                enum:
+                - Unknown
+                - Waiting
+                - Progressing
+                - Complete
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: upgrade-controller
+  namespace: kube-upgrade
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: upgrade-controller
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - list
+  - update
+- apiGroups:
+  - kubeupgrade.heathcliff.eu
+  resources:
+  - kubeupgradeplans
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kubeupgrade.heathcliff.eu
+  resources:
+  - kubeupgradeplans/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: upgrade-controller
+  namespace: kube-upgrade
+subjects:
+  - kind: ServiceAccount
+    name: upgrade-controller
+    namespace: kube-upgrade
+roleRef:
+  kind: ClusterRole
+  name: upgrade-controller
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: upgrade-controller
+  namespace: kube-upgrade
+rules:
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["create", "get", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: upgrade-controller
+  namespace: kube-upgrade
+subjects:
+  - kind: ServiceAccount
+    name: upgrade-controller
+roleRef:
+  kind: Role
+  name: upgrade-controller
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: upgrade-controller
+  namespace: kube-upgrade
+  labels:
+    app: kube-upgrade
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kube-upgrade
+  template:
+    metadata:
+      labels:
+        app: kube-upgrade
+    spec:
+      serviceAccountName: upgrade-controller
+      containers:
+        - name: upgrade-controller
+          image: ghcr.io/heathcliff26/kube-upgrade-controller:latest
+          imagePullPolicy: Always
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          ports:
+            - name: probe
+              containerPort: 9090
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: probe
+            initialDelaySeconds: 5
+            periodSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: probe
+            initialDelaySeconds: 5
+            periodSeconds: 1
