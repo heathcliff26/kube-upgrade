@@ -1,0 +1,16 @@
+---
+apiVersion: kubeupgrade.heathcliff.eu/v1alpha1
+kind: KubeUpgradePlan
+metadata:
+  name: upgrade-plan
+spec:
+  kubernetesVersion: ${kube_version_latest}
+  groups:
+    control-plane:
+      labels:
+        node-role.kubernetes.io/control-plane: ""
+    compute:
+      dependsOn:
+        - control-plane
+      labels:
+        node-role.kubernetes.io/compute: ""
