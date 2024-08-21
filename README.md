@@ -16,6 +16,7 @@ Kubernetes controller and daemon for managing cluster updates.
   - [Architecture](#architecture)
     - [upgrade-controller](#upgrade-controller)
     - [upgraded](#upgraded)
+  - [Possible problems when upgrading](#possible-problems-when-upgrading)
   - [Links](#links)
 
 
@@ -96,8 +97,23 @@ When it detects an update for kubernetes, it will execute the following:
 2. Rebase the node into the new version using rpm-ostree
 3. Run `kubeadm upgrade node` or `kubeadm upgrade apply <version>`, depending on if it is the first node.
 
+## Possible problems when upgrading
+
+So far as i tested, upgrading between patches (e.g. 1.30.3 -> 1.30.4) is going fine. However when upgrading between 1.30 and 1.31, the static pods for kubernetes do not start with a version mismatch (1.30 pod, 1.31 kubelet). This causes the preflight checks to fail. The solution in this case was for me to ignore preflight errors anyway and simply upgrade to 1.31. This fixed the problem.
+
+I think the reason is, that while it is not explicitly stated in the docs (See [Links](#Links)) and kind of hinted it could be done the other way around, the expected way for the upgrade is the following:
+1. Upgrade kubeadm to the newest version
+2. Run `kubeadm upgrade (node|apply)`
+3. Upgrade kubelet
+
+What **upgraded** is doing instead is, it upgrades both kubeadm and kubelet at the same time (by rebasing). So in conclusion:
+
+TLDR; Upgrading between patches (e,g, 1.x.y -> 1.x.z) is fine, upgrading between minor versions (e.g. 1.x -> 1.y) should be done with proper planning, lots of tests, caution and quite possible manually.
+
 ## Links
 
 - [Fedora CoreOS Image with kubernetes and upgraded](https://github.com/heathcliff26/containers/tree/main/apps/fcos-k8s)
 - [FleetLock server](https://github.com/heathcliff26/fleetlock)
 - [Fedora CoreOS](https://fedoraproject.org/coreos/)
+- [CoreOS rebasing](https://coreos.github.io/rpm-ostree/container/#rebasing-a-client-system)
+- [kubeadm upgrade](https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/)
