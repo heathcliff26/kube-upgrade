@@ -107,11 +107,11 @@
 				
 				<option value="file25">github.com/heathcliff26/kube-upgrade/pkg/client/listers/kubeupgrade/v1alpha1/kubeupgradeplan.go (0.0%)</option>
 				
-				<option value="file26">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (1.3%)</option>
+				<option value="file26">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (49.4%)</option>
 				
 				<option value="file27">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/errors.go (50.0%)</option>
 				
-				<option value="file28">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/utils.go (29.0%)</option>
+				<option value="file28">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/utils.go (96.8%)</option>
 				
 				<option value="file29">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/root.go (23.5%)</option>
 				
@@ -2001,6 +2001,7 @@ import (
         "fmt"
         "time"
 
+        "github.com/go-logr/logr"
         "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
         "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/scheme"
         "github.com/heathcliff26/kube-upgrade/pkg/constants"
@@ -2033,9 +2034,9 @@ type controller struct {
 // +kubebuilder:rbac:groups=kubeupgrade.heathcliff.eu,resources=kubeupgradeplans/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups="",resources=nodes,verbs=list;update
 
-func NewController(name string) (*controller, error) <span class="cov0" title="0">{
+func NewController(name string) (*controller, error) <span class="cov8" title="1">{
         config, err := rest.InClusterConfig()
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return nil, err
         }</span>
         <span class="cov0" title="0">client, err := kubernetes.NewForConfig(config)
@@ -2095,42 +2096,15 @@ func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
                 logger.Error(err, "Failed to get Plan")
                 return ctrl.Result{}, err
         }</span>
-        <span class="cov0" title="0">if plan.Status.Groups == nil </span><span class="cov0" title="0">{
-                plan.Status.Groups = make(map[string]string, len(plan.Spec.Groups))
+
+        <span class="cov0" title="0">err = c.reconcile(ctx, &amp;plan, logger)
+        if err != nil </span><span class="cov0" title="0">{
+                return ctrl.Result{}, err
         }</span>
 
-        <span class="cov0" title="0">for name, cfg := range plan.Spec.Groups </span><span class="cov0" title="0">{
-                if groupWaitForDependency(cfg.DependsOn, plan.Status.Groups) </span><span class="cov0" title="0">{
-                        logger.WithValues("group", name).Info("Group is waiting on dependencies")
-                        plan.Status.Groups[name] = v1alpha1.PlanStatusWaiting
-                        continue</span>
-                }
-
-                <span class="cov0" title="0">nodes, err := c.nodes.List(ctx, metav1.ListOptions{
-                        LabelSelector: labels.SelectorFromSet(cfg.Labels).String(),
-                })
-                if err != nil </span><span class="cov0" title="0">{
-                        logger.WithValues("group", name).Error(err, "Failed to get nodes for group")
-                        return ctrl.Result{}, err
-                }</span>
-
-                <span class="cov0" title="0">status, err := c.reconcileNodes(ctx, plan.Spec.KubernetesVersion, nodes.Items)
-                if err != nil </span><span class="cov0" title="0">{
-                        logger.WithValues("group", name).Error(err, "Failed to reconcile nodes for group")
-                        return ctrl.Result{}, err
-                }</span>
-
-                <span class="cov0" title="0">if plan.Status.Groups[name] != status </span><span class="cov0" title="0">{
-                        logger.WithValues("group", name, "status", status).Info("Group changed status")
-                        plan.Status.Groups[name] = status
-                }</span>
-        }
-
-        <span class="cov0" title="0">plan.Status.Summary = createStatusSummary(plan.Status.Groups)
-
-        err = c.Status().Update(ctx, &amp;plan)
+        <span class="cov0" title="0">err = c.Status().Update(ctx, &amp;plan)
         if err != nil </span><span class="cov0" title="0">{
-                logger.Error(err, "Failed to update plan")
+                logger.Error(err, "Failed to update plan status")
                 return ctrl.Result{}, err
         }</span>
 
@@ -2140,26 +2114,63 @@ func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
         }, nil</span>
 }
 
-func (c *controller) reconcileNodes(ctx context.Context, kubeVersion string, nodes []corev1.Node) (string, error) <span class="cov0" title="0">{
+func (c *controller) reconcile(ctx context.Context, plan *v1alpha1.KubeUpgradePlan, logger logr.Logger) error <span class="cov8" title="1">{
+        if plan.Status.Groups == nil </span><span class="cov8" title="1">{
+                plan.Status.Groups = make(map[string]string, len(plan.Spec.Groups))
+        }</span>
+
+        <span class="cov8" title="1">for name, cfg := range plan.Spec.Groups </span><span class="cov8" title="1">{
+                if groupWaitForDependency(cfg.DependsOn, plan.Status.Groups) </span><span class="cov8" title="1">{
+                        logger.WithValues("group", name).Info("Group is waiting on dependencies")
+                        plan.Status.Groups[name] = v1alpha1.PlanStatusWaiting
+                        continue</span>
+                }
+
+                <span class="cov8" title="1">nodes, err := c.nodes.List(ctx, metav1.ListOptions{
+                        LabelSelector: labels.SelectorFromSet(cfg.Labels).String(),
+                })
+                if err != nil </span><span class="cov0" title="0">{
+                        logger.WithValues("group", name).Error(err, "Failed to get nodes for group")
+                        return err
+                }</span>
+
+                <span class="cov8" title="1">status, err := c.reconcileNodes(ctx, plan.Spec.KubernetesVersion, nodes.Items)
+                if err != nil </span><span class="cov0" title="0">{
+                        logger.WithValues("group", name).Error(err, "Failed to reconcile nodes for group")
+                        return err
+                }</span>
+
+                <span class="cov8" title="1">if plan.Status.Groups[name] != status </span><span class="cov8" title="1">{
+                        logger.WithValues("group", name, "status", status).Info("Group changed status")
+                        plan.Status.Groups[name] = status
+                }</span>
+        }
+
+        <span class="cov8" title="1">plan.Status.Summary = createStatusSummary(plan.Status.Groups)
+
+        return nil</span>
+}
+
+func (c *controller) reconcileNodes(ctx context.Context, kubeVersion string, nodes []corev1.Node) (string, error) <span class="cov8" title="1">{
         if len(nodes) == 0 </span><span class="cov0" title="0">{
                 return v1alpha1.PlanStatusUnknown, nil
         }</span>
 
-        <span class="cov0" title="0">completed := true
+        <span class="cov8" title="1">completed := true
 
-        for _, node := range nodes </span><span class="cov0" title="0">{
-                if node.Annotations == nil </span><span class="cov0" title="0">{
+        for _, node := range nodes </span><span class="cov8" title="1">{
+                if node.Annotations == nil </span><span class="cov8" title="1">{
                         node.Annotations = make(map[string]string)
                 }</span>
 
-                <span class="cov0" title="0">if node.Annotations[constants.KubernetesVersionAnnotation] == kubeVersion </span><span class="cov0" title="0">{
-                        if node.Annotations[constants.KubernetesUpgradeStatus] != constants.NodeUpgradeStatusCompleted </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if node.Annotations[constants.KubernetesVersionAnnotation] == kubeVersion </span><span class="cov8" title="1">{
+                        if node.Annotations[constants.KubernetesUpgradeStatus] != constants.NodeUpgradeStatusCompleted </span><span class="cov8" title="1">{
                                 completed = false
                         }</span>
-                        <span class="cov0" title="0">continue</span>
+                        <span class="cov8" title="1">continue</span>
                 }
 
-                <span class="cov0" title="0">completed = false
+                <span class="cov8" title="1">completed = false
                 node.Annotations[constants.KubernetesVersionAnnotation] = kubeVersion
                 node.Annotations[constants.KubernetesUpgradeStatus] = constants.NodeUpgradeStatusPending
 
@@ -2169,13 +2180,13 @@ func (c *controller) reconcileNodes(ctx context.Context, kubeVersion string, nod
                 }</span>
         }
 
-        <span class="cov0" title="0">var status string
-        if completed </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">var status string
+        if completed </span><span class="cov8" title="1">{
                 status = v1alpha1.PlanStatusComplete
-        }</span> else<span class="cov0" title="0"> {
+        }</span> else<span class="cov8" title="1"> {
                 status = v1alpha1.PlanStatusProgressing
         }</span>
-        <span class="cov0" title="0">return status, nil</span>
+        <span class="cov8" title="1">return status, nil</span>
 }
 </pre>
 		
@@ -2239,43 +2250,43 @@ func Pointer[T any](v T) *T <span class="cov8" title="1">{
 }</span>
 
 // Check if the given group needs to wait on another one
-func groupWaitForDependency(deps []string, status map[string]string) bool <span class="cov0" title="0">{
-        for _, d := range deps </span><span class="cov0" title="0">{
-                if status[d] != v1alpha1.PlanStatusComplete </span><span class="cov0" title="0">{
+func groupWaitForDependency(deps []string, status map[string]string) bool <span class="cov8" title="1">{
+        for _, d := range deps </span><span class="cov8" title="1">{
+                if status[d] != v1alpha1.PlanStatusComplete </span><span class="cov8" title="1">{
                         return true
                 }</span>
         }
-        <span class="cov0" title="0">return false</span>
+        <span class="cov8" title="1">return false</span>
 }
 
 // Return the status summary from the given input
-func createStatusSummary(status map[string]string) string <span class="cov0" title="0">{
-        if len(status) == 0 </span><span class="cov0" title="0">{
+func createStatusSummary(status map[string]string) string <span class="cov8" title="1">{
+        if len(status) == 0 </span><span class="cov8" title="1">{
                 return v1alpha1.PlanStatusUnknown
         }</span>
-        <span class="cov0" title="0">waiting := false
+        <span class="cov8" title="1">waiting := false
         unknown := false
         progressing := false
 
-        for _, v := range status </span><span class="cov0" title="0">{
+        for _, v := range status </span><span class="cov8" title="1">{
                 switch v </span>{
-                case v1alpha1.PlanStatusComplete:<span class="cov0" title="0"></span>
-                case v1alpha1.PlanStatusProgressing:<span class="cov0" title="0">
+                case v1alpha1.PlanStatusComplete:<span class="cov8" title="1"></span>
+                case v1alpha1.PlanStatusProgressing:<span class="cov8" title="1">
                         progressing = true</span>
-                case v1alpha1.PlanStatusWaiting:<span class="cov0" title="0">
+                case v1alpha1.PlanStatusWaiting:<span class="cov8" title="1">
                         waiting = true</span>
-                default:<span class="cov0" title="0">
+                default:<span class="cov8" title="1">
                         unknown = true</span>
                 }
         }
 
-        <span class="cov0" title="0">if unknown </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if unknown </span><span class="cov8" title="1">{
                 return v1alpha1.PlanStatusUnknown
-        }</span> else<span class="cov0" title="0"> if progressing </span><span class="cov0" title="0">{
+        }</span> else<span class="cov8" title="1"> if progressing </span><span class="cov8" title="1">{
                 return v1alpha1.PlanStatusProgressing
-        }</span> else<span class="cov0" title="0"> if waiting </span><span class="cov0" title="0">{
+        }</span> else<span class="cov8" title="1"> if waiting </span><span class="cov8" title="1">{
                 return v1alpha1.PlanStatusWaiting
-        }</span> else<span class="cov0" title="0"> {
+        }</span> else<span class="cov8" title="1"> {
                 return v1alpha1.PlanStatusComplete
         }</span>
 }
