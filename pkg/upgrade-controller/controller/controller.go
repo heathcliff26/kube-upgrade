@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-logr/logr"
 	"github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
 	"github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/scheme"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
@@ -99,6 +100,25 @@ func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		logger.Error(err, "Failed to get Plan")
 		return ctrl.Result{}, err
 	}
+
+	err = c.reconcile(ctx, &plan, logger)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	err = c.Status().Update(ctx, &plan)
+	if err != nil {
+		logger.Error(err, "Failed to update plan status")
+		return ctrl.Result{}, err
+	}
+
+	return ctrl.Result{
+		Requeue:      plan.Status.Summary != v1alpha1.PlanStatusComplete,
+		RequeueAfter: time.Minute,
+	}, nil
+}
+
+func (c *controller) reconcile(ctx context.Context, plan *v1alpha1.KubeUpgradePlan, logger logr.Logger) error {
 	if plan.Status.Groups == nil {
 		plan.Status.Groups = make(map[string]string, len(plan.Spec.Groups))
 	}
@@ -115,13 +135,13 @@ func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		})
 		if err != nil {
 			logger.WithValues("group", name).Error(err, "Failed to get nodes for group")
-			return ctrl.Result{}, err
+			return err
 		}
 
 		status, err := c.reconcileNodes(ctx, plan.Spec.KubernetesVersion, nodes.Items)
 		if err != nil {
 			logger.WithValues("group", name).Error(err, "Failed to reconcile nodes for group")
-			return ctrl.Result{}, err
+			return err
 		}
 
 		if plan.Status.Groups[name] != status {
@@ -132,16 +152,7 @@ func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 
 	plan.Status.Summary = createStatusSummary(plan.Status.Groups)
 
-	err = c.Status().Update(ctx, &plan)
-	if err != nil {
-		logger.Error(err, "Failed to update plan")
-		return ctrl.Result{}, err
-	}
-
-	return ctrl.Result{
-		Requeue:      plan.Status.Summary != v1alpha1.PlanStatusComplete,
-		RequeueAfter: time.Minute,
-	}, nil
+	return nil
 }
 
 func (c *controller) reconcileNodes(ctx context.Context, kubeVersion string, nodes []corev1.Node) (string, error) {
