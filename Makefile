@@ -34,7 +34,7 @@ fmt:
 	gofmt -s -w ./cmd ./pkg
 
 clean:
-	rm -rf bin manifests/release
+	rm -rf bin manifests/release coverprofiles
 
 controller-gen:
 	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.15.0
