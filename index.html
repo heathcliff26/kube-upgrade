@@ -107,7 +107,7 @@
 				
 				<option value="file25">github.com/heathcliff26/kube-upgrade/pkg/client/listers/kubeupgrade/v1alpha1/kubeupgradeplan.go (0.0%)</option>
 				
-				<option value="file26">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (49.4%)</option>
+				<option value="file26">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (53.4%)</option>
 				
 				<option value="file27">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/errors.go (50.0%)</option>
 				
@@ -2119,14 +2119,11 @@ func (c *controller) reconcile(ctx context.Context, plan *v1alpha1.KubeUpgradePl
                 plan.Status.Groups = make(map[string]string, len(plan.Spec.Groups))
         }</span>
 
-        <span class="cov8" title="1">for name, cfg := range plan.Spec.Groups </span><span class="cov8" title="1">{
-                if groupWaitForDependency(cfg.DependsOn, plan.Status.Groups) </span><span class="cov8" title="1">{
-                        logger.WithValues("group", name).Info("Group is waiting on dependencies")
-                        plan.Status.Groups[name] = v1alpha1.PlanStatusWaiting
-                        continue</span>
-                }
+        <span class="cov8" title="1">nodesToUpdate := make(map[string][]corev1.Node, len(plan.Spec.Groups))
+        newGroupStatus := make(map[string]string, len(plan.Spec.Groups))
 
-                <span class="cov8" title="1">nodes, err := c.nodes.List(ctx, metav1.ListOptions{
+        for name, cfg := range plan.Spec.Groups </span><span class="cov8" title="1">{
+                nodeList, err := c.nodes.List(ctx, metav1.ListOptions{
                         LabelSelector: labels.SelectorFromSet(cfg.Labels).String(),
                 })
                 if err != nil </span><span class="cov0" title="0">{
@@ -2134,50 +2131,67 @@ func (c *controller) reconcile(ctx context.Context, plan *v1alpha1.KubeUpgradePl
                         return err
                 }</span>
 
-                <span class="cov8" title="1">status, err := c.reconcileNodes(ctx, plan.Spec.KubernetesVersion, nodes.Items)
+                <span class="cov8" title="1">status, update, nodes, err := c.reconcileNodes(plan.Spec.KubernetesVersion, nodeList.Items)
                 if err != nil </span><span class="cov0" title="0">{
                         logger.WithValues("group", name).Error(err, "Failed to reconcile nodes for group")
                         return err
                 }</span>
 
-                <span class="cov8" title="1">if plan.Status.Groups[name] != status </span><span class="cov8" title="1">{
-                        logger.WithValues("group", name, "status", status).Info("Group changed status")
-                        plan.Status.Groups[name] = status
+                <span class="cov8" title="1">newGroupStatus[name] = status
+
+                if update </span><span class="cov8" title="1">{
+                        nodesToUpdate[name] = nodes
                 }</span>
         }
 
-        <span class="cov8" title="1">plan.Status.Summary = createStatusSummary(plan.Status.Groups)
+        <span class="cov8" title="1">for name, nodes := range nodesToUpdate </span><span class="cov8" title="1">{
+                if groupWaitForDependency(plan.Spec.Groups[name].DependsOn, newGroupStatus) </span><span class="cov8" title="1">{
+                        logger.WithValues("group", name).Info("Group is waiting on dependencies")
+                        newGroupStatus[name] = v1alpha1.PlanStatusWaiting
+                        continue</span>
+                } else<span class="cov8" title="1"> if plan.Status.Groups[name] != newGroupStatus[name] </span><span class="cov8" title="1">{
+                        logger.WithValues("group", name, "status", newGroupStatus[name]).Info("Group changed status")
+                }</span>
+
+                <span class="cov8" title="1">for _, node := range nodes </span><span class="cov8" title="1">{
+                        _, err := c.nodes.Update(ctx, &amp;node, metav1.UpdateOptions{})
+                        if err != nil </span><span class="cov0" title="0">{
+                                return fmt.Errorf("failed to update node %s: %v", node.GetName(), err)
+                        }</span>
+                }
+        }
+
+        <span class="cov8" title="1">plan.Status.Groups = newGroupStatus
+        plan.Status.Summary = createStatusSummary(plan.Status.Groups)
 
         return nil</span>
 }
 
-func (c *controller) reconcileNodes(ctx context.Context, kubeVersion string, nodes []corev1.Node) (string, error) <span class="cov8" title="1">{
+func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node) (string, bool, []corev1.Node, error) <span class="cov8" title="1">{
         if len(nodes) == 0 </span><span class="cov0" title="0">{
-                return v1alpha1.PlanStatusUnknown, nil
+                return v1alpha1.PlanStatusUnknown, false, nil, nil
         }</span>
 
         <span class="cov8" title="1">completed := true
+        needUpdate := false
 
-        for _, node := range nodes </span><span class="cov8" title="1">{
-                if node.Annotations == nil </span><span class="cov8" title="1">{
-                        node.Annotations = make(map[string]string)
+        for i := range nodes </span><span class="cov8" title="1">{
+                if nodes[i].Annotations == nil </span><span class="cov8" title="1">{
+                        nodes[i].Annotations = make(map[string]string)
                 }</span>
 
-                <span class="cov8" title="1">if node.Annotations[constants.KubernetesVersionAnnotation] == kubeVersion </span><span class="cov8" title="1">{
-                        if node.Annotations[constants.KubernetesUpgradeStatus] != constants.NodeUpgradeStatusCompleted </span><span class="cov8" title="1">{
+                <span class="cov8" title="1">if nodes[i].Annotations[constants.KubernetesVersionAnnotation] == kubeVersion </span><span class="cov8" title="1">{
+                        if nodes[i].Annotations[constants.KubernetesUpgradeStatus] != constants.NodeUpgradeStatusCompleted </span><span class="cov0" title="0">{
                                 completed = false
                         }</span>
                         <span class="cov8" title="1">continue</span>
                 }
 
                 <span class="cov8" title="1">completed = false
-                node.Annotations[constants.KubernetesVersionAnnotation] = kubeVersion
-                node.Annotations[constants.KubernetesUpgradeStatus] = constants.NodeUpgradeStatusPending
+                nodes[i].Annotations[constants.KubernetesVersionAnnotation] = kubeVersion
+                nodes[i].Annotations[constants.KubernetesUpgradeStatus] = constants.NodeUpgradeStatusPending
 
-                _, err := c.nodes.Update(ctx, &amp;node, metav1.UpdateOptions{})
-                if err != nil </span><span class="cov0" title="0">{
-                        return "", fmt.Errorf("failed to update node %s: %v", node.GetName(), err)
-                }</span>
+                needUpdate = true</span>
         }
 
         <span class="cov8" title="1">var status string
@@ -2186,7 +2200,7 @@ func (c *controller) reconcileNodes(ctx context.Context, kubeVersion string, nod
         }</span> else<span class="cov8" title="1"> {
                 status = v1alpha1.PlanStatusProgressing
         }</span>
-        <span class="cov8" title="1">return status, nil</span>
+        <span class="cov8" title="1">return status, needUpdate, nodes, nil</span>
 }
 </pre>
 		
