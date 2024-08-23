@@ -115,27 +115,27 @@
 				
 				<option value="file29">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/root.go (23.5%)</option>
 				
-				<option value="file30">github.com/heathcliff26/kube-upgrade/pkg/upgraded/config/config.go (96.4%)</option>
+				<option value="file30">github.com/heathcliff26/kube-upgrade/pkg/upgraded/config/config.go (100.0%)</option>
 				
 				<option value="file31">github.com/heathcliff26/kube-upgrade/pkg/upgraded/config/errors.go (50.0%)</option>
 				
-				<option value="file32">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (0.0%)</option>
+				<option value="file32">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (28.0%)</option>
 				
-				<option value="file33">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/utils.go (0.0%)</option>
+				<option value="file33">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/utils.go (93.8%)</option>
 				
-				<option value="file34">github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock/client.go (0.0%)</option>
+				<option value="file34">github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock/client.go (78.8%)</option>
 				
-				<option value="file35">github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock/utils.go (0.0%)</option>
+				<option value="file35">github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock/utils.go (71.4%)</option>
 				
-				<option value="file36">github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm/kubeadm.go (0.0%)</option>
+				<option value="file36">github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm/kubeadm.go (70.0%)</option>
 				
 				<option value="file37">github.com/heathcliff26/kube-upgrade/pkg/upgraded/root.go (14.3%)</option>
 				
-				<option value="file38">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/rpm-ostree.go (0.0%)</option>
+				<option value="file38">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/rpm-ostree.go (92.0%)</option>
 				
-				<option value="file39">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/utils.go (0.0%)</option>
+				<option value="file39">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/utils.go (100.0%)</option>
 				
-				<option value="file40">github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils/utils.go (0.0%)</option>
+				<option value="file40">github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils/utils.go (93.3%)</option>
 				
 				<option value="file41">github.com/heathcliff26/kube-upgrade/pkg/version/version.go (73.7%)</option>
 				
@@ -2476,7 +2476,7 @@ func LoadConfig(path string) (*Config, error) <span class="cov8" title="1">{
         }</span>
 
         <span class="cov8" title="1">err = yaml.Unmarshal(f, &amp;c)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return nil, err
         }</span>
 
@@ -2523,6 +2523,7 @@ import (
         "github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock"
         "github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm"
         rpmostree "github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree"
+        "github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils"
         "gopkg.in/yaml.v3"
         corev1 "k8s.io/api/core/v1"
         metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -2552,39 +2553,43 @@ type daemon struct {
 }
 
 // Create a new daemon
-func NewDaemon(cfg *config.Config) (*daemon, error) <span class="cov0" title="0">{
+func NewDaemon(cfg *config.Config) (*daemon, error) <span class="cov8" title="1">{
         fleetlockClient, err := fleetlock.NewClient(cfg.Fleetlock.URL, cfg.Fleetlock.Group)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return nil, fmt.Errorf("failed to create fleetlock client: %v", err)
         }</span>
 
-        <span class="cov0" title="0">rpmOstreeCMD, err := rpmostree.New(cfg.RPMOStreePath)
-        if err != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">rpmOstreeCMD, err := rpmostree.New(cfg.RPMOStreePath)
+        if err != nil </span><span class="cov8" title="1">{
                 return nil, fmt.Errorf("failed to create rpm-ostree cmd wrapper: %v", err)
         }</span>
-        <span class="cov0" title="0">kubeadmCMD, err := kubeadm.New(cfg.KubeadmPath)
-        if err != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">kubeadmCMD, err := kubeadm.New(cfg.KubeadmPath)
+        if err != nil </span><span class="cov8" title="1">{
                 return nil, fmt.Errorf("failed to create kubeadm cmd wrapper: %v", err)
         }</span>
 
-        <span class="cov0" title="0">if cfg.Kubeconfig == "" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if cfg.Kubeconfig == "" </span><span class="cov8" title="1">{
                 return nil, fmt.Errorf("no kubeconfig provided")
         }</span>
-        <span class="cov0" title="0">config, err := clientcmd.BuildConfigFromFlags("", cfg.Kubeconfig)
-        if err != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">config, err := clientcmd.BuildConfigFromFlags("", cfg.Kubeconfig)
+        if err != nil </span><span class="cov8" title="1">{
                 return nil, fmt.Errorf("failed to read kubeconfig: %v", err)
         }</span>
-        <span class="cov0" title="0">kubeClient, err := kubernetes.NewForConfig(config)
+        <span class="cov8" title="1">kubeClient, err := kubernetes.NewForConfig(config)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("failed to create kubernetes client: %v", err)
         }</span>
 
-        <span class="cov0" title="0">if cfg.Image == "" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if cfg.Image == "" </span><span class="cov8" title="1">{
                 return nil, fmt.Errorf("no image provided for kubernetes updates")
         }</span>
 
-        <span class="cov0" title="0">node, err := findNodeByMachineID(kubeClient)
+        <span class="cov8" title="1">machineID, err := utils.GetMachineID()
         if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to get machine-id: %v", err)
+        }</span>
+        <span class="cov8" title="1">node, err := findNodeByMachineID(kubeClient, machineID)
+        if err != nil </span><span class="cov8" title="1">{
                 return nil, fmt.Errorf("failed to get kubernetes node name for host: %v", err)
         }</span>
         <span class="cov0" title="0">slog.Info("Found node name for this host", slog.String("node", node))
@@ -2604,21 +2609,21 @@ func NewDaemon(cfg *config.Config) (*daemon, error) <span class="cov0" title="0"
 }
 
 // Retries the given function until it succeeds
-func (d *daemon) retry(f func() bool) <span class="cov0" title="0">{
-        for !f() </span><span class="cov0" title="0">{
+func (d *daemon) retry(f func() bool) <span class="cov8" title="1">{
+        for !f() </span><span class="cov8" title="1">{
                 select </span>{
                 case &lt;-d.ctx.Done():<span class="cov0" title="0">
                         return</span>
-                case &lt;-time.After(d.retryInterval):<span class="cov0" title="0"></span>
+                case &lt;-time.After(d.retryInterval):<span class="cov8" title="1"></span>
                 }
         }
 }
 
 // Will try to release the lock until successfull
-func (d *daemon) releaseLock() <span class="cov0" title="0">{
-        d.retry(func() bool </span><span class="cov0" title="0">{
+func (d *daemon) releaseLock() <span class="cov8" title="1">{
+        d.retry(func() bool </span><span class="cov8" title="1">{
                 err := d.fleetlock.Release()
-                if err == nil </span><span class="cov0" title="0">{
+                if err == nil </span><span class="cov8" title="1">{
                         return true
                 }</span>
 
@@ -2713,24 +2718,24 @@ func (d *daemon) watchForUpgrade() <span class="cov0" title="0">{
 }
 
 // Perform rpm-ostree upgrade
-func (d *daemon) doUpgrade() error <span class="cov0" title="0">{
+func (d *daemon) doUpgrade() error <span class="cov8" title="1">{
         d.upgrade.Lock()
         defer d.upgrade.Unlock()
 
         err := d.fleetlock.Lock()
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return fmt.Errorf("failed to aquire lock: %v", err)
         }</span>
 
-        <span class="cov0" title="0">err = d.rpmostree.Upgrade()
-        if err != nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">err = d.rpmostree.Upgrade()
+        if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
 
         // This should not be reached, as rpmostree.Upgrade() reboots the node on success.
         // I included it here mainly for completness sake.
 
-        <span class="cov0" title="0">d.releaseLock()
+        <span class="cov8" title="1">d.releaseLock()
         return nil</span>
 }
 
@@ -2851,21 +2856,21 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov0" title
 }
 
 // Update the kube-upgrade node status annotation with the given status
-func (d *daemon) updateNodeStatus(status string) error <span class="cov0" title="0">{
+func (d *daemon) updateNodeStatus(status string) error <span class="cov8" title="1">{
         node, err := d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
-        <span class="cov0" title="0">if node.Annotations == nil </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if node.Annotations == nil </span><span class="cov8" title="1">{
                 node.Annotations = make(map[string]string)
         }</span>
-        <span class="cov0" title="0">node.Annotations[constants.KubernetesUpgradeStatus] = status
+        <span class="cov8" title="1">node.Annotations[constants.KubernetesUpgradeStatus] = status
 
         _, err = d.client.CoreV1().Nodes().Update(d.ctx, node, metav1.UpdateOptions{})
-        if err == nil </span><span class="cov0" title="0">{
+        if err == nil </span><span class="cov8" title="1">{
                 slog.Debug("Set node status", slog.String("status", status))
         }</span>
-        <span class="cov0" title="0">return err</span>
+        <span class="cov8" title="1">return err</span>
 }
 </pre>
 		
@@ -2877,26 +2882,20 @@ import (
         "log/slog"
 
         "github.com/heathcliff26/kube-upgrade/pkg/constants"
-        "github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils"
         corev1 "k8s.io/api/core/v1"
         metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
         "k8s.io/client-go/kubernetes"
 )
 
-// Find the node by the current machineID of this machine
-func findNodeByMachineID(client kubernetes.Interface) (string, error) <span class="cov0" title="0">{
-        machineID, err := utils.GetMachineID()
-        if err != nil </span><span class="cov0" title="0">{
+// Find the node by it's machine ID
+func findNodeByMachineID(client kubernetes.Interface, machineID string) (string, error) <span class="cov8" title="1">{
+        nodes, err := client.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
+        if err != nil </span><span class="cov8" title="1">{
                 return "", err
         }</span>
 
-        <span class="cov0" title="0">nodes, err := client.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
-        if err != nil </span><span class="cov0" title="0">{
-                return "", err
-        }</span>
-
-        <span class="cov0" title="0">for _, node := range nodes.Items </span><span class="cov0" title="0">{
-                if node.Status.NodeInfo.MachineID == machineID </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">for _, node := range nodes.Items </span><span class="cov8" title="1">{
+                if node.Status.NodeInfo.MachineID == machineID </span><span class="cov8" title="1">{
                         return node.GetName(), nil
                 }</span>
         }
@@ -2905,19 +2904,19 @@ func findNodeByMachineID(client kubernetes.Interface) (string, error) <span clas
 }
 
 // Check if the node needs to upgrade it's kubernetes version
-func nodeNeedsUpgrade(node *corev1.Node) bool <span class="cov0" title="0">{
-        if node.Annotations == nil </span><span class="cov0" title="0">{
+func nodeNeedsUpgrade(node *corev1.Node) bool <span class="cov8" title="1">{
+        if node.Annotations == nil </span><span class="cov8" title="1">{
                 return false
         }</span>
-        <span class="cov0" title="0">status := node.Annotations[constants.KubernetesUpgradeStatus]
-        if status == constants.NodeUpgradeStatusCompleted </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">status := node.Annotations[constants.KubernetesUpgradeStatus]
+        if status == constants.NodeUpgradeStatusCompleted </span><span class="cov8" title="1">{
                 return false
         }</span>
-        <span class="cov0" title="0">if _, ok := node.Annotations[constants.KubernetesVersionAnnotation]; !ok </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if _, ok := node.Annotations[constants.KubernetesVersionAnnotation]; !ok </span><span class="cov8" title="1">{
                 slog.Warn("Missing version annotation on node", slog.String("node", node.GetName()), slog.String("annotation", constants.KubernetesVersionAnnotation))
                 return false
         }</span>
-        <span class="cov0" title="0">return true</span>
+        <span class="cov8" title="1">return true</span>
 }
 </pre>
 		
@@ -2937,17 +2936,17 @@ type FleetlockClient struct {
 }
 
 // Create a new client for fleetlock
-func NewClient(url, group string) (*FleetlockClient, error) <span class="cov0" title="0">{
-        if url == "" || group == "" </span><span class="cov0" title="0">{
+func NewClient(url, group string) (*FleetlockClient, error) <span class="cov8" title="1">{
+        if url == "" || group == "" </span><span class="cov8" title="1">{
                 return nil, fmt.Errorf("at least one of the required parameters is empty")
         }</span>
 
-        <span class="cov0" title="0">appID, err := GetZincateAppID()
+        <span class="cov8" title="1">appID, err := GetZincateAppID()
         if err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("failed to create zincati app id: %v", err)
         }</span>
 
-        <span class="cov0" title="0">return &amp;FleetlockClient{
+        <span class="cov8" title="1">return &amp;FleetlockClient{
                 url:   url,
                 group: group,
                 appID: appID,
@@ -2955,50 +2954,50 @@ func NewClient(url, group string) (*FleetlockClient, error) <span class="cov0" t
 }
 
 // Aquire a lock for this machine
-func (c *FleetlockClient) Lock() error <span class="cov0" title="0">{
+func (c *FleetlockClient) Lock() error <span class="cov8" title="1">{
         ok, res, err := c.doRequest("/v1/pre-reboot")
         if err != nil </span><span class="cov0" title="0">{
                 return err
-        }</span> else<span class="cov0" title="0"> if ok </span><span class="cov0" title="0">{
+        }</span> else<span class="cov8" title="1"> if ok </span><span class="cov8" title="1">{
                 return nil
         }</span>
-        <span class="cov0" title="0">return fmt.Errorf("failed to aquire lock kind=\"%s\" reason=\"%s\"", res.Kind, res.Value)</span>
+        <span class="cov8" title="1">return fmt.Errorf("failed to aquire lock kind=\"%s\" reason=\"%s\"", res.Kind, res.Value)</span>
 }
 
 // Release the hold lock
-func (c *FleetlockClient) Release() error <span class="cov0" title="0">{
+func (c *FleetlockClient) Release() error <span class="cov8" title="1">{
         ok, res, err := c.doRequest("/v1/steady-state")
         if err != nil </span><span class="cov0" title="0">{
                 return err
-        }</span> else<span class="cov0" title="0"> if ok </span><span class="cov0" title="0">{
+        }</span> else<span class="cov8" title="1"> if ok </span><span class="cov8" title="1">{
                 return nil
         }</span>
-        <span class="cov0" title="0">return fmt.Errorf("failed to release lock kind=\"%s\" reason=\"%s\"", res.Kind, res.Value)</span>
+        <span class="cov8" title="1">return fmt.Errorf("failed to release lock kind=\"%s\" reason=\"%s\"", res.Kind, res.Value)</span>
 }
 
-func (c *FleetlockClient) doRequest(path string) (bool, client.FleetLockResponse, error) <span class="cov0" title="0">{
+func (c *FleetlockClient) doRequest(path string) (bool, client.FleetLockResponse, error) <span class="cov8" title="1">{
         body, err := client.PrepareRequest(c.group, c.appID)
         if err != nil </span><span class="cov0" title="0">{
-                return false, client.FleetLockResponse{}, fmt.Errorf("Failed to prepare request body: %v", err)
+                return false, client.FleetLockResponse{}, fmt.Errorf("failed to prepare request body: %v", err)
         }</span>
-        <span class="cov0" title="0">req, err := http.NewRequest(http.MethodPost, c.url+path, body)
+        <span class="cov8" title="1">req, err := http.NewRequest(http.MethodPost, c.url+path, body)
         if err != nil </span><span class="cov0" title="0">{
-                return false, client.FleetLockResponse{}, fmt.Errorf("Failed to create http post request: %v", err)
+                return false, client.FleetLockResponse{}, fmt.Errorf("failed to create http post request: %v", err)
         }</span>
-        <span class="cov0" title="0">req.Header.Set("fleet-lock-protocol", "true")
+        <span class="cov8" title="1">req.Header.Set("fleet-lock-protocol", "true")
         req.Header.Set("Content-Type", "application/json")
 
         res, err := http.DefaultClient.Do(req)
         if err != nil </span><span class="cov0" title="0">{
-                return false, client.FleetLockResponse{}, fmt.Errorf("Failed to send request to server: %v", err)
+                return false, client.FleetLockResponse{}, fmt.Errorf("failed to send request to server: %v", err)
         }</span>
 
-        <span class="cov0" title="0">resBody, err := client.ParseResponse(res.Body)
+        <span class="cov8" title="1">resBody, err := client.ParseResponse(res.Body)
         if err != nil </span><span class="cov0" title="0">{
-                return false, client.FleetLockResponse{}, fmt.Errorf("Failed to prepare request body: %v", err)
+                return false, client.FleetLockResponse{}, fmt.Errorf("failed to prepare response body: %v", err)
         }</span>
 
-        <span class="cov0" title="0">return res.StatusCode == http.StatusOK, resBody, nil</span>
+        <span class="cov8" title="1">return res.StatusCode == http.StatusOK, resBody, nil</span>
 }
 </pre>
 		
@@ -3010,17 +3009,17 @@ import (
 )
 
 // Find the machine-id of the current node and generate a zincati appID from it.
-func GetZincateAppID() (string, error) <span class="cov0" title="0">{
+func GetZincateAppID() (string, error) <span class="cov8" title="1">{
         machineID, err := utils.GetMachineID()
         if err != nil </span><span class="cov0" title="0">{
                 return "", err
         }</span>
 
-        <span class="cov0" title="0">appID, err := systemdutils.ZincatiMachineID(machineID)
+        <span class="cov8" title="1">appID, err := systemdutils.ZincatiMachineID(machineID)
         if err != nil </span><span class="cov0" title="0">{
                 return "", err
         }</span>
-        <span class="cov0" title="0">return appID, nil</span>
+        <span class="cov8" title="1">return appID, nil</span>
 }
 </pre>
 		
@@ -3038,19 +3037,19 @@ type KubeadmCMD struct {
 }
 
 // Create a new wrapper for kubeadm
-func New(path string) (*KubeadmCMD, error) <span class="cov0" title="0">{
+func New(path string) (*KubeadmCMD, error) <span class="cov8" title="1">{
         err := utils.CheckExistsAndIsExecutable(path)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">return &amp;KubeadmCMD{
+        <span class="cov8" title="1">return &amp;KubeadmCMD{
                 binary: path,
         }, nil</span>
 }
 
 // Run kubeadm upgrade apply
-func (k *KubeadmCMD) Apply(version string) error <span class="cov0" title="0">{
+func (k *KubeadmCMD) Apply(version string) error <span class="cov8" title="1">{
         k.mutex.Lock()
         defer k.mutex.Unlock()
 
@@ -3167,19 +3166,19 @@ type RPMOStreeCMD struct {
 }
 
 // Create a new wrapper for rpm-ostree
-func New(path string) (*RPMOStreeCMD, error) <span class="cov0" title="0">{
+func New(path string) (*RPMOStreeCMD, error) <span class="cov8" title="1">{
         err := utils.CheckExistsAndIsExecutable(path)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">return &amp;RPMOStreeCMD{
+        <span class="cov8" title="1">return &amp;RPMOStreeCMD{
                 binary: path,
         }, nil</span>
 }
 
 // Run rpm-ostree and check for new updates
-func (r *RPMOStreeCMD) CheckForUpgrade() (bool, error) <span class="cov0" title="0">{
+func (r *RPMOStreeCMD) CheckForUpgrade() (bool, error) <span class="cov8" title="1">{
         r.mutex.Lock()
         defer r.mutex.Unlock()
 
@@ -3189,16 +3188,16 @@ func (r *RPMOStreeCMD) CheckForUpgrade() (bool, error) <span class="cov0" title=
         if !ok &amp;&amp; err != nil </span><span class="cov0" title="0">{
                 fmt.Println(string(out))
                 return false, err
-        }</span> else<span class="cov0" title="0"> if err == nil </span><span class="cov0" title="0">{
+        }</span> else<span class="cov8" title="1"> if err == nil </span><span class="cov8" title="1">{
                 code = 0
         }</span>
 
-        <span class="cov0" title="0">switch code </span>{
-        case 0:<span class="cov0" title="0">
+        <span class="cov8" title="1">switch code </span>{
+        case 0:<span class="cov8" title="1">
                 return true, nil</span>
-        case 77:<span class="cov0" title="0">
+        case 77:<span class="cov8" title="1">
                 return false, nil</span>
-        default:<span class="cov0" title="0">
+        default:<span class="cov8" title="1">
                 fmt.Println(string(out))
                 return false, fmt.Errorf("rpm-ostree exited with unknown exit code %d", code)</span>
         }
@@ -3207,7 +3206,7 @@ func (r *RPMOStreeCMD) CheckForUpgrade() (bool, error) <span class="cov0" title=
 // Upgrade the system using rpm-ostree. Writes command output to stdout/stderr.
 //
 // WARNING: Will reboot the system when successfull.
-func (r *RPMOStreeCMD) Upgrade() error <span class="cov0" title="0">{
+func (r *RPMOStreeCMD) Upgrade() error <span class="cov8" title="1">{
         r.mutex.Lock()
         defer r.mutex.Unlock()
 
@@ -3217,7 +3216,7 @@ func (r *RPMOStreeCMD) Upgrade() error <span class="cov0" title="0">{
 // Rebases the system to the given container image
 //
 // WARNING: Will reboot the system when successfull.
-func (r *RPMOStreeCMD) Rebase(image string) error <span class="cov0" title="0">{
+func (r *RPMOStreeCMD) Rebase(image string) error <span class="cov8" title="1">{
         r.mutex.Lock()
         defer r.mutex.Unlock()
 
@@ -3232,11 +3231,11 @@ import (
 )
 
 // Try to extract the exit code from the error.
-func getExitCode(err error) (int, bool) <span class="cov0" title="0">{
-        if exiterr, ok := err.(*exec.ExitError); ok </span><span class="cov0" title="0">{
+func getExitCode(err error) (int, bool) <span class="cov8" title="1">{
+        if exiterr, ok := err.(*exec.ExitError); ok </span><span class="cov8" title="1">{
                 return exiterr.ExitCode(), true
         }</span>
-        <span class="cov0" title="0">return 0, false</span>
+        <span class="cov8" title="1">return 0, false</span>
 }
 </pre>
 		
@@ -3250,17 +3249,17 @@ import (
 )
 
 // Read the machine-id from /etc/machine-id
-func GetMachineID() (string, error) <span class="cov0" title="0">{
+func GetMachineID() (string, error) <span class="cov8" title="1">{
         b, err := os.ReadFile("/etc/machine-id")
         if err != nil </span><span class="cov0" title="0">{
                 return "", err
         }</span>
-        <span class="cov0" title="0">machineID := strings.TrimRight(string(b), "\r\n")
+        <span class="cov8" title="1">machineID := strings.TrimRight(string(b), "\r\n")
         return machineID, nil</span>
 }
 
 // Create a command that writes to stdout/stderr
-func CreateCMDWithStdout(name string, arg ...string) *exec.Cmd <span class="cov0" title="0">{
+func CreateCMDWithStdout(name string, arg ...string) *exec.Cmd <span class="cov8" title="1">{
         cmd := exec.Command(name, arg...)
         cmd.Stderr = os.Stderr
         cmd.Stdout = os.Stdout
@@ -3268,15 +3267,15 @@ func CreateCMDWithStdout(name string, arg ...string) *exec.Cmd <span class="cov0
 }</span>
 
 // Check if the given file exists and is executable
-func CheckExistsAndIsExecutable(path string) error <span class="cov0" title="0">{
+func CheckExistsAndIsExecutable(path string) error <span class="cov8" title="1">{
         f, err := os.Stat(path)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
-        <span class="cov0" title="0">if f.Mode().Perm()&amp;0100 == 0 </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if f.Mode().Perm()&amp;0100 == 0 </span><span class="cov8" title="1">{
                 return fmt.Errorf("%s is not an executable", path)
         }</span>
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov8" title="1">return nil</span>
 }
 </pre>
 		
