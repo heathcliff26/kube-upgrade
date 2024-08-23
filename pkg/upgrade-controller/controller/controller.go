@@ -145,6 +145,8 @@ func (c *controller) reconcile(ctx context.Context, plan *v1alpha1.KubeUpgradePl
 
 		if update {
 			nodesToUpdate[name] = nodes
+		} else if plan.Status.Groups[name] != newGroupStatus[name] {
+			logger.WithValues("group", name, "status", newGroupStatus[name]).Info("Group changed status")
 		}
 	}
 
