@@ -56,23 +56,23 @@ func (c *FleetlockClient) Release() error {
 func (c *FleetlockClient) doRequest(path string) (bool, client.FleetLockResponse, error) {
 	body, err := client.PrepareRequest(c.group, c.appID)
 	if err != nil {
-		return false, client.FleetLockResponse{}, fmt.Errorf("Failed to prepare request body: %v", err)
+		return false, client.FleetLockResponse{}, fmt.Errorf("failed to prepare request body: %v", err)
 	}
 	req, err := http.NewRequest(http.MethodPost, c.url+path, body)
 	if err != nil {
-		return false, client.FleetLockResponse{}, fmt.Errorf("Failed to create http post request: %v", err)
+		return false, client.FleetLockResponse{}, fmt.Errorf("failed to create http post request: %v", err)
 	}
 	req.Header.Set("fleet-lock-protocol", "true")
 	req.Header.Set("Content-Type", "application/json")
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return false, client.FleetLockResponse{}, fmt.Errorf("Failed to send request to server: %v", err)
+		return false, client.FleetLockResponse{}, fmt.Errorf("failed to send request to server: %v", err)
 	}
 
 	resBody, err := client.ParseResponse(res.Body)
 	if err != nil {
-		return false, client.FleetLockResponse{}, fmt.Errorf("Failed to prepare request body: %v", err)
+		return false, client.FleetLockResponse{}, fmt.Errorf("failed to prepare response body: %v", err)
 	}
 
 	return res.StatusCode == http.StatusOK, resBody, nil

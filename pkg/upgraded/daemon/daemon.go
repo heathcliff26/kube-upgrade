@@ -15,6 +15,7 @@ import (
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock"
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm"
 	rpmostree "github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree"
+	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -75,7 +76,11 @@ func NewDaemon(cfg *config.Config) (*daemon, error) {
 		return nil, fmt.Errorf("no image provided for kubernetes updates")
 	}
 
-	node, err := findNodeByMachineID(kubeClient)
+	machineID, err := utils.GetMachineID()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get machine-id: %v", err)
+	}
+	node, err := findNodeByMachineID(kubeClient, machineID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get kubernetes node name for host: %v", err)
 	}

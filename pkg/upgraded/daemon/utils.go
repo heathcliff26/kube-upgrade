@@ -6,19 +6,13 @@ import (
 	"log/slog"
 
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
-	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
-// Find the node by the current machineID of this machine
-func findNodeByMachineID(client kubernetes.Interface) (string, error) {
-	machineID, err := utils.GetMachineID()
-	if err != nil {
-		return "", err
-	}
-
+// Find the node by it's machine ID
+func findNodeByMachineID(client kubernetes.Interface, machineID string) (string, error) {
 	nodes, err := client.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		return "", err

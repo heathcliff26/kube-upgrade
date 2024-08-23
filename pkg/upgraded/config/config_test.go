@@ -90,6 +90,15 @@ func TestInvalidConfigs(t *testing.T) {
 	assert.Equal(NewErrUnknownLogLevel("not-a-log-level"), err)
 }
 
+func TestWrongFile(t *testing.T) {
+	cfg, err := LoadConfig("testdata/not-yaml.txt")
+
+	assert := assert.New(t)
+
+	assert.Nil(cfg)
+	assert.Error(err)
+}
+
 func TestDefaultConfigPath(t *testing.T) {
 	c, err := LoadConfig("")
 
