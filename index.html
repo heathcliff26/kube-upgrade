@@ -107,7 +107,7 @@
 				
 				<option value="file25">github.com/heathcliff26/kube-upgrade/pkg/client/listers/kubeupgrade/v1alpha1/kubeupgradeplan.go (0.0%)</option>
 				
-				<option value="file26">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (53.4%)</option>
+				<option value="file26">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (54.4%)</option>
 				
 				<option value="file27">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/errors.go (50.0%)</option>
 				
@@ -2141,6 +2141,8 @@ func (c *controller) reconcile(ctx context.Context, plan *v1alpha1.KubeUpgradePl
 
                 if update </span><span class="cov8" title="1">{
                         nodesToUpdate[name] = nodes
+                }</span> else<span class="cov8" title="1"> if plan.Status.Groups[name] != newGroupStatus[name] </span><span class="cov8" title="1">{
+                        logger.WithValues("group", name, "status", newGroupStatus[name]).Info("Group changed status")
                 }</span>
         }
 
