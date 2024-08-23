@@ -109,6 +109,14 @@ func TestReconcile(t *testing.T) {
 						},
 					},
 				},
+				Status: v1alpha1.KubeUpgradeStatus{
+					Summary: v1alpha1.PlanStatusProgressing,
+					Groups: map[string]string{
+						groupControl: v1alpha1.PlanStatusProgressing,
+						groupCompute: v1alpha1.PlanStatusWaiting,
+						groupInfra:   v1alpha1.PlanStatusWaiting,
+					},
+				},
 			},
 			AnnotationsControl: map[string]string{
 				constants.KubernetesVersionAnnotation: "v1.31.0",
@@ -155,6 +163,14 @@ func TestReconcile(t *testing.T) {
 								groupLabel: groupInfra,
 							},
 						},
+					},
+				},
+				Status: v1alpha1.KubeUpgradeStatus{
+					Summary: v1alpha1.PlanStatusProgressing,
+					Groups: map[string]string{
+						groupControl: v1alpha1.PlanStatusComplete,
+						groupCompute: v1alpha1.PlanStatusWaiting,
+						groupInfra:   v1alpha1.PlanStatusProgressing,
 					},
 				},
 			},
@@ -213,6 +229,14 @@ func TestReconcile(t *testing.T) {
 						},
 					},
 				},
+				Status: v1alpha1.KubeUpgradeStatus{
+					Summary: v1alpha1.PlanStatusProgressing,
+					Groups: map[string]string{
+						groupControl: v1alpha1.PlanStatusComplete,
+						groupCompute: v1alpha1.PlanStatusProgressing,
+						groupInfra:   v1alpha1.PlanStatusComplete,
+					},
+				},
 			},
 			AnnotationsControl: map[string]string{
 				constants.KubernetesVersionAnnotation: "v1.31.0",
@@ -245,6 +269,162 @@ func TestReconcile(t *testing.T) {
 				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 		},
+		{
+			Name: "NewUpdate",
+			Plan: v1alpha1.KubeUpgradePlan{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "upgrade-plan",
+				},
+				Spec: v1alpha1.KubeUpgradeSpec{
+					KubernetesVersion: "v1.31.0",
+					Groups: map[string]v1alpha1.KubeUpgradePlanGroup{
+						"control": {
+							Labels: map[string]string{
+								groupLabel: groupControl,
+							},
+						},
+						"compute": {
+							DependsOn: []string{"control"},
+							Labels: map[string]string{
+								groupLabel: groupCompute,
+							},
+						},
+					},
+				},
+				Status: v1alpha1.KubeUpgradeStatus{
+					Summary: v1alpha1.PlanStatusComplete,
+					Groups: map[string]string{
+						groupControl: v1alpha1.PlanStatusComplete,
+						groupCompute: v1alpha1.PlanStatusComplete,
+					},
+				},
+			},
+			AnnotationsControl: map[string]string{
+				constants.KubernetesVersionAnnotation: "v1.30.4",
+				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+			},
+			AnnotationsCompute: map[string]string{
+				constants.KubernetesVersionAnnotation: "v1.30.4",
+				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+			},
+			ExpectedSummary: v1alpha1.PlanStatusProgressing,
+			ExpectedGroupStatus: map[string]string{
+				groupControl: v1alpha1.PlanStatusProgressing,
+				groupCompute: v1alpha1.PlanStatusWaiting,
+			},
+			ExpectedAnnotationsControl: map[string]string{
+				constants.KubernetesVersionAnnotation: "v1.31.0",
+				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusPending,
+			},
+			ExpectedAnnotationsCompute: map[string]string{
+				constants.KubernetesVersionAnnotation: "v1.30.4",
+				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+			},
+		},
+		{
+			Name: "Update2ndReconcile",
+			Plan: v1alpha1.KubeUpgradePlan{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "upgrade-plan",
+				},
+				Spec: v1alpha1.KubeUpgradeSpec{
+					KubernetesVersion: "v1.31.0",
+					Groups: map[string]v1alpha1.KubeUpgradePlanGroup{
+						"control": {
+							Labels: map[string]string{
+								groupLabel: groupControl,
+							},
+						},
+						"compute": {
+							DependsOn: []string{"control"},
+							Labels: map[string]string{
+								groupLabel: groupCompute,
+							},
+						},
+					},
+				},
+				Status: v1alpha1.KubeUpgradeStatus{
+					Summary: v1alpha1.PlanStatusProgressing,
+					Groups: map[string]string{
+						groupControl: v1alpha1.PlanStatusProgressing,
+						groupCompute: v1alpha1.PlanStatusWaiting,
+					},
+				},
+			},
+			AnnotationsControl: map[string]string{
+				constants.KubernetesVersionAnnotation: "v1.31.0",
+				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+			},
+			AnnotationsCompute: map[string]string{
+				constants.KubernetesVersionAnnotation: "v1.30.4",
+				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+			},
+			ExpectedSummary: v1alpha1.PlanStatusProgressing,
+			ExpectedGroupStatus: map[string]string{
+				groupControl: v1alpha1.PlanStatusComplete,
+				groupCompute: v1alpha1.PlanStatusProgressing,
+			},
+			ExpectedAnnotationsControl: map[string]string{
+				constants.KubernetesVersionAnnotation: "v1.31.0",
+				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+			},
+			ExpectedAnnotationsCompute: map[string]string{
+				constants.KubernetesVersionAnnotation: "v1.31.0",
+				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusPending,
+			},
+		},
+		{
+			Name: "Update3rdReconcile",
+			Plan: v1alpha1.KubeUpgradePlan{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "upgrade-plan",
+				},
+				Spec: v1alpha1.KubeUpgradeSpec{
+					KubernetesVersion: "v1.31.0",
+					Groups: map[string]v1alpha1.KubeUpgradePlanGroup{
+						"control": {
+							Labels: map[string]string{
+								groupLabel: groupControl,
+							},
+						},
+						"compute": {
+							DependsOn: []string{"control"},
+							Labels: map[string]string{
+								groupLabel: groupCompute,
+							},
+						},
+					},
+				},
+				Status: v1alpha1.KubeUpgradeStatus{
+					Summary: v1alpha1.PlanStatusProgressing,
+					Groups: map[string]string{
+						groupControl: v1alpha1.PlanStatusComplete,
+						groupCompute: v1alpha1.PlanStatusProgressing,
+					},
+				},
+			},
+			AnnotationsControl: map[string]string{
+				constants.KubernetesVersionAnnotation: "v1.31.0",
+				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+			},
+			AnnotationsCompute: map[string]string{
+				constants.KubernetesVersionAnnotation: "v1.31.0",
+				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+			},
+			ExpectedSummary: v1alpha1.PlanStatusComplete,
+			ExpectedGroupStatus: map[string]string{
+				groupControl: v1alpha1.PlanStatusComplete,
+				groupCompute: v1alpha1.PlanStatusComplete,
+			},
+			ExpectedAnnotationsControl: map[string]string{
+				constants.KubernetesVersionAnnotation: "v1.31.0",
+				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+			},
+			ExpectedAnnotationsCompute: map[string]string{
+				constants.KubernetesVersionAnnotation: "v1.31.0",
+				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+			},
+		},
 	}
 
 	for _, tCase := range tMatrix {
@@ -253,13 +433,10 @@ func TestReconcile(t *testing.T) {
 
 			assert := assert.New(t)
 
-			// TODO: Consider changing controller to re-check waiting groups multiple times
-			for i := range 5 {
-				err := c.reconcile(context.Background(), &tCase.Plan, klog.NewKlogr())
+			err := c.reconcile(context.Background(), &tCase.Plan, klog.NewKlogr())
 
-				if !assert.NoErrorf(err, "Reconcile should succeed on i=%d", i) {
-					t.FailNow()
-				}
+			if !assert.NoError(err, "Reconcile should succeed") {
+				t.FailNow()
 			}
 
 			assert.Equal(tCase.ExpectedSummary, tCase.Plan.Status.Summary, "Summary should be correct")

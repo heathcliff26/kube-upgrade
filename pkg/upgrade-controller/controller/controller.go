@@ -123,14 +123,11 @@ func (c *controller) reconcile(ctx context.Context, plan *v1alpha1.KubeUpgradePl
 		plan.Status.Groups = make(map[string]string, len(plan.Spec.Groups))
 	}
 
-	for name, cfg := range plan.Spec.Groups {
-		if groupWaitForDependency(cfg.DependsOn, plan.Status.Groups) {
-			logger.WithValues("group", name).Info("Group is waiting on dependencies")
-			plan.Status.Groups[name] = v1alpha1.PlanStatusWaiting
-			continue
-		}
+	nodesToUpdate := make(map[string][]corev1.Node, len(plan.Spec.Groups))
+	newGroupStatus := make(map[string]string, len(plan.Spec.Groups))
 
-		nodes, err := c.nodes.List(ctx, metav1.ListOptions{
+	for name, cfg := range plan.Spec.Groups {
+		nodeList, err := c.nodes.List(ctx, metav1.ListOptions{
 			LabelSelector: labels.SelectorFromSet(cfg.Labels).String(),
 		})
 		if err != nil {
@@ -138,50 +135,67 @@ func (c *controller) reconcile(ctx context.Context, plan *v1alpha1.KubeUpgradePl
 			return err
 		}
 
-		status, err := c.reconcileNodes(ctx, plan.Spec.KubernetesVersion, nodes.Items)
+		status, update, nodes, err := c.reconcileNodes(plan.Spec.KubernetesVersion, nodeList.Items)
 		if err != nil {
 			logger.WithValues("group", name).Error(err, "Failed to reconcile nodes for group")
 			return err
 		}
 
-		if plan.Status.Groups[name] != status {
-			logger.WithValues("group", name, "status", status).Info("Group changed status")
-			plan.Status.Groups[name] = status
+		newGroupStatus[name] = status
+
+		if update {
+			nodesToUpdate[name] = nodes
 		}
 	}
 
+	for name, nodes := range nodesToUpdate {
+		if groupWaitForDependency(plan.Spec.Groups[name].DependsOn, newGroupStatus) {
+			logger.WithValues("group", name).Info("Group is waiting on dependencies")
+			newGroupStatus[name] = v1alpha1.PlanStatusWaiting
+			continue
+		} else if plan.Status.Groups[name] != newGroupStatus[name] {
+			logger.WithValues("group", name, "status", newGroupStatus[name]).Info("Group changed status")
+		}
+
+		for _, node := range nodes {
+			_, err := c.nodes.Update(ctx, &node, metav1.UpdateOptions{})
+			if err != nil {
+				return fmt.Errorf("failed to update node %s: %v", node.GetName(), err)
+			}
+		}
+	}
+
+	plan.Status.Groups = newGroupStatus
 	plan.Status.Summary = createStatusSummary(plan.Status.Groups)
 
 	return nil
 }
 
-func (c *controller) reconcileNodes(ctx context.Context, kubeVersion string, nodes []corev1.Node) (string, error) {
+func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node) (string, bool, []corev1.Node, error) {
 	if len(nodes) == 0 {
-		return v1alpha1.PlanStatusUnknown, nil
+		return v1alpha1.PlanStatusUnknown, false, nil, nil
 	}
 
 	completed := true
+	needUpdate := false
 
-	for _, node := range nodes {
-		if node.Annotations == nil {
-			node.Annotations = make(map[string]string)
+	for i := range nodes {
+		if nodes[i].Annotations == nil {
+			nodes[i].Annotations = make(map[string]string)
 		}
 
-		if node.Annotations[constants.KubernetesVersionAnnotation] == kubeVersion {
-			if node.Annotations[constants.KubernetesUpgradeStatus] != constants.NodeUpgradeStatusCompleted {
+		if nodes[i].Annotations[constants.KubernetesVersionAnnotation] == kubeVersion {
+			if nodes[i].Annotations[constants.KubernetesUpgradeStatus] != constants.NodeUpgradeStatusCompleted {
 				completed = false
 			}
 			continue
 		}
 
 		completed = false
-		node.Annotations[constants.KubernetesVersionAnnotation] = kubeVersion
-		node.Annotations[constants.KubernetesUpgradeStatus] = constants.NodeUpgradeStatusPending
+		nodes[i].Annotations[constants.KubernetesVersionAnnotation] = kubeVersion
+		nodes[i].Annotations[constants.KubernetesUpgradeStatus] = constants.NodeUpgradeStatusPending
 
-		_, err := c.nodes.Update(ctx, &node, metav1.UpdateOptions{})
-		if err != nil {
-			return "", fmt.Errorf("failed to update node %s: %v", node.GetName(), err)
-		}
+		needUpdate = true
 	}
 
 	var status string
@@ -190,5 +204,5 @@ func (c *controller) reconcileNodes(ctx context.Context, kubeVersion string, nod
 	} else {
 		status = v1alpha1.PlanStatusProgressing
 	}
-	return status, nil
+	return status, needUpdate, nodes, nil
 }
