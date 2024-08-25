@@ -25,7 +25,7 @@ func NewClient(url, group string) (*FleetlockClient, error) {
 	}
 
 	return &FleetlockClient{
-		url:   url,
+		url:   TrimTrailingSlash(url),
 		group: group,
 		appID: appID,
 	}, nil
