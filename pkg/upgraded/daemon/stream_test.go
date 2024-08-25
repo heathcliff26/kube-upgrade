@@ -51,6 +51,14 @@ func TestDoUpgrade(t *testing.T) {
 
 		assert.Error(err, "Should exit with error")
 	})
+	t.Run("MutexAlreadyHeld", func(t *testing.T) {
+		d := &daemon{}
+
+		d.upgrade.Lock()
+		t.Cleanup(d.upgrade.Unlock)
+
+		assert.NoError(t, d.doUpgrade(), "Should simply exit without doing anything")
+	})
 	// This case is kinda scetchy, as in reality the system would reboot on success, thus the method should never return
 	t.Run("Success", func(t *testing.T) {
 		assert := assert.New(t)

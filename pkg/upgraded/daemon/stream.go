@@ -46,7 +46,11 @@ func (d *daemon) watchForUpgrade() {
 
 // Perform rpm-ostree upgrade
 func (d *daemon) doUpgrade() error {
-	d.upgrade.Lock()
+	// There should ever only be one upgrade at a time and any upgrade comes with a reboot anyway.
+	// So the best option here is to just silently return if the lock is already held.
+	if !d.upgrade.TryLock() {
+		return nil
+	}
 	defer d.upgrade.Unlock()
 
 	err := d.fleetlock.Lock()
