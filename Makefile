@@ -27,8 +27,11 @@ lint:
 generate: controller-gen
 	hack/generate.sh
 
-manifests:
+manifests: controller-gen
 	hack/manifests.sh
+
+validate: controller-gen
+	hack/validate.sh
 
 fmt:
 	gofmt -s -w ./cmd ./pkg
@@ -49,6 +52,7 @@ controller-gen:
 	lint \
 	generate \
 	manifests \
+	validate \
 	fmt \
 	clean \
 	controller-gen \

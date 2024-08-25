@@ -56,6 +56,12 @@ jobs:
   unit-tests:
     uses: heathcliff26/ci/.github/workflows/golang-unit-tests.yaml@main
 
+  validate:
+    uses: heathcliff26/ci/.github/workflows/golang-build.yaml@main
+    with:
+      cache: false
+      cmd: "make validate"
+
   build-daemon:
     uses: heathcliff26/ci/.github/workflows/golang-build.yaml@main
     needs:
@@ -96,6 +102,8 @@ jobs:
   build-manifests:
     uses: heathcliff26/ci/.github/workflows/golang-build.yaml@main
     if: ${{ github.event_name != 'pull_request' && github.event_name != 'merge_group' }}
+    needs:
+      - validate
     with:
       release: "${{ github.event_name == 'pull_request' && 'dev' || inputs.tag == '' && 'rolling' || inputs.tag }}"
       artifact: "manifests/release/*.yaml"
