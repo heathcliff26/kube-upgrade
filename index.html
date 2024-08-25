@@ -125,7 +125,7 @@
 				
 				<option value="file34">github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock/client.go (78.8%)</option>
 				
-				<option value="file35">github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock/utils.go (71.4%)</option>
+				<option value="file35">github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock/utils.go (81.8%)</option>
 				
 				<option value="file36">github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm/kubeadm.go (70.0%)</option>
 				
@@ -2949,7 +2949,7 @@ func NewClient(url, group string) (*FleetlockClient, error) <span class="cov8" t
         }</span>
 
         <span class="cov8" title="1">return &amp;FleetlockClient{
-                url:   url,
+                url:   TrimTrailingSlash(url),
                 group: group,
                 appID: appID,
         }, nil</span>
@@ -3006,8 +3006,11 @@ func (c *FleetlockClient) doRequest(path string) (bool, client.FleetLockResponse
 		<pre class="file" id="file35" style="display: none">package fleetlock
 
 import (
+        "strings"
+
         systemdutils "github.com/heathcliff26/fleetlock/pkg/systemd-utils"
         "github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils"
+        "k8s.io/klog/v2"
 )
 
 // Find the machine-id of the current node and generate a zincati appID from it.
@@ -3022,6 +3025,17 @@ func GetZincateAppID() (string, error) <span class="cov8" title="1">{
                 return "", err
         }</span>
         <span class="cov8" title="1">return appID, nil</span>
+}
+
+// When having // in a URL, it somehow converts the request from POST to GET.
+// See: https://github.com/golang/go/issues/69063
+// In general it could lead to unintended behaviour.
+func TrimTrailingSlash(url string) string <span class="cov8" title="1">{
+        res, found := strings.CutSuffix(url, "/")
+        if found </span><span class="cov8" title="1">{
+                klog.Warning("Removed trailing slash in URL, as this could lead to undefined behaviour")
+        }</span>
+        <span class="cov8" title="1">return res</span>
 }
 </pre>
 		
