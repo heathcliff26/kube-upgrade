@@ -67,7 +67,12 @@ func (d *daemon) checkNodeStatus(obj interface{}) {
 
 // Update the node by first rebasing to a new version and then upgrading kubernetes
 func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
-	d.upgrade.Lock()
+	// There should ever only be one upgrade at a time. However the listen method may trigger further events while this is happening, which would proceed here with outdated data.
+	// Updating the status would cost a kube-api call each time, which would get expensive fast.
+	// So the best option here is to just silently return if the lock is already held.
+	if !d.upgrade.TryLock() {
+		return nil
+	}
 	defer d.upgrade.Unlock()
 
 	version := node.Annotations[constants.KubernetesVersionAnnotation]
@@ -88,6 +93,8 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 		if err != nil {
 			return fmt.Errorf("failed to rebase node: %v", err)
 		}
+		// This return is here purely for testing, as a successfull rebase does not return, but instead reboots the system
+		return nil
 	}
 
 	slog.Info("Updating node via kubeadm")
