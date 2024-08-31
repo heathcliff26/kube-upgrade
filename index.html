@@ -2008,7 +2008,7 @@ import (
         "time"
 
         "github.com/go-logr/logr"
-        "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
+        api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
         "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/scheme"
         "github.com/heathcliff26/kube-upgrade/pkg/constants"
         corev1 "k8s.io/api/core/v1"
@@ -2086,7 +2086,7 @@ func NewController(name string) (*controller, error) <span class="cov8" title="1
 }
 
 func (c *controller) Run() error <span class="cov0" title="0">{
-        err := ctrl.NewControllerManagedBy(c.manager).For(&amp;v1alpha1.KubeUpgradePlan{}).Complete(c)
+        err := ctrl.NewControllerManagedBy(c.manager).For(&amp;api.KubeUpgradePlan{}).Complete(c)
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
@@ -2096,7 +2096,7 @@ func (c *controller) Run() error <span class="cov0" title="0">{
 func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) <span class="cov0" title="0">{
         logger := klog.LoggerWithValues(klog.NewKlogr(), "plan", req.Name)
 
-        var plan v1alpha1.KubeUpgradePlan
+        var plan api.KubeUpgradePlan
         err := c.Get(ctx, req.NamespacedName, &amp;plan)
         if err != nil </span><span class="cov0" title="0">{
                 logger.Error(err, "Failed to get Plan")
@@ -2115,12 +2115,12 @@ func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
         }</span>
 
         <span class="cov0" title="0">return ctrl.Result{
-                Requeue:      plan.Status.Summary != v1alpha1.PlanStatusComplete,
+                Requeue:      plan.Status.Summary != api.PlanStatusComplete,
                 RequeueAfter: time.Minute,
         }, nil</span>
 }
 
-func (c *controller) reconcile(ctx context.Context, plan *v1alpha1.KubeUpgradePlan, logger logr.Logger) error <span class="cov8" title="1">{
+func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, logger logr.Logger) error <span class="cov8" title="1">{
         if plan.Status.Groups == nil </span><span class="cov8" title="1">{
                 plan.Status.Groups = make(map[string]string, len(plan.Spec.Groups))
         }</span>
@@ -2155,7 +2155,7 @@ func (c *controller) reconcile(ctx context.Context, plan *v1alpha1.KubeUpgradePl
         <span class="cov8" title="1">for name, nodes := range nodesToUpdate </span><span class="cov8" title="1">{
                 if groupWaitForDependency(plan.Spec.Groups[name].DependsOn, newGroupStatus) </span><span class="cov8" title="1">{
                         logger.WithValues("group", name).Info("Group is waiting on dependencies")
-                        newGroupStatus[name] = v1alpha1.PlanStatusWaiting
+                        newGroupStatus[name] = api.PlanStatusWaiting
                         continue</span>
                 } else<span class="cov8" title="1"> if plan.Status.Groups[name] != newGroupStatus[name] </span><span class="cov8" title="1">{
                         logger.WithValues("group", name, "status", newGroupStatus[name]).Info("Group changed status")
@@ -2177,7 +2177,7 @@ func (c *controller) reconcile(ctx context.Context, plan *v1alpha1.KubeUpgradePl
 
 func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node) (string, bool, []corev1.Node, error) <span class="cov8" title="1">{
         if len(nodes) == 0 </span><span class="cov0" title="0">{
-                return v1alpha1.PlanStatusUnknown, false, nil, nil
+                return api.PlanStatusUnknown, false, nil, nil
         }</span>
 
         <span class="cov8" title="1">completed := true
@@ -2204,9 +2204,9 @@ func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node) (st
 
         <span class="cov8" title="1">var status string
         if completed </span><span class="cov8" title="1">{
-                status = v1alpha1.PlanStatusComplete
+                status = api.PlanStatusComplete
         }</span> else<span class="cov8" title="1"> {
-                status = v1alpha1.PlanStatusProgressing
+                status = api.PlanStatusProgressing
         }</span>
         <span class="cov8" title="1">return status, needUpdate, nodes, nil</span>
 }
@@ -2241,7 +2241,7 @@ import (
         "os"
         "strings"
 
-        "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
+        api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
 )
 
 var serviceAccountNamespaceFile = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
@@ -2274,7 +2274,7 @@ func Pointer[T any](v T) *T <span class="cov8" title="1">{
 // Check if the given group needs to wait on another one
 func groupWaitForDependency(deps []string, status map[string]string) bool <span class="cov8" title="1">{
         for _, d := range deps </span><span class="cov8" title="1">{
-                if status[d] != v1alpha1.PlanStatusComplete </span><span class="cov8" title="1">{
+                if status[d] != api.PlanStatusComplete </span><span class="cov8" title="1">{
                         return true
                 }</span>
         }
@@ -2284,7 +2284,7 @@ func groupWaitForDependency(deps []string, status map[string]string) bool <span 
 // Return the status summary from the given input
 func createStatusSummary(status map[string]string) string <span class="cov8" title="1">{
         if len(status) == 0 </span><span class="cov8" title="1">{
-                return v1alpha1.PlanStatusUnknown
+                return api.PlanStatusUnknown
         }</span>
         <span class="cov8" title="1">waiting := false
         unknown := false
@@ -2292,10 +2292,10 @@ func createStatusSummary(status map[string]string) string <span class="cov8" tit
 
         for _, v := range status </span><span class="cov8" title="1">{
                 switch v </span>{
-                case v1alpha1.PlanStatusComplete:<span class="cov8" title="1"></span>
-                case v1alpha1.PlanStatusProgressing:<span class="cov8" title="1">
+                case api.PlanStatusComplete:<span class="cov8" title="1"></span>
+                case api.PlanStatusProgressing:<span class="cov8" title="1">
                         progressing = true</span>
-                case v1alpha1.PlanStatusWaiting:<span class="cov8" title="1">
+                case api.PlanStatusWaiting:<span class="cov8" title="1">
                         waiting = true</span>
                 default:<span class="cov8" title="1">
                         unknown = true</span>
@@ -2303,13 +2303,13 @@ func createStatusSummary(status map[string]string) string <span class="cov8" tit
         }
 
         <span class="cov8" title="1">if unknown </span><span class="cov8" title="1">{
-                return v1alpha1.PlanStatusUnknown
+                return api.PlanStatusUnknown
         }</span> else<span class="cov8" title="1"> if progressing </span><span class="cov8" title="1">{
-                return v1alpha1.PlanStatusProgressing
+                return api.PlanStatusProgressing
         }</span> else<span class="cov8" title="1"> if waiting </span><span class="cov8" title="1">{
-                return v1alpha1.PlanStatusWaiting
+                return api.PlanStatusWaiting
         }</span> else<span class="cov8" title="1"> {
-                return v1alpha1.PlanStatusComplete
+                return api.PlanStatusComplete
         }</span>
 }
 </pre>
