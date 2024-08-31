@@ -3,6 +3,7 @@ package fleetlock
 import (
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/heathcliff26/fleetlock/pkg/server/client"
 )
@@ -11,22 +12,38 @@ type FleetlockClient struct {
 	url   string
 	group string
 	appID string
+
+	mutex sync.RWMutex
 }
 
 // Create a new client for fleetlock
 func NewClient(url, group string) (*FleetlockClient, error) {
-	if url == "" || group == "" {
-		return nil, fmt.Errorf("at least one of the required parameters is empty")
+	c, err := NewEmptyClient()
+	if err != nil {
+		return nil, err
 	}
 
+	err = c.SetURL(url)
+	if err != nil {
+		return nil, err
+	}
+
+	err = c.SetGroup(group)
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
+}
+
+// Create a new fleetlock client without url or group set
+func NewEmptyClient() (*FleetlockClient, error) {
 	appID, err := GetZincateAppID()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create zincati app id: %v", err)
 	}
 
 	return &FleetlockClient{
-		url:   TrimTrailingSlash(url),
-		group: group,
 		appID: appID,
 	}, nil
 }
@@ -54,6 +71,9 @@ func (c *FleetlockClient) Release() error {
 }
 
 func (c *FleetlockClient) doRequest(path string) (bool, client.FleetLockResponse, error) {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+
 	body, err := client.PrepareRequest(c.group, c.appID)
 	if err != nil {
 		return false, client.FleetLockResponse{}, fmt.Errorf("failed to prepare request body: %v", err)
@@ -76,4 +96,52 @@ func (c *FleetlockClient) doRequest(path string) (bool, client.FleetLockResponse
 	}
 
 	return res.StatusCode == http.StatusOK, resBody, nil
+}
+
+// Get the fleetlock server url
+func (c *FleetlockClient) GetURL() string {
+	if c == nil {
+		return ""
+	}
+
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+
+	return c.url
+}
+
+// Change the fleetlock server url
+func (c *FleetlockClient) SetURL(url string) error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	if url == "" {
+		return fmt.Errorf("the fleetlock server url can't be empty")
+	}
+	c.url = TrimTrailingSlash(url)
+	return nil
+}
+
+// Get the fleetlock group
+func (c *FleetlockClient) GetGroup() string {
+	if c == nil {
+		return ""
+	}
+
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+
+	return c.group
+}
+
+// Change the fleetlock group
+func (c *FleetlockClient) SetGroup(group string) error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	if group == "" {
+		return fmt.Errorf("the fleetlock group can't be empty")
+	}
+	c.group = group
+	return nil
 }
