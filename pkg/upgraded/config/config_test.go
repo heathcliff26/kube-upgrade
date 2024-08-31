@@ -72,7 +72,7 @@ func TestDefaultConfig(t *testing.T) {
 
 	assert.Equal(DEFAULT_LOG_LEVEL, c.LogLevel)
 	assert.Equal(DEFAULT_KUBECONFIG, c.Kubeconfig)
-	assert.Equal(DEFAULT_IMAGE, c.Image)
+	assert.Equal(DEFAULT_STREAM, c.Stream)
 	assert.Equal("", c.Fleetlock.URL)
 	assert.Equal(DEFAULT_FLEETLOCK_GROUP, c.Fleetlock.Group)
 	assert.Equal(DEFAULT_RPM_OSTREE_PATH, c.RPMOStreePath)

@@ -28,8 +28,8 @@ type daemon struct {
 	rpmostree *rpmostree.RPMOStreeCMD
 	kubeadm   *kubeadm.KubeadmCMD
 
-	image string
-	node  string
+	stream string
+	node   string
 
 	client kubernetes.Interface
 	ctx    context.Context
@@ -66,8 +66,8 @@ func NewDaemon(cfg *config.Config) (*daemon, error) {
 		return nil, fmt.Errorf("failed to create kubernetes client: %v", err)
 	}
 
-	if cfg.Image == "" {
-		return nil, fmt.Errorf("no image provided for kubernetes updates")
+	if cfg.Stream == "" {
+		return nil, fmt.Errorf("no image stream provided for kubernetes updates")
 	}
 
 	machineID, err := utils.GetMachineID()
@@ -88,7 +88,7 @@ func NewDaemon(cfg *config.Config) (*daemon, error) {
 		rpmostree: rpmOstreeCMD,
 		kubeadm:   kubeadmCMD,
 
-		image:  cfg.Image,
+		stream: cfg.Stream,
 		node:   node,
 		client: kubeClient,
 	}, nil

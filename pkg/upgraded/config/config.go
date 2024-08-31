@@ -14,7 +14,7 @@ const (
 
 	DEFAULT_LOG_LEVEL       = "info"
 	DEFAULT_KUBECONFIG      = "/etc/kubernetes/kubelet.conf"
-	DEFAULT_IMAGE           = "ghcr.io/heathcliff26/fcos-k8s"
+	DEFAULT_STREAM          = "ghcr.io/heathcliff26/fcos-k8s"
 	DEFAULT_FLEETLOCK_GROUP = "default"
 	DEFAULT_RPM_OSTREE_PATH = "/usr/bin/rpm-ostree"
 	DEFAULT_KUBEADM_PATH    = "/usr/bin/kubeadm"
@@ -40,7 +40,7 @@ type Config struct {
 	// The path to the kubeconfig file, default is the kubelet config under "/etc/kubernetes/kubelet.conf"
 	Kubeconfig string `yaml:"kubeconfig,omitempty"`
 	// The container image repository for os rebases
-	Image string `yaml:"image,omitempty"`
+	Stream string `yaml:"stream,omitempty"`
 	// Configuration for fleetlock node locking
 	Fleetlock FleetlockConfig `yaml:"fleetlock"`
 	// The path to the rpm-ostree binary, default "/usr/bin/rpm-ostree"
@@ -82,7 +82,7 @@ func DefaultConfig() *Config {
 	return &Config{
 		LogLevel:   DEFAULT_LOG_LEVEL,
 		Kubeconfig: DEFAULT_KUBECONFIG,
-		Image:      DEFAULT_IMAGE,
+		Stream:     DEFAULT_STREAM,
 		Fleetlock: FleetlockConfig{
 			Group: DEFAULT_FLEETLOCK_GROUP,
 		},

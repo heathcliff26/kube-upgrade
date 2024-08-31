@@ -4,7 +4,7 @@ logLevel: info
 # The path to the kubeconfig file
 kubeconfig: /etc/kubernetes/kubelet.conf
 # The container image repository for os rebases
-image: ghcr.io/heathcliff26/fcos-k8s
+stream: ghcr.io/heathcliff26/fcos-k8s
 # Configuration for fleetlock locking
 fleetlock:
   # Required: URL to the fleetlock server
