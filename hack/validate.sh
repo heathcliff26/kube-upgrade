@@ -30,7 +30,6 @@ echo "Check if the example manifests are up to date"
 export TAG="latest"
 export RELEASE_VERSION=""
 "${script_dir}/manifests.sh"
-cp "${base_dir}"/manifests/release/*.yaml "${base_dir}/examples/upgrade-controller/"
 
 rc=0
 git update-index --refresh && git diff-index --quiet HEAD -- || rc=1

@@ -32,3 +32,8 @@ echo "Creating example plan"
 envsubst < "${base_dir}/manifests/base/upgrade-cr.yaml.template" > "${output_dir}/upgrade-cr.yaml"
 
 echo "Wrote manifests to ${output_dir}"
+
+if [ "${TAG}" == "latest" ]; then
+    echo "Tag is latest, syncing manifests with examples"
+    cp "${output_dir}"/*.yaml "${base_dir}/examples/upgrade-controller/"
+fi
