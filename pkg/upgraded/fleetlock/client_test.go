@@ -53,6 +53,20 @@ func TestNewClient(t *testing.T) {
 	}
 }
 
+func TestNewEmptyClient(t *testing.T) {
+	assert := assert.New(t)
+
+	res, err := NewEmptyClient()
+
+	if !assert.NoError(err, "Should succeed") || !assert.NotNil(res, "Should return a client") {
+		t.FailNow()
+	}
+
+	assert.Empty(res.url, "Client should not have the url set")
+	assert.Empty(res.group, "Client should not have the group set")
+	assert.NotEmpty(res.appID, "Client should have the appID set")
+}
+
 func TestLock(t *testing.T) {
 	assert := assert.New(t)
 
@@ -83,6 +97,38 @@ func TestRelease(t *testing.T) {
 
 	err = c2.Release()
 	assert.Error(err, "Should not succeed")
+}
+
+func TestGetAndSet(t *testing.T) {
+	t.Run("URL", func(t *testing.T) {
+		assert := assert.New(t)
+
+		var c *FleetlockClient
+		assert.Empty(c.GetURL(), "Should not panic when reading URL from nil pointer")
+
+		c = &FleetlockClient{}
+
+		assert.NoError(c.SetURL("https://fleetlock.example.com"), "Should set URL without error")
+		assert.Equal("https://fleetlock.example.com", c.GetURL(), "URL should match")
+
+		assert.NoError(c.SetURL("https://fleetlock.example.com/"), "Should set URL without trailing slash")
+		assert.Equal("https://fleetlock.example.com", c.GetURL(), "URL should not have trailing /")
+
+		assert.Error(c.SetURL(""), "Should not accept empty URL")
+	})
+	t.Run("Group", func(t *testing.T) {
+		assert := assert.New(t)
+
+		var c *FleetlockClient
+		assert.Empty(c.GetGroup(), "Should not panic when reading group from nil pointer")
+
+		c = &FleetlockClient{}
+
+		assert.NoError(c.SetGroup("default"), "Should set group without error")
+		assert.Equal("default", c.GetGroup(), "group should match")
+
+		assert.Error(c.SetGroup(""), "Should not accept empty group")
+	})
 }
 
 func NewFakeServer(t *testing.T, statusCode int, path string) (*FleetlockClient, *httptest.Server) {
