@@ -2383,7 +2383,7 @@ const (
 
         DEFAULT_LOG_LEVEL       = "info"
         DEFAULT_KUBECONFIG      = "/etc/kubernetes/kubelet.conf"
-        DEFAULT_IMAGE           = "ghcr.io/heathcliff26/fcos-k8s"
+        DEFAULT_STREAM          = "ghcr.io/heathcliff26/fcos-k8s"
         DEFAULT_FLEETLOCK_GROUP = "default"
         DEFAULT_RPM_OSTREE_PATH = "/usr/bin/rpm-ostree"
         DEFAULT_KUBEADM_PATH    = "/usr/bin/kubeadm"
@@ -2409,7 +2409,7 @@ type Config struct {
         // The path to the kubeconfig file, default is the kubelet config under "/etc/kubernetes/kubelet.conf"
         Kubeconfig string `yaml:"kubeconfig,omitempty"`
         // The container image repository for os rebases
-        Image string `yaml:"image,omitempty"`
+        Stream string `yaml:"stream,omitempty"`
         // Configuration for fleetlock node locking
         Fleetlock FleetlockConfig `yaml:"fleetlock"`
         // The path to the rpm-ostree binary, default "/usr/bin/rpm-ostree"
@@ -2451,7 +2451,7 @@ func DefaultConfig() *Config <span class="cov8" title="1">{
         return &amp;Config{
                 LogLevel:   DEFAULT_LOG_LEVEL,
                 Kubeconfig: DEFAULT_KUBECONFIG,
-                Image:      DEFAULT_IMAGE,
+                Stream:     DEFAULT_STREAM,
                 Fleetlock: FleetlockConfig{
                         Group: DEFAULT_FLEETLOCK_GROUP,
                 },
@@ -2542,8 +2542,8 @@ type daemon struct {
         rpmostree *rpmostree.RPMOStreeCMD
         kubeadm   *kubeadm.KubeadmCMD
 
-        image string
-        node  string
+        stream string
+        node   string
 
         client kubernetes.Interface
         ctx    context.Context
@@ -2580,8 +2580,8 @@ func NewDaemon(cfg *config.Config) (*daemon, error) <span class="cov8" title="1"
                 return nil, fmt.Errorf("failed to create kubernetes client: %v", err)
         }</span>
 
-        <span class="cov8" title="1">if cfg.Image == "" </span><span class="cov8" title="1">{
-                return nil, fmt.Errorf("no image provided for kubernetes updates")
+        <span class="cov8" title="1">if cfg.Stream == "" </span><span class="cov8" title="1">{
+                return nil, fmt.Errorf("no image stream provided for kubernetes updates")
         }</span>
 
         <span class="cov8" title="1">machineID, err := utils.GetMachineID()
@@ -2602,7 +2602,7 @@ func NewDaemon(cfg *config.Config) (*daemon, error) <span class="cov8" title="1"
                 rpmostree: rpmOstreeCMD,
                 kubeadm:   kubeadmCMD,
 
-                image:  cfg.Image,
+                stream: cfg.Stream,
                 node:   node,
                 client: kubeClient,
         }, nil</span>
@@ -2771,7 +2771,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
                 if err != nil </span><span class="cov0" title="0">{
                         return fmt.Errorf("failed to update node status: %v", err)
                 }</span>
-                <span class="cov8" title="1">err = d.rpmostree.Rebase(d.image + ":" + version)
+                <span class="cov8" title="1">err = d.rpmostree.Rebase(d.stream + ":" + version)
                 if err != nil </span><span class="cov8" title="1">{
                         return fmt.Errorf("failed to rebase node: %v", err)
                 }</span>
