@@ -119,29 +119,31 @@
 				
 				<option value="file31">github.com/heathcliff26/kube-upgrade/pkg/upgraded/config/errors.go (50.0%)</option>
 				
-				<option value="file32">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (43.9%)</option>
+				<option value="file32">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/config.go (94.9%)</option>
 				
-				<option value="file33">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/nodes.go (32.5%)</option>
+				<option value="file33">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (45.5%)</option>
 				
-				<option value="file34">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/stream.go (34.4%)</option>
+				<option value="file34">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/nodes.go (33.7%)</option>
 				
-				<option value="file35">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/utils.go (93.8%)</option>
+				<option value="file35">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/stream.go (37.1%)</option>
 				
-				<option value="file36">github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock/client.go (78.8%)</option>
+				<option value="file36">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/utils.go (93.8%)</option>
 				
-				<option value="file37">github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock/utils.go (81.8%)</option>
+				<option value="file37">github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock/client.go (87.7%)</option>
 				
-				<option value="file38">github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm/kubeadm.go (70.0%)</option>
+				<option value="file38">github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock/utils.go (81.8%)</option>
 				
-				<option value="file39">github.com/heathcliff26/kube-upgrade/pkg/upgraded/root.go (14.3%)</option>
+				<option value="file39">github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm/kubeadm.go (70.0%)</option>
 				
-				<option value="file40">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/rpm-ostree.go (92.0%)</option>
+				<option value="file40">github.com/heathcliff26/kube-upgrade/pkg/upgraded/root.go (14.3%)</option>
 				
-				<option value="file41">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/utils.go (100.0%)</option>
+				<option value="file41">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/rpm-ostree.go (92.0%)</option>
 				
-				<option value="file42">github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils/utils.go (93.3%)</option>
+				<option value="file42">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/utils.go (100.0%)</option>
 				
-				<option value="file43">github.com/heathcliff26/kube-upgrade/pkg/version/version.go (73.7%)</option>
+				<option value="file43">github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils/utils.go (93.3%)</option>
+				
+				<option value="file44">github.com/heathcliff26/kube-upgrade/pkg/version/version.go (73.7%)</option>
 				
 				</select>
 			</div>
@@ -2476,6 +2478,7 @@ func LoadConfig(path string) (*Config, error) <span class="cov8" title="1">{
 
         <span class="cov8" title="1">f, err := os.ReadFile(p)
         if os.IsNotExist(err) &amp;&amp; path == "" </span><span class="cov8" title="1">{
+                slog.Info("No config file specified and default file does not exist, falling back to default values.", slog.String("default-path", DEFAULT_CONFIG_PATH))
                 return c, nil
         }</span> else<span class="cov8" title="1"> if err != nil </span><span class="cov8" title="1">{
                 return nil, err
@@ -2513,6 +2516,93 @@ func (e *ErrUnknownLogLevel) Error() string <span class="cov0" title="0">{
 </pre>
 		
 		<pre class="file" id="file32" style="display: none">package daemon
+
+import (
+        "fmt"
+        "log/slog"
+        "time"
+
+        "github.com/heathcliff26/kube-upgrade/pkg/constants"
+        metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+// Update the daemon configuration based on the annotations of the node.
+// Returns on the first error, but will change all configs before that.
+func (d *daemon) UpdateConfigFromNode() error <span class="cov8" title="1">{
+        node, err := d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="1">return d.UpdateConfigFromAnnotations(node.GetAnnotations())</span>
+}
+
+// Update the daemon configuration from the given annotations.
+// Returns on the first error, but will change all configs before that.
+func (d *daemon) UpdateConfigFromAnnotations(annotations map[string]string) error <span class="cov8" title="1">{
+        for key, value := range annotations </span><span class="cov8" title="1">{
+                switch key </span>{
+                case constants.ConfigStream:<span class="cov8" title="1">
+                        if value == "" </span><span class="cov8" title="1">{
+                                return fmt.Errorf("stream annotation %s is empty", constants.ConfigStream)
+                        }</span>
+                        <span class="cov8" title="1">if d.stream != value </span><span class="cov8" title="1">{
+                                slog.Info("Updated stream configuration from node annotation", slog.String("annotation", constants.ConfigStream), slog.String("value", value))
+                                d.stream = value
+                        }</span>
+                case constants.ConfigFleetlockURL:<span class="cov8" title="1">
+                        if d.fleetlock.GetURL() != value </span><span class="cov8" title="1">{
+                                slog.Info("Updating fleetlock url from node annotation", slog.String("annotation", constants.ConfigFleetlockURL), slog.String("value", value))
+                        }</span> else<span class="cov8" title="1"> {
+                                continue</span>
+                        }
+
+                        <span class="cov8" title="1">err := d.fleetlock.SetURL(value)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return fmt.Errorf("failed to update fleetlock url to \"%s\": %v", value, err)
+                        }</span>
+                case constants.ConfigFleetlockGroup:<span class="cov8" title="1">
+                        if d.fleetlock.GetGroup() != value </span><span class="cov8" title="1">{
+                                slog.Info("Updating fleetlock group from node annotation", slog.String("annotation", constants.ConfigFleetlockGroup), slog.String("value", value))
+                        }</span> else<span class="cov8" title="1"> {
+                                continue</span>
+                        }
+
+                        <span class="cov8" title="1">err := d.fleetlock.SetGroup(value)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return fmt.Errorf("failed to update fleetlock group to \"%s\": %v", value, err)
+                        }</span>
+                case constants.ConfigCheckInterval:<span class="cov8" title="1">
+                        interval, err := time.ParseDuration(value)
+                        if err != nil </span><span class="cov8" title="1">{
+                                return fmt.Errorf("failed to parse \"%s\" as duration: %v", value, err)
+                        }</span>
+                        <span class="cov8" title="1">if d.checkInterval != interval </span><span class="cov8" title="1">{
+                                slog.Info("Updated check interval from node annotation", slog.String("annotation", constants.ConfigStream), slog.String("value", value))
+                                d.checkInterval = interval
+                        }</span>
+                case constants.ConfigRetryInterval:<span class="cov8" title="1">
+                        interval, err := time.ParseDuration(value)
+                        if err != nil </span><span class="cov8" title="1">{
+                                return fmt.Errorf("failed to parse \"%s\" as duration: %v", value, err)
+                        }</span>
+                        <span class="cov8" title="1">if d.retryInterval != interval </span><span class="cov8" title="1">{
+                                slog.Info("Updated retry interval from node annotation", slog.String("annotation", constants.ConfigStream), slog.String("value", value))
+                                d.retryInterval = interval
+                        }</span>
+                default:<span class="cov8" title="1">
+                        continue</span>
+                }
+        }
+
+        <span class="cov8" title="1">if d.fleetlock.GetURL() == "" </span><span class="cov8" title="1">{
+                return fmt.Errorf("missing fleetlock server url")
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file33" style="display: none">package daemon
 
 import (
         "context"
@@ -2554,8 +2644,19 @@ type daemon struct {
 
 // Create a new daemon
 func NewDaemon(cfg *config.Config) (*daemon, error) <span class="cov8" title="1">{
-        fleetlockClient, err := fleetlock.NewClient(cfg.Fleetlock.URL, cfg.Fleetlock.Group)
-        if err != nil </span><span class="cov8" title="1">{
+        var err error
+        var fleetlockClient *fleetlock.FleetlockClient
+        if cfg.Fleetlock.URL != "" </span><span class="cov8" title="1">{
+                slog.Debug("Creating fleetlock client with url", slog.String("url", cfg.Fleetlock.URL))
+                fleetlockClient, err = fleetlock.NewClient(cfg.Fleetlock.URL, cfg.Fleetlock.Group)
+        }</span> else<span class="cov8" title="1"> {
+                slog.Debug("Creating fleetlock client without url")
+                fleetlockClient, err = fleetlock.NewEmptyClient()
+                if err != nil &amp;&amp; cfg.Fleetlock.Group != "" </span><span class="cov0" title="0">{
+                        err = fleetlockClient.SetGroup(cfg.Fleetlock.Group)
+                }</span>
+        }
+        <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("failed to create fleetlock client: %v", err)
         }</span>
 
@@ -2649,6 +2750,11 @@ func (d *daemon) Run() error <span class="cov0" title="0">{
                 return fmt.Errorf("failed to get node status: %v", err)
         }</span>
 
+        <span class="cov0" title="0">err = d.UpdateConfigFromAnnotations(node.GetAnnotations())
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to update daemon config from node annotations: %v", err)
+        }</span>
+
         <span class="cov0" title="0">if !nodeNeedsUpgrade(node) </span><span class="cov0" title="0">{
                 slog.Debug("Releasing any log that may be held by this machine")
                 d.releaseLock()
@@ -2680,7 +2786,7 @@ func (d *daemon) Run() error <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file33" style="display: none">package daemon
+		<pre class="file" id="file34" style="display: none">package daemon
 
 import (
         "fmt"
@@ -2757,10 +2863,15 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
         }</span>
         <span class="cov8" title="1">defer d.upgrade.Unlock()
 
-        version := node.Annotations[constants.NodeKubernetesVersion]
+        err := d.UpdateConfigFromAnnotations(node.GetAnnotations())
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to update daemon config from node annotations: %v", err)
+        }</span>
+
+        <span class="cov8" title="1">version := node.Annotations[constants.NodeKubernetesVersion]
         slog.Info("Attempting node upgrade to new kubernetes version", slog.String("node", node.GetName()), slog.String("version", version))
 
-        err := d.fleetlock.Lock()
+        err = d.fleetlock.Lock()
         if err != nil </span><span class="cov8" title="1">{
                 return fmt.Errorf("failed to aquire lock: %v", err)
         }</span>
@@ -2839,7 +2950,7 @@ func (d *daemon) updateNodeStatus(status string) error <span class="cov8" title=
 }
 </pre>
 		
-		<pre class="file" id="file34" style="display: none">package daemon
+		<pre class="file" id="file35" style="display: none">package daemon
 
 import (
         "fmt"
@@ -2894,7 +3005,12 @@ func (d *daemon) doUpgrade() error <span class="cov8" title="1">{
         }</span>
         <span class="cov8" title="1">defer d.upgrade.Unlock()
 
-        err := d.fleetlock.Lock()
+        err := d.UpdateConfigFromNode()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to update daemon config from node annotations: %v", err)
+        }</span>
+
+        <span class="cov8" title="1">err = d.fleetlock.Lock()
         if err != nil </span><span class="cov8" title="1">{
                 return fmt.Errorf("failed to aquire lock: %v", err)
         }</span>
@@ -2912,7 +3028,7 @@ func (d *daemon) doUpgrade() error <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file35" style="display: none">package daemon
+		<pre class="file" id="file36" style="display: none">package daemon
 
 import (
         "context"
@@ -2958,11 +3074,12 @@ func nodeNeedsUpgrade(node *corev1.Node) bool <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file36" style="display: none">package fleetlock
+		<pre class="file" id="file37" style="display: none">package fleetlock
 
 import (
         "fmt"
         "net/http"
+        "sync"
 
         "github.com/heathcliff26/fleetlock/pkg/server/client"
 )
@@ -2971,22 +3088,38 @@ type FleetlockClient struct {
         url   string
         group string
         appID string
+
+        mutex sync.RWMutex
 }
 
 // Create a new client for fleetlock
 func NewClient(url, group string) (*FleetlockClient, error) <span class="cov8" title="1">{
-        if url == "" || group == "" </span><span class="cov8" title="1">{
-                return nil, fmt.Errorf("at least one of the required parameters is empty")
+        c, err := NewEmptyClient()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
         }</span>
 
-        <span class="cov8" title="1">appID, err := GetZincateAppID()
+        <span class="cov8" title="1">err = c.SetURL(url)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">err = c.SetGroup(group)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return c, nil</span>
+}
+
+// Create a new fleetlock client without url or group set
+func NewEmptyClient() (*FleetlockClient, error) <span class="cov8" title="1">{
+        appID, err := GetZincateAppID()
         if err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("failed to create zincati app id: %v", err)
         }</span>
 
         <span class="cov8" title="1">return &amp;FleetlockClient{
-                url:   TrimTrailingSlash(url),
-                group: group,
                 appID: appID,
         }, nil</span>
 }
@@ -3014,6 +3147,9 @@ func (c *FleetlockClient) Release() error <span class="cov8" title="1">{
 }
 
 func (c *FleetlockClient) doRequest(path string) (bool, client.FleetLockResponse, error) <span class="cov8" title="1">{
+        c.mutex.RLock()
+        defer c.mutex.RUnlock()
+
         body, err := client.PrepareRequest(c.group, c.appID)
         if err != nil </span><span class="cov0" title="0">{
                 return false, client.FleetLockResponse{}, fmt.Errorf("failed to prepare request body: %v", err)
@@ -3037,9 +3173,57 @@ func (c *FleetlockClient) doRequest(path string) (bool, client.FleetLockResponse
 
         <span class="cov8" title="1">return res.StatusCode == http.StatusOK, resBody, nil</span>
 }
+
+// Get the fleetlock server url
+func (c *FleetlockClient) GetURL() string <span class="cov8" title="1">{
+        if c == nil </span><span class="cov8" title="1">{
+                return ""
+        }</span>
+
+        <span class="cov8" title="1">c.mutex.RLock()
+        defer c.mutex.RUnlock()
+
+        return c.url</span>
+}
+
+// Change the fleetlock server url
+func (c *FleetlockClient) SetURL(url string) error <span class="cov8" title="1">{
+        c.mutex.Lock()
+        defer c.mutex.Unlock()
+
+        if url == "" </span><span class="cov8" title="1">{
+                return fmt.Errorf("the fleetlock server url can't be empty")
+        }</span>
+        <span class="cov8" title="1">c.url = TrimTrailingSlash(url)
+        return nil</span>
+}
+
+// Get the fleetlock group
+func (c *FleetlockClient) GetGroup() string <span class="cov8" title="1">{
+        if c == nil </span><span class="cov8" title="1">{
+                return ""
+        }</span>
+
+        <span class="cov8" title="1">c.mutex.RLock()
+        defer c.mutex.RUnlock()
+
+        return c.group</span>
+}
+
+// Change the fleetlock group
+func (c *FleetlockClient) SetGroup(group string) error <span class="cov8" title="1">{
+        c.mutex.Lock()
+        defer c.mutex.Unlock()
+
+        if group == "" </span><span class="cov8" title="1">{
+                return fmt.Errorf("the fleetlock group can't be empty")
+        }</span>
+        <span class="cov8" title="1">c.group = group
+        return nil</span>
+}
 </pre>
 		
-		<pre class="file" id="file37" style="display: none">package fleetlock
+		<pre class="file" id="file38" style="display: none">package fleetlock
 
 import (
         "strings"
@@ -3075,7 +3259,7 @@ func TrimTrailingSlash(url string) string <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file38" style="display: none">package kubeadm
+		<pre class="file" id="file39" style="display: none">package kubeadm
 
 import (
         "sync"
@@ -3117,7 +3301,7 @@ func (k *KubeadmCMD) Node() error <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file39" style="display: none">package upgraded
+		<pre class="file" id="file40" style="display: none">package upgraded
 
 import (
         "log/slog"
@@ -3202,7 +3386,7 @@ func run(cfgPath string) <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file40" style="display: none">package rpmostree
+		<pre class="file" id="file41" style="display: none">package rpmostree
 
 import (
         "fmt"
@@ -3276,7 +3460,7 @@ func (r *RPMOStreeCMD) Rebase(image string) error <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file41" style="display: none">package rpmostree
+		<pre class="file" id="file42" style="display: none">package rpmostree
 
 import (
         "os/exec"
@@ -3291,7 +3475,7 @@ func getExitCode(err error) (int, bool) <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file42" style="display: none">package utils
+		<pre class="file" id="file43" style="display: none">package utils
 
 import (
         "fmt"
@@ -3331,7 +3515,7 @@ func CheckExistsAndIsExecutable(path string) error <span class="cov8" title="1">
 }
 </pre>
 		
-		<pre class="file" id="file43" style="display: none">package version
+		<pre class="file" id="file44" style="display: none">package version
 
 import (
         "fmt"
