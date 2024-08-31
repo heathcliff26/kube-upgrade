@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
 )
 
 var serviceAccountNamespaceFile = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
@@ -39,7 +39,7 @@ func Pointer[T any](v T) *T {
 // Check if the given group needs to wait on another one
 func groupWaitForDependency(deps []string, status map[string]string) bool {
 	for _, d := range deps {
-		if status[d] != v1alpha1.PlanStatusComplete {
+		if status[d] != api.PlanStatusComplete {
 			return true
 		}
 	}
@@ -49,7 +49,7 @@ func groupWaitForDependency(deps []string, status map[string]string) bool {
 // Return the status summary from the given input
 func createStatusSummary(status map[string]string) string {
 	if len(status) == 0 {
-		return v1alpha1.PlanStatusUnknown
+		return api.PlanStatusUnknown
 	}
 	waiting := false
 	unknown := false
@@ -57,10 +57,10 @@ func createStatusSummary(status map[string]string) string {
 
 	for _, v := range status {
 		switch v {
-		case v1alpha1.PlanStatusComplete:
-		case v1alpha1.PlanStatusProgressing:
+		case api.PlanStatusComplete:
+		case api.PlanStatusProgressing:
 			progressing = true
-		case v1alpha1.PlanStatusWaiting:
+		case api.PlanStatusWaiting:
 			waiting = true
 		default:
 			unknown = true
@@ -68,12 +68,12 @@ func createStatusSummary(status map[string]string) string {
 	}
 
 	if unknown {
-		return v1alpha1.PlanStatusUnknown
+		return api.PlanStatusUnknown
 	} else if progressing {
-		return v1alpha1.PlanStatusProgressing
+		return api.PlanStatusProgressing
 	} else if waiting {
-		return v1alpha1.PlanStatusWaiting
+		return api.PlanStatusWaiting
 	} else {
-		return v1alpha1.PlanStatusComplete
+		return api.PlanStatusComplete
 	}
 }
