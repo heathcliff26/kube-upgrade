@@ -50,7 +50,8 @@ func TestNewDaemon(t *testing.T) {
 				CheckInterval: config.DEFAULT_CHECK_INTERVAL,
 				RetryInterval: config.DEFAULT_RETRY_INTERVAL,
 			},
-			Error: "failed to create fleetlock client:",
+			// This means it should create an empty fleetlock client instead of failling
+			Error: "failed to get kubernetes node name for host",
 		},
 		{
 			Name: "NoRPMOstree",

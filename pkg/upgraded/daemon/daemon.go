@@ -40,7 +40,18 @@ type daemon struct {
 
 // Create a new daemon
 func NewDaemon(cfg *config.Config) (*daemon, error) {
-	fleetlockClient, err := fleetlock.NewClient(cfg.Fleetlock.URL, cfg.Fleetlock.Group)
+	var err error
+	var fleetlockClient *fleetlock.FleetlockClient
+	if cfg.Fleetlock.URL != "" {
+		slog.Debug("Creating fleetlock client with url", slog.String("url", cfg.Fleetlock.URL))
+		fleetlockClient, err = fleetlock.NewClient(cfg.Fleetlock.URL, cfg.Fleetlock.Group)
+	} else {
+		slog.Debug("Creating fleetlock client without url")
+		fleetlockClient, err = fleetlock.NewEmptyClient()
+		if err != nil && cfg.Fleetlock.Group != "" {
+			err = fleetlockClient.SetGroup(cfg.Fleetlock.Group)
+		}
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to create fleetlock client: %v", err)
 	}

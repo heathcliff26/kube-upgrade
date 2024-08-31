@@ -107,6 +107,7 @@ func LoadConfig(path string) (*Config, error) {
 
 	f, err := os.ReadFile(p)
 	if os.IsNotExist(err) && path == "" {
+		slog.Info("No config file specified and default file does not exist, falling back to default values.", slog.String("default-path", DEFAULT_CONFIG_PATH))
 		return c, nil
 	} else if err != nil {
 		return nil, err
