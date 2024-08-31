@@ -49,8 +49,8 @@ func TestNodeNeedsUpgrade(t *testing.T) {
 			Node: &corev1.Node{
 				ObjectMeta: metav1.ObjectMeta{
 					Annotations: map[string]string{
-						constants.KubernetesVersionAnnotation: "v1.31.0",
-						constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+						constants.NodeKubernetesVersion: "v1.31.0",
+						constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 					},
 				},
 			},
@@ -61,7 +61,7 @@ func TestNodeNeedsUpgrade(t *testing.T) {
 			Node: &corev1.Node{
 				ObjectMeta: metav1.ObjectMeta{
 					Annotations: map[string]string{
-						constants.KubernetesUpgradeStatus: constants.NodeUpgradeStatusPending,
+						constants.NodeUpgradeStatus: constants.NodeUpgradeStatusPending,
 					},
 				},
 			},
@@ -72,8 +72,8 @@ func TestNodeNeedsUpgrade(t *testing.T) {
 			Node: &corev1.Node{
 				ObjectMeta: metav1.ObjectMeta{
 					Annotations: map[string]string{
-						constants.KubernetesVersionAnnotation: "v1.31.0",
-						constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusPending,
+						constants.NodeKubernetesVersion: "v1.31.0",
+						constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusPending,
 					},
 				},
 			},

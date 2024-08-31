@@ -75,7 +75,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 	}
 	defer d.upgrade.Unlock()
 
-	version := node.Annotations[constants.KubernetesVersionAnnotation]
+	version := node.Annotations[constants.NodeKubernetesVersion]
 	slog.Info("Attempting node upgrade to new kubernetes version", slog.String("node", node.GetName()), slog.String("version", version))
 
 	err := d.fleetlock.Lock()
@@ -147,7 +147,7 @@ func (d *daemon) updateNodeStatus(status string) error {
 	if node.Annotations == nil {
 		node.Annotations = make(map[string]string)
 	}
-	node.Annotations[constants.KubernetesUpgradeStatus] = status
+	node.Annotations[constants.NodeUpgradeStatus] = status
 
 	_, err = d.client.CoreV1().Nodes().Update(d.ctx, node, metav1.UpdateOptions{})
 	if err == nil {

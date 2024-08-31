@@ -32,12 +32,12 @@ func nodeNeedsUpgrade(node *corev1.Node) bool {
 	if node.Annotations == nil {
 		return false
 	}
-	status := node.Annotations[constants.KubernetesUpgradeStatus]
+	status := node.Annotations[constants.NodeUpgradeStatus]
 	if status == constants.NodeUpgradeStatusCompleted {
 		return false
 	}
-	if _, ok := node.Annotations[constants.KubernetesVersionAnnotation]; !ok {
-		slog.Warn("Missing version annotation on node", slog.String("node", node.GetName()), slog.String("annotation", constants.KubernetesVersionAnnotation))
+	if _, ok := node.Annotations[constants.NodeKubernetesVersion]; !ok {
+		slog.Warn("Missing version annotation on node", slog.String("node", node.GetName()), slog.String("annotation", constants.NodeKubernetesVersion))
 		return false
 	}
 	return true

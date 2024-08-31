@@ -1,8 +1,13 @@
 package constants
 
 const (
-	KubernetesVersionAnnotation = "kubernetes-version.kube-upgrade.heathcliff.eu"
-	KubernetesUpgradeStatus     = "upgrade-status.kube-upgrade.heathcliff.eu"
+	baseDomain = "kube-upgrade.heathcliff.eu/"
+	nodePrefix = "node." + baseDomain
+)
+
+const (
+	NodeKubernetesVersion = nodePrefix + "kubernetesVersion"
+	NodeUpgradeStatus     = nodePrefix + "status"
 )
 
 const (
