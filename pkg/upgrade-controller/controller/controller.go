@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	"github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
 	"github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/scheme"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 	corev1 "k8s.io/api/core/v1"
@@ -84,7 +84,7 @@ func NewController(name string) (*controller, error) {
 }
 
 func (c *controller) Run() error {
-	err := ctrl.NewControllerManagedBy(c.manager).For(&v1alpha1.KubeUpgradePlan{}).Complete(c)
+	err := ctrl.NewControllerManagedBy(c.manager).For(&api.KubeUpgradePlan{}).Complete(c)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func (c *controller) Run() error {
 func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := klog.LoggerWithValues(klog.NewKlogr(), "plan", req.Name)
 
-	var plan v1alpha1.KubeUpgradePlan
+	var plan api.KubeUpgradePlan
 	err := c.Get(ctx, req.NamespacedName, &plan)
 	if err != nil {
 		logger.Error(err, "Failed to get Plan")
@@ -113,12 +113,12 @@ func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	}
 
 	return ctrl.Result{
-		Requeue:      plan.Status.Summary != v1alpha1.PlanStatusComplete,
+		Requeue:      plan.Status.Summary != api.PlanStatusComplete,
 		RequeueAfter: time.Minute,
 	}, nil
 }
 
-func (c *controller) reconcile(ctx context.Context, plan *v1alpha1.KubeUpgradePlan, logger logr.Logger) error {
+func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, logger logr.Logger) error {
 	if plan.Status.Groups == nil {
 		plan.Status.Groups = make(map[string]string, len(plan.Spec.Groups))
 	}
@@ -153,7 +153,7 @@ func (c *controller) reconcile(ctx context.Context, plan *v1alpha1.KubeUpgradePl
 	for name, nodes := range nodesToUpdate {
 		if groupWaitForDependency(plan.Spec.Groups[name].DependsOn, newGroupStatus) {
 			logger.WithValues("group", name).Info("Group is waiting on dependencies")
-			newGroupStatus[name] = v1alpha1.PlanStatusWaiting
+			newGroupStatus[name] = api.PlanStatusWaiting
 			continue
 		} else if plan.Status.Groups[name] != newGroupStatus[name] {
 			logger.WithValues("group", name, "status", newGroupStatus[name]).Info("Group changed status")
@@ -175,7 +175,7 @@ func (c *controller) reconcile(ctx context.Context, plan *v1alpha1.KubeUpgradePl
 
 func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node) (string, bool, []corev1.Node, error) {
 	if len(nodes) == 0 {
-		return v1alpha1.PlanStatusUnknown, false, nil, nil
+		return api.PlanStatusUnknown, false, nil, nil
 	}
 
 	completed := true
@@ -202,9 +202,9 @@ func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node) (st
 
 	var status string
 	if completed {
-		status = v1alpha1.PlanStatusComplete
+		status = api.PlanStatusComplete
 	} else {
-		status = v1alpha1.PlanStatusProgressing
+		status = api.PlanStatusProgressing
 	}
 	return status, needUpdate, nodes, nil
 }

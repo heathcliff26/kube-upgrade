@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -88,9 +88,9 @@ func TestGroupWaitForDependency(t *testing.T) {
 			Name: "NoDependencies",
 			Deps: nil,
 			Status: map[string]string{
-				"foo":    v1alpha1.PlanStatusComplete,
-				"bar":    v1alpha1.PlanStatusProgressing,
-				"foobar": v1alpha1.PlanStatusComplete,
+				"foo":    api.PlanStatusComplete,
+				"bar":    api.PlanStatusProgressing,
+				"foobar": api.PlanStatusComplete,
 			},
 			Result: false,
 		},
@@ -98,9 +98,9 @@ func TestGroupWaitForDependency(t *testing.T) {
 			Name: "DependenciesComplete",
 			Deps: []string{"foo", "foobar"},
 			Status: map[string]string{
-				"foo":    v1alpha1.PlanStatusComplete,
-				"bar":    v1alpha1.PlanStatusProgressing,
-				"foobar": v1alpha1.PlanStatusComplete,
+				"foo":    api.PlanStatusComplete,
+				"bar":    api.PlanStatusProgressing,
+				"foobar": api.PlanStatusComplete,
 			},
 			Result: false,
 		},
@@ -108,9 +108,9 @@ func TestGroupWaitForDependency(t *testing.T) {
 			Name: "Wait",
 			Deps: []string{"foo", "foobar", "bar"},
 			Status: map[string]string{
-				"foo":    v1alpha1.PlanStatusComplete,
-				"bar":    v1alpha1.PlanStatusProgressing,
-				"foobar": v1alpha1.PlanStatusComplete,
+				"foo":    api.PlanStatusComplete,
+				"bar":    api.PlanStatusProgressing,
+				"foobar": api.PlanStatusComplete,
 			},
 			Result: true,
 		},
@@ -130,39 +130,39 @@ func TestCreateStatusSummary(t *testing.T) {
 	}{
 		{
 			Status: map[string]string{
-				"foo":    v1alpha1.PlanStatusComplete,
-				"bar":    v1alpha1.PlanStatusComplete,
-				"foobar": v1alpha1.PlanStatusComplete,
+				"foo":    api.PlanStatusComplete,
+				"bar":    api.PlanStatusComplete,
+				"foobar": api.PlanStatusComplete,
 			},
-			Result: v1alpha1.PlanStatusComplete,
+			Result: api.PlanStatusComplete,
 		},
 		{
 			Status: map[string]string{
-				"foo":    v1alpha1.PlanStatusComplete,
-				"bar":    v1alpha1.PlanStatusWaiting,
-				"foobar": v1alpha1.PlanStatusComplete,
+				"foo":    api.PlanStatusComplete,
+				"bar":    api.PlanStatusWaiting,
+				"foobar": api.PlanStatusComplete,
 			},
-			Result: v1alpha1.PlanStatusWaiting,
+			Result: api.PlanStatusWaiting,
 		},
 		{
 			Status: map[string]string{
-				"foo":    v1alpha1.PlanStatusComplete,
-				"bar":    v1alpha1.PlanStatusProgressing,
-				"foobar": v1alpha1.PlanStatusComplete,
+				"foo":    api.PlanStatusComplete,
+				"bar":    api.PlanStatusProgressing,
+				"foobar": api.PlanStatusComplete,
 			},
-			Result: v1alpha1.PlanStatusProgressing,
+			Result: api.PlanStatusProgressing,
 		},
 		{
 			Status: map[string]string{
-				"foo":    v1alpha1.PlanStatusUnknown,
-				"bar":    v1alpha1.PlanStatusProgressing,
-				"foobar": v1alpha1.PlanStatusComplete,
+				"foo":    api.PlanStatusUnknown,
+				"bar":    api.PlanStatusProgressing,
+				"foobar": api.PlanStatusComplete,
 			},
-			Result: v1alpha1.PlanStatusUnknown,
+			Result: api.PlanStatusUnknown,
 		},
 		{
 			Status: map[string]string{},
-			Result: v1alpha1.PlanStatusUnknown,
+			Result: api.PlanStatusUnknown,
 		},
 	}
 
