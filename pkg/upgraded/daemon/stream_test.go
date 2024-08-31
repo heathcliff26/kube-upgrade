@@ -1,14 +1,37 @@
 package daemon
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
+	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock"
 	rpmostree "github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree"
 	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes/fake"
 )
 
 func TestDoUpgrade(t *testing.T) {
+	fakeDaemon := func(fleetlock *fleetlock.FleetlockClient, rpmostree *rpmostree.RPMOStreeCMD) *daemon {
+		d := &daemon{
+			fleetlock: fleetlock,
+			rpmostree: rpmostree,
+			node:      "testnode",
+			client:    fake.NewSimpleClientset(),
+		}
+
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: d.node,
+			},
+		}
+		_, _ = d.client.CoreV1().Nodes().Create(context.Background(), node, metav1.CreateOptions{})
+
+		return d
+	}
+
 	t.Run("LockAlreadyReserved", func(t *testing.T) {
 		assert := assert.New(t)
 
@@ -21,10 +44,7 @@ func TestDoUpgrade(t *testing.T) {
 			t.FailNow()
 		}
 
-		d := &daemon{
-			fleetlock: client,
-			rpmostree: rpmOstreeCMD,
-		}
+		d := fakeDaemon(client, rpmOstreeCMD)
 
 		err = d.doUpgrade()
 
@@ -42,10 +62,7 @@ func TestDoUpgrade(t *testing.T) {
 			t.FailNow()
 		}
 
-		d := &daemon{
-			fleetlock: client,
-			rpmostree: rpmOstreeCMD,
-		}
+		d := fakeDaemon(client, rpmOstreeCMD)
 
 		err = d.doUpgrade()
 
@@ -72,10 +89,7 @@ func TestDoUpgrade(t *testing.T) {
 			t.FailNow()
 		}
 
-		d := &daemon{
-			fleetlock: client,
-			rpmostree: rpmOstreeCMD,
-		}
+		d := fakeDaemon(client, rpmOstreeCMD)
 
 		err = d.doUpgrade()
 
