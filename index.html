@@ -2186,16 +2186,16 @@ func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node) (st
                         nodes[i].Annotations = make(map[string]string)
                 }</span>
 
-                <span class="cov8" title="1">if nodes[i].Annotations[constants.KubernetesVersionAnnotation] == kubeVersion </span><span class="cov8" title="1">{
-                        if nodes[i].Annotations[constants.KubernetesUpgradeStatus] != constants.NodeUpgradeStatusCompleted </span><span class="cov0" title="0">{
+                <span class="cov8" title="1">if nodes[i].Annotations[constants.NodeKubernetesVersion] == kubeVersion </span><span class="cov8" title="1">{
+                        if nodes[i].Annotations[constants.NodeUpgradeStatus] != constants.NodeUpgradeStatusCompleted </span><span class="cov0" title="0">{
                                 completed = false
                         }</span>
                         <span class="cov8" title="1">continue</span>
                 }
 
                 <span class="cov8" title="1">completed = false
-                nodes[i].Annotations[constants.KubernetesVersionAnnotation] = kubeVersion
-                nodes[i].Annotations[constants.KubernetesUpgradeStatus] = constants.NodeUpgradeStatusPending
+                nodes[i].Annotations[constants.NodeKubernetesVersion] = kubeVersion
+                nodes[i].Annotations[constants.NodeUpgradeStatus] = constants.NodeUpgradeStatusPending
 
                 needUpdate = true</span>
         }
@@ -2757,7 +2757,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
         }</span>
         <span class="cov8" title="1">defer d.upgrade.Unlock()
 
-        version := node.Annotations[constants.KubernetesVersionAnnotation]
+        version := node.Annotations[constants.NodeKubernetesVersion]
         slog.Info("Attempting node upgrade to new kubernetes version", slog.String("node", node.GetName()), slog.String("version", version))
 
         err := d.fleetlock.Lock()
@@ -2829,7 +2829,7 @@ func (d *daemon) updateNodeStatus(status string) error <span class="cov8" title=
         <span class="cov8" title="1">if node.Annotations == nil </span><span class="cov8" title="1">{
                 node.Annotations = make(map[string]string)
         }</span>
-        <span class="cov8" title="1">node.Annotations[constants.KubernetesUpgradeStatus] = status
+        <span class="cov8" title="1">node.Annotations[constants.NodeUpgradeStatus] = status
 
         _, err = d.client.CoreV1().Nodes().Update(d.ctx, node, metav1.UpdateOptions{})
         if err == nil </span><span class="cov8" title="1">{
@@ -2946,12 +2946,12 @@ func nodeNeedsUpgrade(node *corev1.Node) bool <span class="cov8" title="1">{
         if node.Annotations == nil </span><span class="cov8" title="1">{
                 return false
         }</span>
-        <span class="cov8" title="1">status := node.Annotations[constants.KubernetesUpgradeStatus]
+        <span class="cov8" title="1">status := node.Annotations[constants.NodeUpgradeStatus]
         if status == constants.NodeUpgradeStatusCompleted </span><span class="cov8" title="1">{
                 return false
         }</span>
-        <span class="cov8" title="1">if _, ok := node.Annotations[constants.KubernetesVersionAnnotation]; !ok </span><span class="cov8" title="1">{
-                slog.Warn("Missing version annotation on node", slog.String("node", node.GetName()), slog.String("annotation", constants.KubernetesVersionAnnotation))
+        <span class="cov8" title="1">if _, ok := node.Annotations[constants.NodeKubernetesVersion]; !ok </span><span class="cov8" title="1">{
+                slog.Warn("Missing version annotation on node", slog.String("node", node.GetName()), slog.String("annotation", constants.NodeKubernetesVersion))
                 return false
         }</span>
         <span class="cov8" title="1">return true</span>
