@@ -3,13 +3,12 @@ SHELL := bash
 REPOSITORY ?= ghcr.io/heathcliff26
 TAG ?= latest
 
-default: build
+default: upgraded upgrade-controller
 
-build:
+upgraded:
 	hack/build.sh upgraded
-	hack/build.sh upgrade-controller
 
-image:
+upgrade-controller:
 	podman build -t $(REPOSITORY)/kube-upgrade-controller:$(TAG) -f cmd/upgrade-controller/Dockerfile .
 
 test:
@@ -44,8 +43,8 @@ controller-gen:
 
 .PHONY: \
 	default \
-	build \
-	image \
+	upgraded \
+	upgrade-controller \
 	test \
 	update-deps \
 	coverprofile \
