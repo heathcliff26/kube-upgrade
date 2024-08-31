@@ -135,6 +135,11 @@ func (d *daemon) Run() error {
 		return fmt.Errorf("failed to get node status: %v", err)
 	}
 
+	err = d.UpdateConfigFromAnnotations(node.GetAnnotations())
+	if err != nil {
+		return fmt.Errorf("failed to update daemon config from node annotations: %v", err)
+	}
+
 	if !nodeNeedsUpgrade(node) {
 		slog.Debug("Releasing any log that may be held by this machine")
 		d.releaseLock()

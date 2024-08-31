@@ -53,7 +53,12 @@ func (d *daemon) doUpgrade() error {
 	}
 	defer d.upgrade.Unlock()
 
-	err := d.fleetlock.Lock()
+	err := d.UpdateConfigFromNode()
+	if err != nil {
+		return fmt.Errorf("failed to update daemon config from node annotations: %v", err)
+	}
+
+	err = d.fleetlock.Lock()
 	if err != nil {
 		return fmt.Errorf("failed to aquire lock: %v", err)
 	}

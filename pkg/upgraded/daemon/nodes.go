@@ -75,10 +75,15 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 	}
 	defer d.upgrade.Unlock()
 
+	err := d.UpdateConfigFromAnnotations(node.GetAnnotations())
+	if err != nil {
+		return fmt.Errorf("failed to update daemon config from node annotations: %v", err)
+	}
+
 	version := node.Annotations[constants.NodeKubernetesVersion]
 	slog.Info("Attempting node upgrade to new kubernetes version", slog.String("node", node.GetName()), slog.String("version", version))
 
-	err := d.fleetlock.Lock()
+	err = d.fleetlock.Lock()
 	if err != nil {
 		return fmt.Errorf("failed to aquire lock: %v", err)
 	}
