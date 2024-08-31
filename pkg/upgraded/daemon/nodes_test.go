@@ -38,7 +38,7 @@ func TestDoNodeUpgrade(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "testnode",
 				Annotations: map[string]string{
-					constants.KubernetesVersionAnnotation: "v1.31.0",
+					constants.NodeKubernetesVersion: "v1.31.0",
 				},
 			},
 		}
@@ -83,7 +83,7 @@ func TestDoNodeUpgrade(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name: d.node,
 					Annotations: map[string]string{
-						constants.KubernetesVersionAnnotation: "v1.31.0",
+						constants.NodeKubernetesVersion: "v1.31.0",
 					},
 				},
 				Status: corev1.NodeStatus{
@@ -102,7 +102,7 @@ func TestDoNodeUpgrade(t *testing.T) {
 				assert.Error(err, "Should exit with error")
 			}
 			node, _ = d.client.CoreV1().Nodes().Get(context.Background(), node.GetName(), metav1.GetOptions{})
-			assert.Equal(constants.NodeUpgradeStatusRebasing, node.Annotations[constants.KubernetesUpgradeStatus], "Should have set correct node status")
+			assert.Equal(constants.NodeUpgradeStatusRebasing, node.Annotations[constants.NodeUpgradeStatus], "Should have set correct node status")
 		})
 	}
 }
@@ -119,7 +119,7 @@ func TestUpdateNodeStatus(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "testnode",
 					Annotations: map[string]string{
-						constants.KubernetesUpgradeStatus: "unset",
+						constants.NodeUpgradeStatus: "unset",
 					},
 				},
 			},
@@ -159,7 +159,7 @@ func TestUpdateNodeStatus(t *testing.T) {
 			} else {
 				assert.NoError(d.updateNodeStatus("new-status"), "Should succeed")
 				node, _ := c.CoreV1().Nodes().Get(context.Background(), d.node, metav1.GetOptions{})
-				assert.Equal("new-status", node.GetAnnotations()[constants.KubernetesUpgradeStatus], "Should have set status")
+				assert.Equal("new-status", node.GetAnnotations()[constants.NodeUpgradeStatus], "Should have set status")
 			}
 		})
 	}

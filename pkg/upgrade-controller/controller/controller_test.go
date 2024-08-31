@@ -77,8 +77,8 @@ func TestReconcile(t *testing.T) {
 				groupInfra:   v1alpha1.PlanStatusWaiting,
 			},
 			ExpectedAnnotationsControl: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusPending,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusPending,
 			},
 		},
 		{
@@ -119,8 +119,8 @@ func TestReconcile(t *testing.T) {
 				},
 			},
 			AnnotationsControl: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			ExpectedSummary: v1alpha1.PlanStatusProgressing,
 			ExpectedGroupStatus: map[string]string{
@@ -129,12 +129,12 @@ func TestReconcile(t *testing.T) {
 				groupInfra:   v1alpha1.PlanStatusProgressing,
 			},
 			ExpectedAnnotationsControl: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			ExpectedAnnotationsInfra: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusPending,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusPending,
 			},
 		},
 		{
@@ -175,12 +175,12 @@ func TestReconcile(t *testing.T) {
 				},
 			},
 			AnnotationsControl: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			AnnotationsInfra: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			ExpectedSummary: v1alpha1.PlanStatusProgressing,
 			ExpectedGroupStatus: map[string]string{
@@ -189,16 +189,16 @@ func TestReconcile(t *testing.T) {
 				groupInfra:   v1alpha1.PlanStatusComplete,
 			},
 			ExpectedAnnotationsControl: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			ExpectedAnnotationsInfra: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			ExpectedAnnotationsCompute: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusPending,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusPending,
 			},
 		},
 		{
@@ -239,16 +239,16 @@ func TestReconcile(t *testing.T) {
 				},
 			},
 			AnnotationsControl: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			AnnotationsInfra: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			AnnotationsCompute: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			ExpectedSummary: v1alpha1.PlanStatusComplete,
 			ExpectedGroupStatus: map[string]string{
@@ -257,16 +257,16 @@ func TestReconcile(t *testing.T) {
 				groupInfra:   v1alpha1.PlanStatusComplete,
 			},
 			ExpectedAnnotationsControl: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			ExpectedAnnotationsInfra: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			ExpectedAnnotationsCompute: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 		},
 		{
@@ -300,12 +300,12 @@ func TestReconcile(t *testing.T) {
 				},
 			},
 			AnnotationsControl: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.30.4",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.30.4",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			AnnotationsCompute: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.30.4",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.30.4",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			ExpectedSummary: v1alpha1.PlanStatusProgressing,
 			ExpectedGroupStatus: map[string]string{
@@ -313,12 +313,12 @@ func TestReconcile(t *testing.T) {
 				groupCompute: v1alpha1.PlanStatusWaiting,
 			},
 			ExpectedAnnotationsControl: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusPending,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusPending,
 			},
 			ExpectedAnnotationsCompute: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.30.4",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.30.4",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 		},
 		{
@@ -352,12 +352,12 @@ func TestReconcile(t *testing.T) {
 				},
 			},
 			AnnotationsControl: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			AnnotationsCompute: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.30.4",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.30.4",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			ExpectedSummary: v1alpha1.PlanStatusProgressing,
 			ExpectedGroupStatus: map[string]string{
@@ -365,12 +365,12 @@ func TestReconcile(t *testing.T) {
 				groupCompute: v1alpha1.PlanStatusProgressing,
 			},
 			ExpectedAnnotationsControl: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			ExpectedAnnotationsCompute: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusPending,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusPending,
 			},
 		},
 		{
@@ -404,12 +404,12 @@ func TestReconcile(t *testing.T) {
 				},
 			},
 			AnnotationsControl: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			AnnotationsCompute: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			ExpectedSummary: v1alpha1.PlanStatusComplete,
 			ExpectedGroupStatus: map[string]string{
@@ -417,12 +417,12 @@ func TestReconcile(t *testing.T) {
 				groupCompute: v1alpha1.PlanStatusComplete,
 			},
 			ExpectedAnnotationsControl: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 			ExpectedAnnotationsCompute: map[string]string{
-				constants.KubernetesVersionAnnotation: "v1.31.0",
-				constants.KubernetesUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
 		},
 	}

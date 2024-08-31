@@ -186,16 +186,16 @@ func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node) (st
 			nodes[i].Annotations = make(map[string]string)
 		}
 
-		if nodes[i].Annotations[constants.KubernetesVersionAnnotation] == kubeVersion {
-			if nodes[i].Annotations[constants.KubernetesUpgradeStatus] != constants.NodeUpgradeStatusCompleted {
+		if nodes[i].Annotations[constants.NodeKubernetesVersion] == kubeVersion {
+			if nodes[i].Annotations[constants.NodeUpgradeStatus] != constants.NodeUpgradeStatusCompleted {
 				completed = false
 			}
 			continue
 		}
 
 		completed = false
-		nodes[i].Annotations[constants.KubernetesVersionAnnotation] = kubeVersion
-		nodes[i].Annotations[constants.KubernetesUpgradeStatus] = constants.NodeUpgradeStatusPending
+		nodes[i].Annotations[constants.NodeKubernetesVersion] = kubeVersion
+		nodes[i].Annotations[constants.NodeUpgradeStatus] = constants.NodeUpgradeStatusPending
 
 		needUpdate = true
 	}
