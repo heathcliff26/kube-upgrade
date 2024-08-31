@@ -24,7 +24,7 @@ func TestNewDaemon(t *testing.T) {
 			Name: "NoNodeFound",
 			CFG: config.Config{
 				Kubeconfig: "testdata/kubeconfig",
-				Image:      config.DEFAULT_IMAGE,
+				Stream:     config.DEFAULT_STREAM,
 				Fleetlock: config.FleetlockConfig{
 					URL:   "https://fleetlock.example.com",
 					Group: config.DEFAULT_FLEETLOCK_GROUP,
@@ -40,7 +40,7 @@ func TestNewDaemon(t *testing.T) {
 			Name: "NoFleetlockUrl",
 			CFG: config.Config{
 				Kubeconfig: "testdata/kubeconfig",
-				Image:      config.DEFAULT_IMAGE,
+				Stream:     config.DEFAULT_STREAM,
 				Fleetlock: config.FleetlockConfig{
 					URL:   "",
 					Group: config.DEFAULT_FLEETLOCK_GROUP,
@@ -56,7 +56,7 @@ func TestNewDaemon(t *testing.T) {
 			Name: "NoRPMOstree",
 			CFG: config.Config{
 				Kubeconfig: "testdata/kubeconfig",
-				Image:      config.DEFAULT_IMAGE,
+				Stream:     config.DEFAULT_STREAM,
 				Fleetlock: config.FleetlockConfig{
 					URL:   "https://fleetlock.example.com",
 					Group: config.DEFAULT_FLEETLOCK_GROUP,
@@ -72,7 +72,7 @@ func TestNewDaemon(t *testing.T) {
 			Name: "NoKubeadm",
 			CFG: config.Config{
 				Kubeconfig: "testdata/kubeconfig",
-				Image:      config.DEFAULT_IMAGE,
+				Stream:     config.DEFAULT_STREAM,
 				Fleetlock: config.FleetlockConfig{
 					URL:   "https://fleetlock.example.com",
 					Group: config.DEFAULT_FLEETLOCK_GROUP,
@@ -88,7 +88,7 @@ func TestNewDaemon(t *testing.T) {
 			Name: "EmptyKubeconfig",
 			CFG: config.Config{
 				Kubeconfig: "",
-				Image:      config.DEFAULT_IMAGE,
+				Stream:     config.DEFAULT_STREAM,
 				Fleetlock: config.FleetlockConfig{
 					URL:   "https://fleetlock.example.com",
 					Group: config.DEFAULT_FLEETLOCK_GROUP,
@@ -104,7 +104,7 @@ func TestNewDaemon(t *testing.T) {
 			Name: "KubeconfigFileNotFound",
 			CFG: config.Config{
 				Kubeconfig: "not-a-file",
-				Image:      config.DEFAULT_IMAGE,
+				Stream:     config.DEFAULT_STREAM,
 				Fleetlock: config.FleetlockConfig{
 					URL:   "https://fleetlock.example.com",
 					Group: config.DEFAULT_FLEETLOCK_GROUP,
@@ -120,7 +120,7 @@ func TestNewDaemon(t *testing.T) {
 			Name: "NoImage",
 			CFG: config.Config{
 				Kubeconfig: "testdata/kubeconfig",
-				Image:      "",
+				Stream:     "",
 				Fleetlock: config.FleetlockConfig{
 					URL:   "https://fleetlock.example.com",
 					Group: config.DEFAULT_FLEETLOCK_GROUP,
@@ -130,7 +130,7 @@ func TestNewDaemon(t *testing.T) {
 				CheckInterval: config.DEFAULT_CHECK_INTERVAL,
 				RetryInterval: config.DEFAULT_RETRY_INTERVAL,
 			},
-			Error: "no image provided for kubernetes updates",
+			Error: "no image stream provided for kubernetes updates",
 		},
 	}
 
