@@ -7,6 +7,7 @@ package v1alpha1
 type KubeUpgradeSpecApplyConfiguration struct {
 	KubernetesVersion *string                                           `json:"kubernetesVersion,omitempty"`
 	Groups            map[string]KubeUpgradePlanGroupApplyConfiguration `json:"groups,omitempty"`
+	Upgraded          *UpgradedConfigApplyConfiguration                 `json:"upgraded,omitempty"`
 }
 
 // KubeUpgradeSpecApplyConfiguration constructs a declarative configuration of the KubeUpgradeSpec type for use with
@@ -34,5 +35,13 @@ func (b *KubeUpgradeSpecApplyConfiguration) WithGroups(entries map[string]KubeUp
 	for k, v := range entries {
 		b.Groups[k] = v
 	}
+	return b
+}
+
+// WithUpgraded sets the Upgraded field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the Upgraded field is set to the value of the last call.
+func (b *KubeUpgradeSpecApplyConfiguration) WithUpgraded(value *UpgradedConfigApplyConfiguration) *KubeUpgradeSpecApplyConfiguration {
+	b.Upgraded = value
 	return b
 }

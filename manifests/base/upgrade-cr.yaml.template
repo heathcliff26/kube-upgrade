@@ -5,12 +5,18 @@ metadata:
   name: upgrade-plan
 spec:
   kubernetesVersion: ${kube_version_latest}
+  upgraded:
+    fleetlock-url: https://fleetlock.example.com
   groups:
     control-plane:
       labels:
         node-role.kubernetes.io/control-plane: ""
+      upgraded:
+        fleetlock-group: control-plane
     compute:
       dependsOn:
         - control-plane
       labels:
         node-role.kubernetes.io/compute: ""
+      upgraded:
+        fleetlock-group: compute

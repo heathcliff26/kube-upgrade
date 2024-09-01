@@ -1,6 +1,10 @@
 package v1alpha1
 
-import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+import (
+	"time"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
 
 const (
 	PlanStatusUnknown     = "Unknown"
@@ -41,6 +45,11 @@ type KubeUpgradeSpec struct {
 	// +required
 	// +kubebuilder:validation:MinProperties=1
 	Groups map[string]KubeUpgradePlanGroup `json:"groups"`
+
+	// The configuration for all upgraded daemons. Can be overwritten by group specific config.
+	// +optional
+	// +nullable
+	Upgraded *UpgradedConfig `json:"upgraded,omitempty"`
 }
 
 type KubeUpgradePlanGroup struct {
@@ -49,11 +58,17 @@ type KubeUpgradePlanGroup struct {
 	// +optional
 	// +kubebuilder:example=control-plane
 	DependsOn []string `json:"dependsOn,omitempty"`
+
 	// The labels by which to filter for this group
 	// +required
 	// +kubebuilder:validation:MinProperties=1
 	// +kubebuilder:example="node-role.kubernetes.io/control-plane;node-role.kubernetes.io/compute"
 	Labels map[string]string `json:"labels"`
+
+	// The configuration for all upgraded daemons in the group. Overwrites global parameters.
+	// +optional
+	// +nullable
+	Upgraded *UpgradedConfig `json:"upgraded,omitempty"`
 }
 
 type KubeUpgradeStatus struct {
@@ -61,14 +76,47 @@ type KubeUpgradeStatus struct {
 	// +kubebuilder:validation:Enum=Unknown;Waiting;Progressing;Complete
 	// +default="Unknown"
 	Summary string `json:"summary,omitempty"`
+
 	// The current status of each group
 	Groups map[string]string `json:"groups,omitempty"`
+}
+
+type UpgradedConfig struct {
+	// The container image repository for os rebases
+	// +optional
+	// +default="ghcr.io/heathcliff26/fcos-k8s"
+	// +kubebuilder:example="ghcr.io/heathcliff26/fcos-k8s"
+	Stream string `json:"stream,omitempty"`
+
+	// URL for the fleetlock server. Needs to be set either globally or for each node
+	// +optional
+	// +kubebuilder:validation:Pattern=^https?.\/\/[a-zA-z0-9]
+	// +kubebuilder:example="https://fleetlock.example.com"
+	FleetlockURL string `json:"fleetlock-url"`
+
+	// The group to use for fleetlock
+	// +default="default"
+	// +kubebuilder:example="control-plane;compute"
+	FleetlockGroup string `json:"fleetlock-group,omitempty"`
+
+	// The interval between regular checks
+	// +optional
+	// +default="3h"
+	// +kubebuilder:example="3h;24h;30m"
+	CheckInterval time.Duration `json:"check-interval,omitempty"`
+
+	// The interval between retries when an operation fails
+	// +optional
+	// +default="5m"
+	// +kubebuilder:example="5m;1m;30s"
+	RetryInterval time.Duration `json:"retry-interval,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 // +kubebuilder:object:root=true
 type KubeUpgradePlanList struct {
 	metav1.TypeMeta `json:",inline"`
+
 	// +optional
 	metav1.ListMeta `json:"metadata,omitempty"`
 
