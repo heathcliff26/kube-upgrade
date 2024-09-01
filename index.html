@@ -135,8 +135,6 @@ func main() <span class="cov0" title="0">{
 		
 		<pre class="file" id="file2" style="display: none">package v1alpha1
 
-import "time"
-
 func SetObjectDefaults_KubeUpgradeSpec(spec *KubeUpgradeSpec) <span class="cov0" title="0">{
         if spec.Groups == nil </span><span class="cov0" title="0">{
                 spec.Groups = make(map[string]KubeUpgradePlanGroup)
@@ -162,11 +160,11 @@ func SetObjectDefaults_UpgradedConfig(cfg *UpgradedConfig) <span class="cov0" ti
         <span class="cov0" title="0">if cfg.FleetlockGroup == "" </span><span class="cov0" title="0">{
                 cfg.FleetlockGroup = "default"
         }</span>
-        <span class="cov0" title="0">if cfg.CheckInterval == 0 </span><span class="cov0" title="0">{
-                cfg.CheckInterval = time.Hour * 3
+        <span class="cov0" title="0">if cfg.CheckInterval == "" </span><span class="cov0" title="0">{
+                cfg.CheckInterval = "3h"
         }</span>
-        <span class="cov0" title="0">if cfg.RetryInterval == 0 </span><span class="cov0" title="0">{
-                cfg.RetryInterval = time.Minute * 5
+        <span class="cov0" title="0">if cfg.RetryInterval == "" </span><span class="cov0" title="0">{
+                cfg.RetryInterval = "5m"
         }</span>
 }
 
@@ -266,10 +264,10 @@ func combineConfig(global, group *api.UpgradedConfig) map[string]string <span cl
         <span class="cov8" title="1">if group.FleetlockGroup != "" </span><span class="cov8" title="1">{
                 cfg.FleetlockGroup = group.FleetlockGroup
         }</span>
-        <span class="cov8" title="1">if group.CheckInterval != 0 </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">if group.CheckInterval != "" </span><span class="cov8" title="1">{
                 cfg.CheckInterval = group.CheckInterval
         }</span>
-        <span class="cov8" title="1">if group.RetryInterval != 0 </span><span class="cov8" title="1">{
+        <span class="cov8" title="1">if group.RetryInterval != "" </span><span class="cov8" title="1">{
                 cfg.RetryInterval = group.RetryInterval
         }</span>
 
@@ -292,11 +290,11 @@ func createConfigAnnotations(cfg *api.UpgradedConfig) map[string]string <span cl
         <span class="cov8" title="1">if cfg.FleetlockGroup != "" </span><span class="cov8" title="1">{
                 res[constants.ConfigFleetlockGroup] = cfg.FleetlockGroup
         }</span>
-        <span class="cov8" title="1">if cfg.CheckInterval != 0 </span><span class="cov8" title="1">{
-                res[constants.ConfigCheckInterval] = cfg.CheckInterval.String()
+        <span class="cov8" title="1">if cfg.CheckInterval != "" </span><span class="cov8" title="1">{
+                res[constants.ConfigCheckInterval] = cfg.CheckInterval
         }</span>
-        <span class="cov8" title="1">if cfg.RetryInterval != 0 </span><span class="cov8" title="1">{
-                res[constants.ConfigRetryInterval] = cfg.RetryInterval.String()
+        <span class="cov8" title="1">if cfg.RetryInterval != "" </span><span class="cov8" title="1">{
+                res[constants.ConfigRetryInterval] = cfg.RetryInterval
         }</span>
 
         <span class="cov8" title="1">return res</span>
