@@ -2,7 +2,6 @@ package controller
 
 import (
 	"testing"
-	"time"
 
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
@@ -21,22 +20,22 @@ func TestCombineConfig(t *testing.T) {
 				Stream:         "registry.example.org/test-stream",
 				FleetlockURL:   "https://fleetlock.example.org",
 				FleetlockGroup: "not-default",
-				CheckInterval:  time.Minute * 10,
-				RetryInterval:  time.Minute * 15,
+				CheckInterval:  "10m",
+				RetryInterval:  "15m",
 			},
 			Group: &api.UpgradedConfig{
 				Stream:         "registry.example.com/test-stream",
 				FleetlockURL:   "https://fleetlock.example.com",
 				FleetlockGroup: "default",
-				CheckInterval:  time.Minute * 2,
-				RetryInterval:  time.Minute * 3,
+				CheckInterval:  "2m",
+				RetryInterval:  "3m",
 			},
 			Result: map[string]string{
 				constants.ConfigStream:         "registry.example.com/test-stream",
 				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
 				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m0s",
-				constants.ConfigRetryInterval:  "3m0s",
+				constants.ConfigCheckInterval:  "2m",
+				constants.ConfigRetryInterval:  "3m",
 			},
 		},
 		{
@@ -45,20 +44,20 @@ func TestCombineConfig(t *testing.T) {
 				Stream:         "registry.example.org/test-stream",
 				FleetlockURL:   "https://fleetlock.example.org",
 				FleetlockGroup: "not-default",
-				CheckInterval:  time.Minute * 10,
-				RetryInterval:  time.Minute * 15,
+				CheckInterval:  "10m",
+				RetryInterval:  "15m",
 			},
 			Group: &api.UpgradedConfig{
 				FleetlockGroup: "default",
-				CheckInterval:  time.Minute * 2,
-				RetryInterval:  time.Minute * 3,
+				CheckInterval:  "2m",
+				RetryInterval:  "3m",
 			},
 			Result: map[string]string{
 				constants.ConfigStream:         "registry.example.org/test-stream",
 				constants.ConfigFleetlockURL:   "https://fleetlock.example.org",
 				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m0s",
-				constants.ConfigRetryInterval:  "3m0s",
+				constants.ConfigCheckInterval:  "2m",
+				constants.ConfigRetryInterval:  "3m",
 			},
 		},
 		{
@@ -67,8 +66,8 @@ func TestCombineConfig(t *testing.T) {
 				Stream:         "registry.example.org/test-stream",
 				FleetlockURL:   "https://fleetlock.example.org",
 				FleetlockGroup: "not-default",
-				CheckInterval:  time.Minute * 10,
-				RetryInterval:  time.Minute * 15,
+				CheckInterval:  "10m",
+				RetryInterval:  "15m",
 			},
 			Group: &api.UpgradedConfig{
 				Stream:       "registry.example.com/test-stream",
@@ -78,8 +77,8 @@ func TestCombineConfig(t *testing.T) {
 				constants.ConfigStream:         "registry.example.com/test-stream",
 				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
 				constants.ConfigFleetlockGroup: "not-default",
-				constants.ConfigCheckInterval:  "10m0s",
-				constants.ConfigRetryInterval:  "15m0s",
+				constants.ConfigCheckInterval:  "10m",
+				constants.ConfigRetryInterval:  "15m",
 			},
 		},
 		{
@@ -88,15 +87,15 @@ func TestCombineConfig(t *testing.T) {
 				Stream:         "registry.example.com/test-stream",
 				FleetlockURL:   "https://fleetlock.example.com",
 				FleetlockGroup: "default",
-				CheckInterval:  time.Minute * 2,
-				RetryInterval:  time.Minute * 3,
+				CheckInterval:  "2m",
+				RetryInterval:  "3m",
 			},
 			Result: map[string]string{
 				constants.ConfigStream:         "registry.example.com/test-stream",
 				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
 				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m0s",
-				constants.ConfigRetryInterval:  "3m0s",
+				constants.ConfigCheckInterval:  "2m",
+				constants.ConfigRetryInterval:  "3m",
 			},
 		},
 		{
@@ -105,15 +104,15 @@ func TestCombineConfig(t *testing.T) {
 				Stream:         "registry.example.com/test-stream",
 				FleetlockURL:   "https://fleetlock.example.com",
 				FleetlockGroup: "default",
-				CheckInterval:  time.Minute * 2,
-				RetryInterval:  time.Minute * 3,
+				CheckInterval:  "2m",
+				RetryInterval:  "3m",
 			},
 			Result: map[string]string{
 				constants.ConfigStream:         "registry.example.com/test-stream",
 				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
 				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m0s",
-				constants.ConfigRetryInterval:  "3m0s",
+				constants.ConfigCheckInterval:  "2m",
+				constants.ConfigRetryInterval:  "3m",
 			},
 		},
 		{
