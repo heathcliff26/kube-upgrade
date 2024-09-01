@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"testing"
+	"time"
 
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
@@ -423,6 +424,83 @@ func TestReconcile(t *testing.T) {
 			ExpectedAnnotationsCompute: map[string]string{
 				constants.NodeKubernetesVersion: "v1.31.0",
 				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+			},
+		},
+		{
+			Name: "ApplyConfiguration",
+			Plan: api.KubeUpgradePlan{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "upgrade-plan",
+				},
+				Spec: api.KubeUpgradeSpec{
+					KubernetesVersion: "v1.30.4",
+					Upgraded: &api.UpgradedConfig{
+						Stream:         "registry.example.com/test-stream",
+						FleetlockURL:   "https://fleetlock.example.org",
+						FleetlockGroup: "default",
+						CheckInterval:  time.Minute * 2,
+						RetryInterval:  time.Minute * 3,
+					},
+					Groups: map[string]api.KubeUpgradePlanGroup{
+						"control": {
+							Labels: map[string]string{
+								groupLabel: groupControl,
+							},
+							Upgraded: &api.UpgradedConfig{
+								FleetlockGroup: "control-plane",
+							},
+						},
+						"compute": {
+							DependsOn: []string{"control"},
+							Labels: map[string]string{
+								groupLabel: groupCompute,
+							},
+							Upgraded: &api.UpgradedConfig{
+								FleetlockGroup: "compute",
+							},
+						},
+					},
+				},
+				Status: api.KubeUpgradeStatus{
+					Summary: api.PlanStatusComplete,
+					Groups: map[string]string{
+						groupControl: api.PlanStatusComplete,
+						groupCompute: api.PlanStatusComplete,
+					},
+				},
+			},
+			AnnotationsControl: map[string]string{
+				constants.NodeKubernetesVersion: "v1.30.4",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.ConfigFleetlockGroup:  "not-the-group",
+			},
+			AnnotationsCompute: map[string]string{
+				constants.NodeKubernetesVersion: "v1.30.4",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.ConfigFleetlockGroup:  "not-the-group-either",
+			},
+			ExpectedSummary: api.PlanStatusComplete,
+			ExpectedGroupStatus: map[string]string{
+				groupControl: api.PlanStatusComplete,
+				groupCompute: api.PlanStatusComplete,
+			},
+			ExpectedAnnotationsControl: map[string]string{
+				constants.NodeKubernetesVersion: "v1.30.4",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.ConfigStream:          "registry.example.com/test-stream",
+				constants.ConfigFleetlockURL:    "https://fleetlock.example.org",
+				constants.ConfigFleetlockGroup:  "control-plane",
+				constants.ConfigCheckInterval:   "2m0s",
+				constants.ConfigRetryInterval:   "3m0s",
+			},
+			ExpectedAnnotationsCompute: map[string]string{
+				constants.NodeKubernetesVersion: "v1.30.4",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
+				constants.ConfigStream:          "registry.example.com/test-stream",
+				constants.ConfigFleetlockURL:    "https://fleetlock.example.org",
+				constants.ConfigFleetlockGroup:  "compute",
+				constants.ConfigCheckInterval:   "2m0s",
+				constants.ConfigRetryInterval:   "3m0s",
 			},
 		},
 	}
