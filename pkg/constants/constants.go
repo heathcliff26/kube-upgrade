@@ -1,14 +1,14 @@
 package constants
 
 const (
-	baseDomain   = "kube-upgrade.heathcliff.eu/"
-	nodePrefix   = "node." + baseDomain
-	configPrefix = "config." + baseDomain
+	BaseDomain   = "kube-upgrade.heathcliff.eu/"
+	NodePrefix   = "node." + BaseDomain
+	ConfigPrefix = "config." + BaseDomain
 )
 
 const (
-	NodeKubernetesVersion = nodePrefix + "kubernetesVersion"
-	NodeUpgradeStatus     = nodePrefix + "status"
+	NodeKubernetesVersion = NodePrefix + "kubernetesVersion"
+	NodeUpgradeStatus     = NodePrefix + "status"
 )
 
 const (
@@ -19,9 +19,9 @@ const (
 )
 
 const (
-	ConfigStream         = configPrefix + "stream"
-	ConfigFleetlockURL   = configPrefix + "fleetlock-url"
-	ConfigFleetlockGroup = configPrefix + "fleetlock-group"
-	ConfigCheckInterval  = configPrefix + "check-interval"
-	ConfigRetryInterval  = configPrefix + "retry-interval"
+	ConfigStream         = ConfigPrefix + "stream"
+	ConfigFleetlockURL   = ConfigPrefix + "fleetlock-url"
+	ConfigFleetlockGroup = ConfigPrefix + "fleetlock-group"
+	ConfigCheckInterval  = ConfigPrefix + "check-interval"
+	ConfigRetryInterval  = ConfigPrefix + "retry-interval"
 )
