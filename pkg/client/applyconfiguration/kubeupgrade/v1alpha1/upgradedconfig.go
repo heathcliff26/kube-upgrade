@@ -2,18 +2,14 @@
 
 package v1alpha1
 
-import (
-	time "time"
-)
-
 // UpgradedConfigApplyConfiguration represents a declarative configuration of the UpgradedConfig type for use
 // with apply.
 type UpgradedConfigApplyConfiguration struct {
-	Stream         *string        `json:"stream,omitempty"`
-	FleetlockURL   *string        `json:"fleetlock-url,omitempty"`
-	FleetlockGroup *string        `json:"fleetlock-group,omitempty"`
-	CheckInterval  *time.Duration `json:"check-interval,omitempty"`
-	RetryInterval  *time.Duration `json:"retry-interval,omitempty"`
+	Stream         *string `json:"stream,omitempty"`
+	FleetlockURL   *string `json:"fleetlock-url,omitempty"`
+	FleetlockGroup *string `json:"fleetlock-group,omitempty"`
+	CheckInterval  *string `json:"check-interval,omitempty"`
+	RetryInterval  *string `json:"retry-interval,omitempty"`
 }
 
 // UpgradedConfigApplyConfiguration constructs a declarative configuration of the UpgradedConfig type for use with
@@ -49,7 +45,7 @@ func (b *UpgradedConfigApplyConfiguration) WithFleetlockGroup(value string) *Upg
 // WithCheckInterval sets the CheckInterval field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the CheckInterval field is set to the value of the last call.
-func (b *UpgradedConfigApplyConfiguration) WithCheckInterval(value time.Duration) *UpgradedConfigApplyConfiguration {
+func (b *UpgradedConfigApplyConfiguration) WithCheckInterval(value string) *UpgradedConfigApplyConfiguration {
 	b.CheckInterval = &value
 	return b
 }
@@ -57,7 +53,7 @@ func (b *UpgradedConfigApplyConfiguration) WithCheckInterval(value time.Duration
 // WithRetryInterval sets the RetryInterval field in the declarative configuration to the given value
 // and returns the receiver, so that objects can be built by chaining "With" function invocations.
 // If called multiple times, the RetryInterval field is set to the value of the last call.
-func (b *UpgradedConfigApplyConfiguration) WithRetryInterval(value time.Duration) *UpgradedConfigApplyConfiguration {
+func (b *UpgradedConfigApplyConfiguration) WithRetryInterval(value string) *UpgradedConfigApplyConfiguration {
 	b.RetryInterval = &value
 	return b
 }

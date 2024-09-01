@@ -1,8 +1,6 @@
 package v1alpha1
 
 import (
-	"time"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -101,15 +99,17 @@ type UpgradedConfig struct {
 
 	// The interval between regular checks
 	// +optional
+	// +kubebuilder:validation:Format=duration
 	// +default="3h"
 	// +kubebuilder:example="3h;24h;30m"
-	CheckInterval time.Duration `json:"check-interval,omitempty"`
+	CheckInterval string `json:"check-interval,omitempty"`
 
 	// The interval between retries when an operation fails
 	// +optional
+	// +kubebuilder:validation:Format=duration
 	// +default="5m"
 	// +kubebuilder:example="5m;1m;30s"
-	RetryInterval time.Duration `json:"retry-interval,omitempty"`
+	RetryInterval string `json:"retry-interval,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

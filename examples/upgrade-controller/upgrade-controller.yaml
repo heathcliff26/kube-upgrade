@@ -79,8 +79,8 @@ spec:
                         check-interval:
                           description: The interval between regular checks
                           example: 3h;24h;30m
-                          format: int64
-                          type: integer
+                          format: duration
+                          type: string
                         fleetlock-group:
                           description: The group to use for fleetlock
                           example: control-plane;compute
@@ -95,8 +95,8 @@ spec:
                           description: The interval between retries when an operation
                             fails
                           example: 5m;1m;30s
-                          format: int64
-                          type: integer
+                          format: duration
+                          type: string
                         stream:
                           description: The container image repository for os rebases
                           example: ghcr.io/heathcliff26/fcos-k8s
@@ -125,8 +125,8 @@ spec:
                   check-interval:
                     description: The interval between regular checks
                     example: 3h;24h;30m
-                    format: int64
-                    type: integer
+                    format: duration
+                    type: string
                   fleetlock-group:
                     description: The group to use for fleetlock
                     example: control-plane;compute
@@ -140,8 +140,8 @@ spec:
                   retry-interval:
                     description: The interval between retries when an operation fails
                     example: 5m;1m;30s
-                    format: int64
-                    type: integer
+                    format: duration
+                    type: string
                   stream:
                     description: The container image repository for os rebases
                     example: ghcr.io/heathcliff26/fcos-k8s

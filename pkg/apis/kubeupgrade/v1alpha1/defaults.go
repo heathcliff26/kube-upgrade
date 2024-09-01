@@ -1,7 +1,5 @@
 package v1alpha1
 
-import "time"
-
 func SetObjectDefaults_KubeUpgradeSpec(spec *KubeUpgradeSpec) {
 	if spec.Groups == nil {
 		spec.Groups = make(map[string]KubeUpgradePlanGroup)
@@ -27,11 +25,11 @@ func SetObjectDefaults_UpgradedConfig(cfg *UpgradedConfig) {
 	if cfg.FleetlockGroup == "" {
 		cfg.FleetlockGroup = "default"
 	}
-	if cfg.CheckInterval == 0 {
-		cfg.CheckInterval = time.Hour * 3
+	if cfg.CheckInterval == "" {
+		cfg.CheckInterval = "3h"
 	}
-	if cfg.RetryInterval == 0 {
-		cfg.RetryInterval = time.Minute * 5
+	if cfg.RetryInterval == "" {
+		cfg.RetryInterval = "5m"
 	}
 }
 

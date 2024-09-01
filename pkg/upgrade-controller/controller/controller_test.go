@@ -3,7 +3,6 @@ package controller
 import (
 	"context"
 	"testing"
-	"time"
 
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
@@ -438,8 +437,8 @@ func TestReconcile(t *testing.T) {
 						Stream:         "registry.example.com/test-stream",
 						FleetlockURL:   "https://fleetlock.example.org",
 						FleetlockGroup: "default",
-						CheckInterval:  time.Minute * 2,
-						RetryInterval:  time.Minute * 3,
+						CheckInterval:  "2m",
+						RetryInterval:  "3m",
 					},
 					Groups: map[string]api.KubeUpgradePlanGroup{
 						"control": {
@@ -490,8 +489,8 @@ func TestReconcile(t *testing.T) {
 				constants.ConfigStream:          "registry.example.com/test-stream",
 				constants.ConfigFleetlockURL:    "https://fleetlock.example.org",
 				constants.ConfigFleetlockGroup:  "control-plane",
-				constants.ConfigCheckInterval:   "2m0s",
-				constants.ConfigRetryInterval:   "3m0s",
+				constants.ConfigCheckInterval:   "2m",
+				constants.ConfigRetryInterval:   "3m",
 			},
 			ExpectedAnnotationsCompute: map[string]string{
 				constants.NodeKubernetesVersion: "v1.30.4",
@@ -499,8 +498,8 @@ func TestReconcile(t *testing.T) {
 				constants.ConfigStream:          "registry.example.com/test-stream",
 				constants.ConfigFleetlockURL:    "https://fleetlock.example.org",
 				constants.ConfigFleetlockGroup:  "compute",
-				constants.ConfigCheckInterval:   "2m0s",
-				constants.ConfigRetryInterval:   "3m0s",
+				constants.ConfigCheckInterval:   "2m",
+				constants.ConfigRetryInterval:   "3m",
 			},
 		},
 	}

@@ -30,10 +30,10 @@ func combineConfig(global, group *api.UpgradedConfig) map[string]string {
 	if group.FleetlockGroup != "" {
 		cfg.FleetlockGroup = group.FleetlockGroup
 	}
-	if group.CheckInterval != 0 {
+	if group.CheckInterval != "" {
 		cfg.CheckInterval = group.CheckInterval
 	}
-	if group.RetryInterval != 0 {
+	if group.RetryInterval != "" {
 		cfg.RetryInterval = group.RetryInterval
 	}
 
@@ -56,11 +56,11 @@ func createConfigAnnotations(cfg *api.UpgradedConfig) map[string]string {
 	if cfg.FleetlockGroup != "" {
 		res[constants.ConfigFleetlockGroup] = cfg.FleetlockGroup
 	}
-	if cfg.CheckInterval != 0 {
-		res[constants.ConfigCheckInterval] = cfg.CheckInterval.String()
+	if cfg.CheckInterval != "" {
+		res[constants.ConfigCheckInterval] = cfg.CheckInterval
 	}
-	if cfg.RetryInterval != 0 {
-		res[constants.ConfigRetryInterval] = cfg.RetryInterval.String()
+	if cfg.RetryInterval != "" {
+		res[constants.ConfigRetryInterval] = cfg.RetryInterval
 	}
 
 	return res
