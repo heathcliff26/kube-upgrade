@@ -127,6 +127,8 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 	newGroupStatus := make(map[string]string, len(plan.Spec.Groups))
 
 	for name, cfg := range plan.Spec.Groups {
+		upgradedCfg := combineConfig(plan.Spec.Upgraded, plan.Spec.Groups[name].Upgraded)
+
 		nodeList, err := c.nodes.List(ctx, metav1.ListOptions{
 			LabelSelector: labels.SelectorFromSet(cfg.Labels).String(),
 		})
@@ -135,7 +137,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 			return err
 		}
 
-		status, update, nodes, err := c.reconcileNodes(plan.Spec.KubernetesVersion, nodeList.Items)
+		status, update, nodes, err := c.reconcileNodes(plan.Spec.KubernetesVersion, nodeList.Items, upgradedCfg)
 		if err != nil {
 			logger.WithValues("group", name).Error(err, "Failed to reconcile nodes for group")
 			return err
@@ -173,7 +175,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 	return nil
 }
 
-func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node) (string, bool, []corev1.Node, error) {
+func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node, cfgAnnotations map[string]string) (string, bool, []corev1.Node, error) {
 	if len(nodes) == 0 {
 		return api.PlanStatusUnknown, false, nil, nil
 	}
@@ -184,6 +186,10 @@ func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node) (st
 	for i := range nodes {
 		if nodes[i].Annotations == nil {
 			nodes[i].Annotations = make(map[string]string)
+		}
+
+		if applyConfigAnnotations(nodes[i].Annotations, cfgAnnotations) {
+			needUpdate = true
 		}
 
 		if nodes[i].Annotations[constants.NodeKubernetesVersion] == kubeVersion {
