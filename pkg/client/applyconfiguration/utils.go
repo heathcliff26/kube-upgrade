@@ -24,6 +24,8 @@ func ForKind(kind schema.GroupVersionKind) interface{} {
 		return &kubeupgradev1alpha1.KubeUpgradeSpecApplyConfiguration{}
 	case v1alpha1.SchemeGroupVersion.WithKind("KubeUpgradeStatus"):
 		return &kubeupgradev1alpha1.KubeUpgradeStatusApplyConfiguration{}
+	case v1alpha1.SchemeGroupVersion.WithKind("UpgradedConfig"):
+		return &kubeupgradev1alpha1.UpgradedConfigApplyConfiguration{}
 
 	}
 	return nil

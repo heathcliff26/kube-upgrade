@@ -5,8 +5,9 @@ package v1alpha1
 // KubeUpgradePlanGroupApplyConfiguration represents a declarative configuration of the KubeUpgradePlanGroup type for use
 // with apply.
 type KubeUpgradePlanGroupApplyConfiguration struct {
-	DependsOn []string          `json:"dependsOn,omitempty"`
-	Labels    map[string]string `json:"labels,omitempty"`
+	DependsOn []string                          `json:"dependsOn,omitempty"`
+	Labels    map[string]string                 `json:"labels,omitempty"`
+	Upgraded  *UpgradedConfigApplyConfiguration `json:"upgraded,omitempty"`
 }
 
 // KubeUpgradePlanGroupApplyConfiguration constructs a declarative configuration of the KubeUpgradePlanGroup type for use with
@@ -36,5 +37,13 @@ func (b *KubeUpgradePlanGroupApplyConfiguration) WithLabels(entries map[string]s
 	for k, v := range entries {
 		b.Labels[k] = v
 	}
+	return b
+}
+
+// WithUpgraded sets the Upgraded field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the Upgraded field is set to the value of the last call.
+func (b *KubeUpgradePlanGroupApplyConfiguration) WithUpgraded(value *UpgradedConfigApplyConfiguration) *KubeUpgradePlanGroupApplyConfiguration {
+	b.Upgraded = value
 	return b
 }

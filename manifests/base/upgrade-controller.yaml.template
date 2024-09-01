@@ -73,7 +73,6 @@ spec:
       containers:
         - name: upgrade-controller
           image: ${REPOSITORY}/kube-upgrade-controller:${TAG}
-          imagePullPolicy: Always
           env:
             - name: POD_NAME
               valueFrom:
