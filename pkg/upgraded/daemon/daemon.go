@@ -15,7 +15,6 @@ import (
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm"
 	rpmostree "github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree"
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -141,7 +140,7 @@ func (d *daemon) Run() error {
 		cancel()
 	}()
 
-	node, err := d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
+	node, err := d.getNode()
 	if err != nil {
 		return fmt.Errorf("failed to get node status: %v", err)
 	}
@@ -158,7 +157,8 @@ func (d *daemon) Run() error {
 			return nil
 		}
 	} else {
-		slog.Info("Node is in the middle of a kubernetes upgrade, not releasing the lock")
+		slog.Info("Node needs upgrade or is in the middle of one, upgrading node before starting daemon")
+		d.doNodeUpgradeWithRetry(node)
 	}
 
 	slog.Info("Starting daemon")

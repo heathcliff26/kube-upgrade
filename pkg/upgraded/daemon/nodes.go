@@ -23,13 +23,9 @@ func (d *daemon) watchForNodeUpgrade() {
 
 	informer := factory.Core().V1().Nodes().Informer()
 	_, err := informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: d.checkNodeStatus,
 		UpdateFunc: func(_, newObj interface{}) {
-			d.checkNodeStatus(newObj)
-		},
-		DeleteFunc: func(_ interface{}) {
-			slog.Error("Node has been deleted from cluster")
-			d.cancel()
+			node := newObj.(*corev1.Node)
+			d.checkNodeStatus(node)
 		},
 	})
 	if err != nil {
@@ -48,13 +44,16 @@ func (d *daemon) watchForNodeUpgrade() {
 }
 
 // Check if we need to upgrade the node and trigger the upgrade if needed
-func (d *daemon) checkNodeStatus(obj interface{}) {
-	node := obj.(*corev1.Node)
-
+func (d *daemon) checkNodeStatus(node *corev1.Node) {
 	if !nodeNeedsUpgrade(node) {
 		return
 	}
 
+	d.doNodeUpgradeWithRetry(nil)
+}
+
+// Update the node until it succeeds
+func (d *daemon) doNodeUpgradeWithRetry(node *corev1.Node) {
 	d.retry(func() bool {
 		err := d.doNodeUpgrade(node)
 		if err == nil {
@@ -67,15 +66,22 @@ func (d *daemon) checkNodeStatus(obj interface{}) {
 
 // Update the node by first rebasing to a new version and then upgrading kubernetes
 func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
-	// There should ever only be one upgrade at a time. However the listen method may trigger further events while this is happening, which would proceed here with outdated data.
-	// Updating the status would cost a kube-api call each time, which would get expensive fast.
-	// So the best option here is to just silently return if the lock is already held.
-	if !d.upgrade.TryLock() {
-		return nil
-	}
+	d.upgrade.Lock()
 	defer d.upgrade.Unlock()
 
-	err := d.UpdateConfigFromAnnotations(node.GetAnnotations())
+	var err error
+	if node == nil {
+		// Need to fetch fresh data here, as the informer might called with a stale node version
+		node, err = d.getNode()
+		if err != nil {
+			return fmt.Errorf("failed to get node data from server: %v", err)
+		}
+		if !nodeNeedsUpgrade(node) {
+			return nil
+		}
+	}
+
+	err = d.UpdateConfigFromAnnotations(node.GetAnnotations())
 	if err != nil {
 		return fmt.Errorf("failed to update daemon config from node annotations: %v", err)
 	}
@@ -145,7 +151,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 
 // Update the kube-upgrade node status annotation with the given status
 func (d *daemon) updateNodeStatus(status string) error {
-	node, err := d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
+	node, err := d.getNode()
 	if err != nil {
 		return err
 	}
@@ -159,4 +165,9 @@ func (d *daemon) updateNodeStatus(status string) error {
 		slog.Debug("Set node status", slog.String("status", status))
 	}
 	return err
+}
+
+// Retrieve the node from the API
+func (d *daemon) getNode() (*corev1.Node, error) {
+	return d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
 }

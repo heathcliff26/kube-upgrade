@@ -6,13 +6,12 @@ import (
 	"time"
 
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // Update the daemon configuration based on the annotations of the node.
 // Returns on the first error, but will change all configs before that.
 func (d *daemon) UpdateConfigFromNode() error {
-	node, err := d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
+	node, err := d.getNode()
 	if err != nil {
 		return err
 	}

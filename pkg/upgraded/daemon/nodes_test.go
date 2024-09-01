@@ -15,14 +15,6 @@ import (
 )
 
 func TestDoNodeUpgrade(t *testing.T) {
-	t.Run("MutexAlreadyHeld", func(t *testing.T) {
-		d := &daemon{}
-
-		d.upgrade.Lock()
-		t.Cleanup(d.upgrade.Unlock)
-
-		assert.NoError(t, d.doNodeUpgrade(nil), "Should simply exit without doing anything")
-	})
 	t.Run("LockAlreadyReserved", func(t *testing.T) {
 		assert := assert.New(t)
 
