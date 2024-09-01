@@ -79,11 +79,11 @@
 				
 				<option value="file11">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/config.go (94.9%)</option>
 				
-				<option value="file12">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (45.5%)</option>
+				<option value="file12">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (44.9%)</option>
 				
 				<option value="file13">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/nodes.go (33.7%)</option>
 				
-				<option value="file14">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/stream.go (37.1%)</option>
+				<option value="file14">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/stream.go (35.3%)</option>
 				
 				<option value="file15">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/utils.go (93.8%)</option>
 				
@@ -847,13 +847,12 @@ import (
         "time"
 
         "github.com/heathcliff26/kube-upgrade/pkg/constants"
-        metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // Update the daemon configuration based on the annotations of the node.
 // Returns on the first error, but will change all configs before that.
 func (d *daemon) UpdateConfigFromNode() error <span class="cov8" title="1">{
-        node, err := d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
+        node, err := d.getNode()
         if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
@@ -943,7 +942,6 @@ import (
         "github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm"
         rpmostree "github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree"
         "github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils"
-        metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
         "k8s.io/client-go/kubernetes"
         "k8s.io/client-go/tools/clientcmd"
 )
@@ -1069,7 +1067,7 @@ func (d *daemon) Run() error <span class="cov0" title="0">{
                 cancel()
         }</span>()
 
-        <span class="cov0" title="0">node, err := d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
+        <span class="cov0" title="0">node, err := d.getNode()
         if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to get node status: %v", err)
         }</span>
@@ -1086,7 +1084,8 @@ func (d *daemon) Run() error <span class="cov0" title="0">{
                         return nil
                 }</span>
         } else<span class="cov0" title="0"> {
-                slog.Info("Node is in the middle of a kubernetes upgrade, not releasing the lock")
+                slog.Info("Node needs upgrade or is in the middle of one, upgrading node before starting daemon")
+                d.doNodeUpgradeWithRetry(node)
         }</span>
 
         <span class="cov0" title="0">slog.Info("Starting daemon")
@@ -1135,13 +1134,9 @@ func (d *daemon) watchForNodeUpgrade() <span class="cov0" title="0">{
 
         <span class="cov0" title="0">informer := factory.Core().V1().Nodes().Informer()
         _, err := informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-                AddFunc: d.checkNodeStatus,
                 UpdateFunc: func(_, newObj interface{}) </span><span class="cov0" title="0">{
-                        d.checkNodeStatus(newObj)
-                }</span>,
-                DeleteFunc: func(_ interface{}) <span class="cov0" title="0">{
-                        slog.Error("Node has been deleted from cluster")
-                        d.cancel()
+                        node := newObj.(*corev1.Node)
+                        d.checkNodeStatus(node)
                 }</span>,
         })
         <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
@@ -1160,14 +1155,17 @@ func (d *daemon) watchForNodeUpgrade() <span class="cov0" title="0">{
 }
 
 // Check if we need to upgrade the node and trigger the upgrade if needed
-func (d *daemon) checkNodeStatus(obj interface{}) <span class="cov0" title="0">{
-        node := obj.(*corev1.Node)
-
+func (d *daemon) checkNodeStatus(node *corev1.Node) <span class="cov0" title="0">{
         if !nodeNeedsUpgrade(node) </span><span class="cov0" title="0">{
                 return
         }</span>
 
-        <span class="cov0" title="0">d.retry(func() bool </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">d.doNodeUpgradeWithRetry(nil)</span>
+}
+
+// Update the node until it succeeds
+func (d *daemon) doNodeUpgradeWithRetry(node *corev1.Node) <span class="cov0" title="0">{
+        d.retry(func() bool </span><span class="cov0" title="0">{
                 err := d.doNodeUpgrade(node)
                 if err == nil </span><span class="cov0" title="0">{
                         return true
@@ -1179,15 +1177,22 @@ func (d *daemon) checkNodeStatus(obj interface{}) <span class="cov0" title="0">{
 
 // Update the node by first rebasing to a new version and then upgrading kubernetes
 func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title="1">{
-        // There should ever only be one upgrade at a time. However the listen method may trigger further events while this is happening, which would proceed here with outdated data.
-        // Updating the status would cost a kube-api call each time, which would get expensive fast.
-        // So the best option here is to just silently return if the lock is already held.
-        if !d.upgrade.TryLock() </span><span class="cov8" title="1">{
-                return nil
-        }</span>
-        <span class="cov8" title="1">defer d.upgrade.Unlock()
+        d.upgrade.Lock()
+        defer d.upgrade.Unlock()
 
-        err := d.UpdateConfigFromAnnotations(node.GetAnnotations())
+        var err error
+        if node == nil </span><span class="cov0" title="0">{
+                // Need to fetch fresh data here, as the informer might called with a stale node version
+                node, err = d.getNode()
+                if err != nil </span><span class="cov0" title="0">{
+                        return fmt.Errorf("failed to get node data from server: %v", err)
+                }</span>
+                <span class="cov0" title="0">if !nodeNeedsUpgrade(node) </span><span class="cov0" title="0">{
+                        return nil
+                }</span>
+        }
+
+        <span class="cov8" title="1">err = d.UpdateConfigFromAnnotations(node.GetAnnotations())
         if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to update daemon config from node annotations: %v", err)
         }</span>
@@ -1257,7 +1262,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
 
 // Update the kube-upgrade node status annotation with the given status
 func (d *daemon) updateNodeStatus(status string) error <span class="cov8" title="1">{
-        node, err := d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
+        node, err := d.getNode()
         if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
@@ -1272,6 +1277,11 @@ func (d *daemon) updateNodeStatus(status string) error <span class="cov8" title=
         }</span>
         <span class="cov8" title="1">return err</span>
 }
+
+// Retrieve the node from the API
+func (d *daemon) getNode() (*corev1.Node, error) <span class="cov8" title="1">{
+        return d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
+}</span>
 </pre>
 		
 		<pre class="file" id="file14" style="display: none">package daemon
@@ -1322,12 +1332,8 @@ func (d *daemon) watchForUpgrade() <span class="cov0" title="0">{
 
 // Perform rpm-ostree upgrade
 func (d *daemon) doUpgrade() error <span class="cov8" title="1">{
-        // There should ever only be one upgrade at a time and any upgrade comes with a reboot anyway.
-        // So the best option here is to just silently return if the lock is already held.
-        if !d.upgrade.TryLock() </span><span class="cov8" title="1">{
-                return nil
-        }</span>
-        <span class="cov8" title="1">defer d.upgrade.Unlock()
+        d.upgrade.Lock()
+        defer d.upgrade.Unlock()
 
         err := d.UpdateConfigFromNode()
         if err != nil </span><span class="cov0" title="0">{
