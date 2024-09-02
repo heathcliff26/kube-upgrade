@@ -29,7 +29,8 @@ echo "Fetching latest kubernetes version"
 export kube_version_latest="$(curl -L -s https://dl.k8s.io/release/stable.txt)"
 
 echo "Creating example plan"
-envsubst < "${base_dir}/manifests/base/upgrade-cr.yaml.template" > "${output_dir}/upgrade-cr.yaml"
+# shellcheck disable=SC2016
+envsubst '${kube_version_latest}' < "${base_dir}/manifests/base/upgrade-cr.yaml.template" > "${output_dir}/upgrade-cr.yaml"
 
 echo "Wrote manifests to ${output_dir}"
 

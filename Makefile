@@ -17,6 +17,9 @@ test:
 update-deps:
 	hack/update-deps.sh
 
+update-external-scripts:
+	hack/update-external-scripts.sh
+
 coverprofile:
 	hack/coverprofile.sh
 
@@ -47,6 +50,7 @@ controller-gen:
 	upgrade-controller \
 	test \
 	update-deps \
+	update-external-scripts \
 	coverprofile \
 	lint \
 	generate \

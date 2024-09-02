@@ -31,3 +31,10 @@ echo "Generating manifests"
                             output:rbac:artifacts:config=manifests/generated
 
 popd >/dev/null
+
+echo "Generating json schema for yaml validation"
+pushd "${base_dir}/manifests/generated">/dev/null
+
+python3 "${base_dir}/hack/external/openapi2jsonschema.py" kubeupgrade.heathcliff.eu_kubeupgradeplans.yaml
+
+popd >/dev/null
