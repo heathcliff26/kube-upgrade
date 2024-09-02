@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/heathcliff26/kube-upgrade/main/manifests/generated/kubeupgradeplan_v1alpha1.json
 apiVersion: kubeupgrade.heathcliff.eu/v1alpha1
 kind: KubeUpgradePlan
 metadata:
