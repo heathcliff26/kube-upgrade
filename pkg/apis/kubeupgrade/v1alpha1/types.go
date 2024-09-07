@@ -88,7 +88,6 @@ type UpgradedConfig struct {
 
 	// URL for the fleetlock server. Needs to be set either globally or for each node
 	// +optional
-	// +kubebuilder:validation:Pattern=^https?.\/\/[a-zA-z0-9]
 	// +kubebuilder:example="https://fleetlock.example.com"
 	FleetlockURL string `json:"fleetlock-url"`
 
