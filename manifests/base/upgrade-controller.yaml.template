@@ -52,6 +52,29 @@ roleRef:
   name: upgrade-controller
   apiGroup: rbac.authorization.k8s.io
 ---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned
+  namespace: ${KUBE_UPGRADE_NAMESPACE}
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: webhook-server-cert
+  namespace: ${KUBE_UPGRADE_NAMESPACE}
+spec:
+  dnsNames:
+  - upgrade-controller-webhooks.${KUBE_UPGRADE_NAMESPACE}.svc
+  - upgrade-controller-webhooks.${KUBE_UPGRADE_NAMESPACE}.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: selfsigned
+  secretName: webhook-server-cert
+${kube_upgrade_webhooks}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -82,6 +105,9 @@ spec:
             - name: probe
               containerPort: 9090
               protocol: TCP
+            - name: webhook-server
+              containerPort: 9443
+              protocol: TCP
           livenessProbe:
             httpGet:
               path: /healthz
@@ -96,3 +122,27 @@ spec:
               port: probe
             initialDelaySeconds: 5
             periodSeconds: 1
+          volumeMounts:
+            - name: cert
+              mountPath: /tmp/k8s-webhook-server/serving-certs
+              readOnly: true
+      volumes:
+        - name: cert
+          secret:
+            defaultMode: 420
+            secretName: webhook-server-cert
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: upgrade-controller-webhooks
+  namespace: ${KUBE_UPGRADE_NAMESPACE}
+  labels:
+    app: kube-upgrade
+spec:
+  ports:
+    - port: 443
+      protocol: TCP
+      targetPort: 9443
+  selector:
+    app: kube-upgrade

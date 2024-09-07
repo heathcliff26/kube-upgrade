@@ -84,7 +84,6 @@ spec:
                           description: URL for the fleetlock server. Needs to be set
                             either globally or for each node
                           example: https://fleetlock.example.com
-                          pattern: ^https?.\/\/[a-zA-z0-9]
                           type: string
                         retry-interval:
                           description: The interval between retries when an operation
@@ -130,7 +129,6 @@ spec:
                     description: URL for the fleetlock server. Needs to be set either
                       globally or for each node
                     example: https://fleetlock.example.com
-                    pattern: ^https?.\/\/[a-zA-z0-9]
                     type: string
                   retry-interval:
                     description: The interval between retries when an operation fails

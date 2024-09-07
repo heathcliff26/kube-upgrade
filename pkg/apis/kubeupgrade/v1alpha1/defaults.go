@@ -1,5 +1,9 @@
 package v1alpha1
 
+const (
+	DefaultStatus = "Unknown"
+)
+
 func SetObjectDefaults_KubeUpgradeSpec(spec *KubeUpgradeSpec) {
 	if spec.Groups == nil {
 		spec.Groups = make(map[string]KubeUpgradePlanGroup)
@@ -7,9 +11,6 @@ func SetObjectDefaults_KubeUpgradeSpec(spec *KubeUpgradeSpec) {
 	for name, group := range spec.Groups {
 		if group.Labels == nil {
 			group.Labels = make(map[string]string)
-		}
-		if group.Upgraded != nil {
-			SetObjectDefaults_UpgradedConfig(group.Upgraded)
 		}
 		spec.Groups[name] = group
 	}
@@ -35,7 +36,7 @@ func SetObjectDefaults_UpgradedConfig(cfg *UpgradedConfig) {
 
 func SetObjectDefaults_KubeUpgradeStatus(status *KubeUpgradeStatus) {
 	if status.Summary == "" {
-		status.Summary = "Unknown"
+		status.Summary = DefaultStatus
 	}
 	if status.Groups == nil {
 		status.Groups = make(map[string]string)

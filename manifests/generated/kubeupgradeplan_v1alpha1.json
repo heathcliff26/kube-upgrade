@@ -51,7 +51,6 @@
                   "fleetlock-url": {
                     "description": "URL for the fleetlock server. Needs to be set either globally or for each node",
                     "example": "https://fleetlock.example.com",
-                    "pattern": "^https?.\\/\\/[a-zA-z0-9]",
                     "type": "string"
                   },
                   "retry-interval": {
@@ -104,7 +103,6 @@
             "fleetlock-url": {
               "description": "URL for the fleetlock server. Needs to be set either globally or for each node",
               "example": "https://fleetlock.example.com",
-              "pattern": "^https?.\\/\\/[a-zA-z0-9]",
               "type": "string"
             },
             "retry-interval": {

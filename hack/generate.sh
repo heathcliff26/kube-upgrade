@@ -24,11 +24,21 @@ kube::codegen::gen_client \
 gobin="${GOBIN:-$(go env GOPATH)/bin}"
 
 echo "Generating manifests"
-"${gobin}/controller-gen"   rbac:roleName=upgrade-controller \
-                            crd \
+"${gobin}/controller-gen"   crd \
+                            rbac:roleName=upgrade-controller \
+                            webhook \
                             paths="./..." \
                             output:crd:artifacts:config=manifests/generated \
-                            output:rbac:artifacts:config=manifests/generated
+                            output:rbac:artifacts:config=manifests/generated \
+                            output:webhook:artifacts:config=manifests/generated
+
+echo "Patching webhook manifests"
+yq -i e '.webhooks[0].clientConfig.service.name = "upgrade-controller-webhooks"' manifests/generated/manifests.yaml
+# shellcheck disable=SC2016
+yq -i e '.webhooks[0].clientConfig.service.namespace = "${KUBE_UPGRADE_NAMESPACE}"' manifests/generated/manifests.yaml
+# shellcheck disable=SC2016
+yq -i e '.metadata.annotations."cert-manager.io/inject-ca-from" = "${KUBE_UPGRADE_NAMESPACE}/webhook-server-cert"' manifests/generated/manifests.yaml
+yq -i e '.metadata.name = "kube-upgrade-webhook"' manifests/generated/manifests.yaml
 
 popd >/dev/null
 

@@ -89,7 +89,6 @@ spec:
                           description: URL for the fleetlock server. Needs to be set
                             either globally or for each node
                           example: https://fleetlock.example.com
-                          pattern: ^https?.\/\/[a-zA-z0-9]
                           type: string
                         retry-interval:
                           description: The interval between retries when an operation
@@ -135,7 +134,6 @@ spec:
                     description: URL for the fleetlock server. Needs to be set either
                       globally or for each node
                     example: https://fleetlock.example.com
-                    pattern: ^https?.\/\/[a-zA-z0-9]
                     type: string
                   retry-interval:
                     description: The interval between retries when an operation fails
@@ -254,6 +252,56 @@ roleRef:
   name: upgrade-controller
   apiGroup: rbac.authorization.k8s.io
 ---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned
+  namespace: kube-upgrade
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: webhook-server-cert
+  namespace: kube-upgrade
+spec:
+  dnsNames:
+  - upgrade-controller-webhooks.kube-upgrade.svc
+  - upgrade-controller-webhooks.kube-upgrade.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: selfsigned
+  secretName: webhook-server-cert
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: kube-upgrade-webhook
+  annotations:
+    cert-manager.io/inject-ca-from: kube-upgrade/webhook-server-cert
+webhooks:
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: upgrade-controller-webhooks
+        namespace: kube-upgrade
+        path: /mutate-kubeupgrade-heathcliff-eu-v1alpha1-kubeupgradeplan
+    failurePolicy: Fail
+    name: kubeupgrade.heathcliff.eu
+    rules:
+      - apiGroups:
+          - kubeupgrade.heathcliff.eu
+        apiVersions:
+          - v1alpha1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - kubeupgradeplans
+    sideEffects: None
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -284,6 +332,9 @@ spec:
             - name: probe
               containerPort: 9090
               protocol: TCP
+            - name: webhook-server
+              containerPort: 9443
+              protocol: TCP
           livenessProbe:
             httpGet:
               path: /healthz
@@ -298,3 +349,27 @@ spec:
               port: probe
             initialDelaySeconds: 5
             periodSeconds: 1
+          volumeMounts:
+            - name: cert
+              mountPath: /tmp/k8s-webhook-server/serving-certs
+              readOnly: true
+      volumes:
+        - name: cert
+          secret:
+            defaultMode: 420
+            secretName: webhook-server-cert
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: upgrade-controller-webhooks
+  namespace: kube-upgrade
+  labels:
+    app: kube-upgrade
+spec:
+  ports:
+    - port: 443
+      protocol: TCP
+      targetPort: 9443
+  selector:
+    app: kube-upgrade

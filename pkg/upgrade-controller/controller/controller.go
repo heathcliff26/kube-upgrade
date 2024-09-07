@@ -88,6 +88,15 @@ func (c *controller) Run() error {
 	if err != nil {
 		return err
 	}
+
+	err = ctrl.NewWebhookManagedBy(c.manager).
+		For(&api.KubeUpgradePlan{}).
+		WithDefaulter(&planMutatingHook{}).
+		Complete()
+	if err != nil {
+		return err
+	}
+
 	return c.manager.Start(signals.SetupSignalHandler())
 }
 

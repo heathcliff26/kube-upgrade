@@ -18,6 +18,8 @@ fi
 export kube_upgrade_crd=$(cat "${base_dir}/manifests/generated/kubeupgrade.heathcliff.eu_kubeupgradeplans.yaml")
 # shellcheck disable=SC2155
 export kube_upgrade_rbac_cluster_role=$(cat "${base_dir}/manifests/generated/role.yaml")
+# shellcheck disable=SC2155
+export kube_upgrade_webhooks=$(envsubst < "${base_dir}/manifests/generated/manifests.yaml")
 
 [ ! -d "${output_dir}" ] && mkdir "${output_dir}"
 
