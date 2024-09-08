@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1/register.go (83.3%)</option>
 				
-				<option value="file4">github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1/validation.go (96.1%)</option>
+				<option value="file4">github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1/validation.go (100.0%)</option>
 				
 				<option value="file5">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/config.go (97.4%)</option>
 				
@@ -75,7 +75,7 @@
 				
 				<option value="file9">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/utils.go (96.8%)</option>
 				
-				<option value="file10">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/validatingwebhook.go (70.0%)</option>
+				<option value="file10">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/validatingwebhook.go (100.0%)</option>
 				
 				<option value="file11">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/root.go (23.5%)</option>
 				
@@ -334,8 +334,8 @@ func ValidateObject_KubeUpgradeStatus(status KubeUpgradeStatus) error <span clas
                 return fmt.Errorf("found unknown status \"%s\" in summary, accepted values are: %v", status.Summary, validStatusValues)
         }</span>
 
-        <span class="cov8" title="1">for group, value := range status.Groups </span><span class="cov0" title="0">{
-                if !slices.Contains(validStatusValues, value) </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">for group, value := range status.Groups </span><span class="cov8" title="1">{
+                if !slices.Contains(validStatusValues, value) </span><span class="cov8" title="1">{
                         return fmt.Errorf("found unknown status \"%s\" in group \"%s\", accepted values are: %v", value, group, validStatusValues)
                 }</span>
         }
@@ -822,21 +822,21 @@ func (*planValidatingHook) validate(obj runtime.Object) (admission.Warnings, err
 // ValidateCreate validates the object on creation.
 // The optional warnings will be added to the response as warning messages.
 // Return an error if the object is invalid.
-func (p *planValidatingHook) ValidateCreate(_ context.Context, obj runtime.Object) (admission.Warnings, error) <span class="cov0" title="0">{
+func (p *planValidatingHook) ValidateCreate(_ context.Context, obj runtime.Object) (admission.Warnings, error) <span class="cov8" title="1">{
         return p.validate(obj)
 }</span>
 
 // ValidateUpdate validates the object on update.
 // The optional warnings will be added to the response as warning messages.
 // Return an error if the object is invalid.
-func (p *planValidatingHook) ValidateUpdate(_ context.Context, _ runtime.Object, newObj runtime.Object) (admission.Warnings, error) <span class="cov0" title="0">{
+func (p *planValidatingHook) ValidateUpdate(_ context.Context, _ runtime.Object, newObj runtime.Object) (admission.Warnings, error) <span class="cov8" title="1">{
         return p.validate(newObj)
 }</span>
 
 // ValidateDelete validates the object on deletion.
 // The optional warnings will be added to the response as warning messages.
 // Return an error if the object is invalid.
-func (*planValidatingHook) ValidateDelete(_ context.Context, _ runtime.Object) (admission.Warnings, error) <span class="cov0" title="0">{
+func (*planValidatingHook) ValidateDelete(_ context.Context, _ runtime.Object) (admission.Warnings, error) <span class="cov8" title="1">{
         return nil, nil
 }</span>
 </pre>
