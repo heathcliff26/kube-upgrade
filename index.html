@@ -170,15 +170,6 @@ func SetObjectDefaults_UpgradedConfig(cfg *UpgradedConfig) <span class="cov8" ti
                 cfg.RetryInterval = "5m"
         }</span>
 }
-
-func SetObjectDefaults_KubeUpgradeStatus(status *KubeUpgradeStatus) <span class="cov8" title="1">{
-        if status.Summary == "" </span><span class="cov8" title="1">{
-                status.Summary = DefaultStatus
-        }</span>
-        <span class="cov8" title="1">if status.Groups == nil </span><span class="cov8" title="1">{
-                status.Groups = make(map[string]string)
-        }</span>
-}
 </pre>
 		
 		<pre class="file" id="file3" style="display: none">package v1alpha1
@@ -593,18 +584,7 @@ func (*planMutatingHook) Default(_ context.Context, obj runtime.Object) error <s
 
         <span class="cov8" title="1">api.SetObjectDefaults_KubeUpgradePlan(plan)
 
-        for group := range plan.Status.Groups </span><span class="cov8" title="1">{
-                if _, ok := plan.Spec.Groups[group]; !ok </span><span class="cov8" title="1">{
-                        delete(plan.Status.Groups, group)
-                }</span>
-        }
-        <span class="cov8" title="1">for group := range plan.Spec.Groups </span><span class="cov8" title="1">{
-                if plan.Status.Groups[group] == "" </span><span class="cov8" title="1">{
-                        plan.Status.Groups[group] = api.DefaultStatus
-                }</span>
-        }
-
-        <span class="cov8" title="1">return nil</span>
+        return nil</span>
 }
 </pre>
 		
