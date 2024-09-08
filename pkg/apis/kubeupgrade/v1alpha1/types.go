@@ -72,7 +72,6 @@ type KubeUpgradePlanGroup struct {
 type KubeUpgradeStatus struct {
 	// A summary of the overall status of the cluster
 	// +kubebuilder:validation:Enum=Unknown;Waiting;Progressing;Complete
-	// +default="Unknown"
 	Summary string `json:"summary,omitempty"`
 
 	// The current status of each group

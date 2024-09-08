@@ -21,10 +21,6 @@ func TestDefault(t *testing.T) {
 				Spec: api.KubeUpgradeSpec{
 					Groups: map[string]api.KubeUpgradePlanGroup{},
 				},
-				Status: api.KubeUpgradeStatus{
-					Summary: api.DefaultStatus,
-					Groups:  map[string]string{},
-				},
 			},
 		},
 		{
@@ -42,12 +38,6 @@ func TestDefault(t *testing.T) {
 						"control-plane": {
 							Labels: map[string]string{},
 						},
-					},
-				},
-				Status: api.KubeUpgradeStatus{
-					Summary: api.DefaultStatus,
-					Groups: map[string]string{
-						"control-plane": api.DefaultStatus,
 					},
 				},
 			},
@@ -77,44 +67,6 @@ func TestDefault(t *testing.T) {
 						FleetlockGroup: "default",
 						CheckInterval:  "3h",
 						RetryInterval:  "5m",
-					},
-				},
-				Status: api.KubeUpgradeStatus{
-					Summary: api.DefaultStatus,
-					Groups: map[string]string{
-						"control-plane": api.DefaultStatus,
-					},
-				},
-			},
-		},
-		{
-			Name: "PruneGroupStatus",
-			Plan: &api.KubeUpgradePlan{
-				Spec: api.KubeUpgradeSpec{
-					Groups: map[string]api.KubeUpgradePlanGroup{
-						"control-plane": {},
-					},
-				},
-				Status: api.KubeUpgradeStatus{
-					Summary: api.DefaultStatus,
-					Groups: map[string]string{
-						"control-plane": api.DefaultStatus,
-						"compute":       api.DefaultStatus,
-					},
-				},
-			},
-			Result: &api.KubeUpgradePlan{
-				Spec: api.KubeUpgradeSpec{
-					Groups: map[string]api.KubeUpgradePlanGroup{
-						"control-plane": {
-							Labels: map[string]string{},
-						},
-					},
-				},
-				Status: api.KubeUpgradeStatus{
-					Summary: api.DefaultStatus,
-					Groups: map[string]string{
-						"control-plane": api.DefaultStatus,
 					},
 				},
 			},

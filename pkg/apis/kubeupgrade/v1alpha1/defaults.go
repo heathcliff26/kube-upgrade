@@ -33,12 +33,3 @@ func SetObjectDefaults_UpgradedConfig(cfg *UpgradedConfig) {
 		cfg.RetryInterval = "5m"
 	}
 }
-
-func SetObjectDefaults_KubeUpgradeStatus(status *KubeUpgradeStatus) {
-	if status.Summary == "" {
-		status.Summary = DefaultStatus
-	}
-	if status.Groups == nil {
-		status.Groups = make(map[string]string)
-	}
-}
