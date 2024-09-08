@@ -90,6 +90,7 @@ func TestValidate(t *testing.T) {
 	invalidStatusSummary.Status.Summary = "invalid-status"
 
 	invalidGroupStatus := minimumValidPlan.DeepCopy()
+	invalidGroupStatus.Status.Summary = "Unknown"
 	invalidGroupStatus.Status.Groups = map[string]string{"control-plane": "invalid-status"}
 
 	tMatrix := []struct {
@@ -212,4 +213,69 @@ func TestValidate(t *testing.T) {
 		assert.Nil(warn, "Should not return a warning")
 		assert.Error(err, "Should return an error")
 	})
+}
+
+func TestValidateCreate(t *testing.T) {
+	assert := assert.New(t)
+
+	warn, err := (&planValidatingHook{}).ValidateCreate(context.Background(), &api.KubeUpgradePlan{})
+
+	assert.Nil(warn, "Should not return a warning")
+	assert.Error(err, "Should return an error")
+
+	plan := &api.KubeUpgradePlan{
+		Spec: api.KubeUpgradeSpec{
+			KubernetesVersion: "v1.31.0",
+			Groups: map[string]api.KubeUpgradePlanGroup{
+				"control-plane": {
+					Labels: map[string]string{"node-role.kubernetes.io/control-plane": ""},
+				},
+			},
+			Upgraded: &api.UpgradedConfig{
+				FleetlockURL: "https://fleetlock.example.com",
+			},
+		},
+	}
+
+	warn, err = (&planValidatingHook{}).ValidateCreate(context.Background(), plan)
+
+	assert.Nil(warn, "Should not return a warning")
+	assert.NoError(err, "Should not return an error")
+}
+
+func TestValidateUpdate(t *testing.T) {
+	assert := assert.New(t)
+
+	warn, err := (&planValidatingHook{}).ValidateUpdate(context.Background(), &api.KubeUpgradePlan{}, &api.KubeUpgradePlan{})
+
+	assert.Nil(warn, "Should not return a warning")
+	assert.Error(err, "Should return an error")
+
+	plan := &api.KubeUpgradePlan{
+		Spec: api.KubeUpgradeSpec{
+			KubernetesVersion: "v1.31.0",
+			Groups: map[string]api.KubeUpgradePlanGroup{
+				"control-plane": {
+					Labels: map[string]string{"node-role.kubernetes.io/control-plane": ""},
+				},
+			},
+			Upgraded: &api.UpgradedConfig{
+				FleetlockURL: "https://fleetlock.example.com",
+			},
+		},
+	}
+
+	warn, err = (&planValidatingHook{}).ValidateUpdate(context.Background(), &api.KubeUpgradePlan{}, plan)
+
+	assert.Nil(warn, "Should not return a warning")
+	assert.NoError(err, "Should not return an error")
+}
+
+func TestValidateDelete(t *testing.T) {
+	assert := assert.New(t)
+
+	warn, err := (&planValidatingHook{}).ValidateDelete(context.Background(), nil)
+
+	assert.Nil(warn, "Should not return a warning")
+	assert.NoError(err, "Should not return an error")
 }
