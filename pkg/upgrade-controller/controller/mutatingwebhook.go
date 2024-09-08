@@ -22,16 +22,5 @@ func (*planMutatingHook) Default(_ context.Context, obj runtime.Object) error {
 
 	api.SetObjectDefaults_KubeUpgradePlan(plan)
 
-	for group := range plan.Status.Groups {
-		if _, ok := plan.Spec.Groups[group]; !ok {
-			delete(plan.Status.Groups, group)
-		}
-	}
-	for group := range plan.Spec.Groups {
-		if plan.Status.Groups[group] == "" {
-			plan.Status.Groups[group] = api.DefaultStatus
-		}
-	}
-
 	return nil
 }

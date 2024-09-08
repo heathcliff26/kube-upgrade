@@ -20,7 +20,6 @@ func RegisterDefaults(scheme *runtime.Scheme) error {
 
 func SetObjectDefaults_KubeUpgradePlan(in *KubeUpgradePlan) {
 	SetObjectDefaults_KubeUpgradeSpec(&in.Spec)
-	SetObjectDefaults_KubeUpgradeStatus(&in.Status)
 }
 
 func SetObjectDefaults_KubeUpgradePlanList(in *KubeUpgradePlanList) {
