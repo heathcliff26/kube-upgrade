@@ -11,7 +11,7 @@ import (
 
 // +kubebuilder:webhook:path=/mutate-kubeupgrade-heathcliff-eu-v1alpha1-kubeupgradeplan,mutating=true,failurePolicy=fail,groups=kubeupgrade.heathcliff.eu,resources=kubeupgradeplans,verbs=create;update,versions=v1alpha1,name=kubeupgrade.heathcliff.eu,admissionReviewVersions=v1,sideEffects=None
 
-// podAnnotator annotates Pods
+// planMutatingHook sets the defaults for the plan
 type planMutatingHook struct{}
 
 func (*planMutatingHook) Default(_ context.Context, obj runtime.Object) error {

@@ -26,3 +26,32 @@ webhooks:
         resources:
           - kubeupgradeplans
     sideEffects: None
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: kube-upgrade-webhook
+  annotations:
+    cert-manager.io/inject-ca-from: ${KUBE_UPGRADE_NAMESPACE}/webhook-server-cert
+webhooks:
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: upgrade-controller-webhooks
+        namespace: ${KUBE_UPGRADE_NAMESPACE}
+        path: /validate-kubeupgrade-heathcliff-eu-v1alpha1-kubeupgradeplan
+    failurePolicy: Fail
+    name: kubeupgrade.heathcliff.eu
+    rules:
+      - apiGroups:
+          - kubeupgrade.heathcliff.eu
+        apiVersions:
+          - v1alpha1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - kubeupgradeplans
+          - kubeupgradeplans/status
+    sideEffects: None
