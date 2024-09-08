@@ -6,6 +6,7 @@ import (
 
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
 	"github.com/stretchr/testify/assert"
+	corev1 "k8s.io/api/core/v1"
 )
 
 func TestDefault(t *testing.T) {
@@ -86,6 +87,38 @@ func TestDefault(t *testing.T) {
 				},
 			},
 		},
+		{
+			Name: "PruneGroupStatus",
+			Plan: &api.KubeUpgradePlan{
+				Spec: api.KubeUpgradeSpec{
+					Groups: map[string]api.KubeUpgradePlanGroup{
+						"control-plane": {},
+					},
+				},
+				Status: api.KubeUpgradeStatus{
+					Summary: api.DefaultStatus,
+					Groups: map[string]string{
+						"control-plane": api.DefaultStatus,
+						"compute":       api.DefaultStatus,
+					},
+				},
+			},
+			Result: &api.KubeUpgradePlan{
+				Spec: api.KubeUpgradeSpec{
+					Groups: map[string]api.KubeUpgradePlanGroup{
+						"control-plane": {
+							Labels: map[string]string{},
+						},
+					},
+				},
+				Status: api.KubeUpgradeStatus{
+					Summary: api.DefaultStatus,
+					Groups: map[string]string{
+						"control-plane": api.DefaultStatus,
+					},
+				},
+			},
+		},
 	}
 
 	for _, tCase := range tMatrix {
@@ -98,4 +131,7 @@ func TestDefault(t *testing.T) {
 			assert.Equal(tCase.Result, tCase.Plan)
 		})
 	}
+	t.Run("InvalidObject", func(t *testing.T) {
+		assert.Error(t, (&planMutatingHook{}).Default(context.Background(), &corev1.Pod{}), "Should return an error")
+	})
 }
