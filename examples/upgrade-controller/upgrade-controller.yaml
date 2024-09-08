@@ -114,7 +114,7 @@ spec:
                   The kubernetes version the cluster should be at.
                   If the actual version differs, the cluster will be upgraded
                 example: v1.31.0
-                pattern: v[0-9]+\.[0-9]+\.[0-9]+
+                pattern: ^v[0-9]+\.[0-9]+\.[0-9]+$
                 type: string
               upgraded:
                 description: The configuration for all upgraded daemons. Can be overwritten
@@ -300,6 +300,35 @@ webhooks:
           - UPDATE
         resources:
           - kubeupgradeplans
+    sideEffects: None
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: kube-upgrade-webhook
+  annotations:
+    cert-manager.io/inject-ca-from: kube-upgrade/webhook-server-cert
+webhooks:
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: upgrade-controller-webhooks
+        namespace: kube-upgrade
+        path: /validate-kubeupgrade-heathcliff-eu-v1alpha1-kubeupgradeplan
+    failurePolicy: Fail
+    name: kubeupgrade.heathcliff.eu
+    rules:
+      - apiGroups:
+          - kubeupgrade.heathcliff.eu
+        apiVersions:
+          - v1alpha1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - kubeupgradeplans
+          - kubeupgradeplans/status
     sideEffects: None
 ---
 apiVersion: apps/v1
