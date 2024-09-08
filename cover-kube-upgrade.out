@@ -1,5 +1,4 @@
 mode: set
-github.com/heathcliff26/kube-upgrade/cmd/upgrade-controller/main.go:5.13,7.2 1 0
 github.com/heathcliff26/kube-upgrade/cmd/upgraded/main.go:5.13,7.2 1 0
 github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1/defaults.go:7.63,8.24 1 0
 github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1/defaults.go:8.24,10.3 1 0
@@ -24,6 +23,7 @@ github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1/defaults.go:4
 github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1/register.go:21.13,26.2 1 0
 github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1/register.go:29.53,31.2 1 0
 github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1/register.go:34.50,52.2 4 0
+github.com/heathcliff26/kube-upgrade/cmd/upgrade-controller/main.go:5.13,7.2 1 0
 github.com/heathcliff26/kube-upgrade/cmd/upgrade-controller/main.go:5.13,7.2 1 0
 github.com/heathcliff26/kube-upgrade/cmd/upgraded/main.go:5.13,7.2 1 0
 github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1/defaults.go:7.63,8.24 1 0
@@ -628,10 +628,10 @@ github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controlle
 github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/errors.go:10.57,15.2 1 1
 github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/errors.go:17.44,19.2 1 0
 github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/mutatingwebhook.go:17.79,19.9 2 1
-github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/mutatingwebhook.go:19.9,21.3 1 0
+github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/mutatingwebhook.go:19.9,21.3 1 1
 github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/mutatingwebhook.go:23.2,25.40 2 1
-github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/mutatingwebhook.go:25.40,26.44 1 0
-github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/mutatingwebhook.go:26.44,28.4 1 0
+github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/mutatingwebhook.go:25.40,26.44 1 1
+github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/mutatingwebhook.go:26.44,28.4 1 1
 github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/mutatingwebhook.go:30.2,30.38 1 1
 github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/mutatingwebhook.go:30.38,31.38 1 1
 github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/mutatingwebhook.go:31.38,33.4 1 1
