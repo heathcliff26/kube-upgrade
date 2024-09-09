@@ -12,14 +12,14 @@ webhooks:
       service:
         name: upgrade-controller-webhooks
         namespace: ${KUBE_UPGRADE_NAMESPACE}
-        path: /mutate-kubeupgrade-heathcliff-eu-v1alpha1-kubeupgradeplan
+        path: /mutate-kubeupgrade-heathcliff-eu-v1alpha2-kubeupgradeplan
     failurePolicy: Fail
     name: kubeupgrade.heathcliff.eu
     rules:
       - apiGroups:
           - kubeupgrade.heathcliff.eu
         apiVersions:
-          - v1alpha1
+          - v1alpha2
         operations:
           - CREATE
           - UPDATE
@@ -40,14 +40,14 @@ webhooks:
       service:
         name: upgrade-controller-webhooks
         namespace: ${KUBE_UPGRADE_NAMESPACE}
-        path: /validate-kubeupgrade-heathcliff-eu-v1alpha1-kubeupgradeplan
+        path: /validate-kubeupgrade-heathcliff-eu-v1alpha2-kubeupgradeplan
     failurePolicy: Fail
     name: kubeupgrade.heathcliff.eu
     rules:
       - apiGroups:
           - kubeupgrade.heathcliff.eu
         apiVersions:
-          - v1alpha1
+          - v1alpha2
         operations:
           - CREATE
           - UPDATE
