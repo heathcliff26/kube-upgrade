@@ -3,20 +3,21 @@ package controller
 import (
 	"testing"
 
-	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCombineConfig(t *testing.T) {
 	tMatrix := []struct {
-		Name          string
-		Global, Group *api.UpgradedConfig
-		Result        map[string]string
+		Name   string
+		Global api.UpgradedConfig
+		Group  *api.UpgradedConfig
+		Result map[string]string
 	}{
 		{
 			Name: "OverrideAll",
-			Global: &api.UpgradedConfig{
+			Global: api.UpgradedConfig{
 				Stream:         "registry.example.org/test-stream",
 				FleetlockURL:   "https://fleetlock.example.org",
 				FleetlockGroup: "not-default",
@@ -40,7 +41,7 @@ func TestCombineConfig(t *testing.T) {
 		},
 		{
 			Name: "PartialOverride#1",
-			Global: &api.UpgradedConfig{
+			Global: api.UpgradedConfig{
 				Stream:         "registry.example.org/test-stream",
 				FleetlockURL:   "https://fleetlock.example.org",
 				FleetlockGroup: "not-default",
@@ -62,7 +63,7 @@ func TestCombineConfig(t *testing.T) {
 		},
 		{
 			Name: "PartialOverride#2",
-			Global: &api.UpgradedConfig{
+			Global: api.UpgradedConfig{
 				Stream:         "registry.example.org/test-stream",
 				FleetlockURL:   "https://fleetlock.example.org",
 				FleetlockGroup: "not-default",
@@ -82,7 +83,7 @@ func TestCombineConfig(t *testing.T) {
 			},
 		},
 		{
-			Name: "GlobalNil",
+			Name: "GlobalEmpty",
 			Group: &api.UpgradedConfig{
 				Stream:         "registry.example.com/test-stream",
 				FleetlockURL:   "https://fleetlock.example.com",
@@ -100,7 +101,7 @@ func TestCombineConfig(t *testing.T) {
 		},
 		{
 			Name: "GroupNil",
-			Global: &api.UpgradedConfig{
+			Global: api.UpgradedConfig{
 				Stream:         "registry.example.com/test-stream",
 				FleetlockURL:   "https://fleetlock.example.com",
 				FleetlockGroup: "default",
@@ -116,7 +117,8 @@ func TestCombineConfig(t *testing.T) {
 			},
 		},
 		{
-			Name: "AllNil",
+			Name:   "AllNil",
+			Result: map[string]string{},
 		},
 	}
 	for _, tCase := range tMatrix {

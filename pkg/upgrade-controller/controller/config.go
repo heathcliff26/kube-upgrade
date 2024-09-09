@@ -5,21 +5,17 @@ import (
 	"reflect"
 	"strings"
 
-	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 )
 
 // Combine 2 configs, where group overrides the values used by global.
 // Return the result as ready to use annotations.
-func combineConfig(global, group *api.UpgradedConfig) map[string]string {
-	if global == nil && group == nil {
-		return nil
-	} else if global == nil {
-		return createConfigAnnotations(group)
-	} else if group == nil {
+func combineConfig(global api.UpgradedConfig, group *api.UpgradedConfig) map[string]string {
+	if group == nil {
 		return createConfigAnnotations(global)
 	}
-	cfg := global.DeepCopy()
+	cfg := global
 
 	if group.Stream != "" {
 		cfg.Stream = group.Stream
@@ -41,10 +37,7 @@ func combineConfig(global, group *api.UpgradedConfig) map[string]string {
 }
 
 // Convert the provided config to node annotations
-func createConfigAnnotations(cfg *api.UpgradedConfig) map[string]string {
-	if cfg == nil {
-		return nil
-	}
+func createConfigAnnotations(cfg api.UpgradedConfig) map[string]string {
 	res := make(map[string]string, 5)
 
 	if cfg.Stream != "" {

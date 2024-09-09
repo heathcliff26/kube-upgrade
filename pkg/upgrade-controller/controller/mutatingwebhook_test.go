@@ -4,9 +4,10 @@ import (
 	"context"
 	"testing"
 
-	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestDefault(t *testing.T) {
@@ -20,6 +21,12 @@ func TestDefault(t *testing.T) {
 			Result: &api.KubeUpgradePlan{
 				Spec: api.KubeUpgradeSpec{
 					Groups: map[string]api.KubeUpgradePlanGroup{},
+					Upgraded: api.UpgradedConfig{
+						Stream:         api.DefaultUpgradedStream,
+						FleetlockGroup: api.DefaultUpgradedFleetlockGroup,
+						CheckInterval:  api.DefaultUpgradedCheckInterval,
+						RetryInterval:  api.DefaultUpgradedRetryInterval,
+					},
 				},
 			},
 		},
@@ -36,8 +43,14 @@ func TestDefault(t *testing.T) {
 				Spec: api.KubeUpgradeSpec{
 					Groups: map[string]api.KubeUpgradePlanGroup{
 						"control-plane": {
-							Labels: map[string]string{},
+							Labels: &metav1.LabelSelector{},
 						},
+					},
+					Upgraded: api.UpgradedConfig{
+						Stream:         api.DefaultUpgradedStream,
+						FleetlockGroup: api.DefaultUpgradedFleetlockGroup,
+						CheckInterval:  api.DefaultUpgradedCheckInterval,
+						RetryInterval:  api.DefaultUpgradedRetryInterval,
 					},
 				},
 			},
@@ -50,23 +63,43 @@ func TestDefault(t *testing.T) {
 						"control-plane": {
 							Upgraded: &api.UpgradedConfig{},
 						},
+						"compute": {
+							DependsOn: []string{"control-plane"},
+							Upgraded: &api.UpgradedConfig{
+								Stream:         "docker.io/heathcliff26/fcos-k8s",
+								FleetlockURL:   "https://fleetlock.example.com",
+								FleetlockGroup: "test",
+								CheckInterval:  "1m",
+								RetryInterval:  "30s",
+							},
+						},
 					},
-					Upgraded: &api.UpgradedConfig{},
 				},
 			},
 			Result: &api.KubeUpgradePlan{
 				Spec: api.KubeUpgradeSpec{
 					Groups: map[string]api.KubeUpgradePlanGroup{
 						"control-plane": {
-							Labels:   map[string]string{},
+							Labels:   &metav1.LabelSelector{},
 							Upgraded: &api.UpgradedConfig{},
 						},
+						"compute": {
+							DependsOn: []string{"control-plane"},
+							Labels:    &metav1.LabelSelector{},
+							Upgraded: &api.UpgradedConfig{
+								Stream:         "docker.io/heathcliff26/fcos-k8s",
+								FleetlockURL:   "https://fleetlock.example.com",
+								FleetlockGroup: "test",
+								CheckInterval:  "1m",
+								RetryInterval:  "30s",
+							},
+						},
 					},
-					Upgraded: &api.UpgradedConfig{
-						Stream:         "ghcr.io/heathcliff26/fcos-k8s",
-						FleetlockGroup: "default",
-						CheckInterval:  "3h",
-						RetryInterval:  "5m",
+					Upgraded: api.UpgradedConfig{
+						Stream:         api.DefaultUpgradedStream,
+						FleetlockGroup: api.DefaultUpgradedFleetlockGroup,
+						CheckInterval:  api.DefaultUpgradedCheckInterval,
+						RetryInterval:  api.DefaultUpgradedRetryInterval,
 					},
 				},
 			},

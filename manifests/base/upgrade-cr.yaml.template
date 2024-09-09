@@ -1,6 +1,6 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/heathcliff26/kube-upgrade/main/manifests/generated/kubeupgradeplan_v1alpha1.json
-apiVersion: kubeupgrade.heathcliff.eu/v1alpha1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/heathcliff26/kube-upgrade/main/manifests/generated/kubeupgradeplan_v1alpha2.json
+apiVersion: kubeupgrade.heathcliff.eu/v1alpha2
 kind: KubeUpgradePlan
 metadata:
   name: upgrade-plan
@@ -11,13 +11,17 @@ spec:
   groups:
     control-plane:
       labels:
-        node-role.kubernetes.io/control-plane: ""
+        matchExpressions:
+          - key: node-role.kubernetes.io/control-plane
+            operator: Exists
       upgraded:
         fleetlock-group: control-plane
     compute:
       dependsOn:
         - control-plane
       labels:
-        node-role.kubernetes.io/compute: ""
+        matchExpressions:
+          - key: node-role.kubernetes.io/control-plane
+            operator: DoesNotExists
       upgraded:
         fleetlock-group: compute
