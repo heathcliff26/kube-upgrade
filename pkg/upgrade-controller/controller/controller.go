@@ -6,12 +6,11 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
 	"github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/scheme"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	clientv1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
@@ -139,8 +138,14 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 	for name, cfg := range plan.Spec.Groups {
 		upgradedCfg := combineConfig(plan.Spec.Upgraded, plan.Spec.Groups[name].Upgraded)
 
+		selector, err := metav1.LabelSelectorAsSelector(cfg.Labels)
+		if err != nil {
+			logger.WithValues("group", name).Error(err, "Failed to convert labelSelector to selector for listing nodes")
+			return err
+		}
+
 		nodeList, err := c.nodes.List(ctx, metav1.ListOptions{
-			LabelSelector: labels.SelectorFromSet(cfg.Labels).String(),
+			LabelSelector: selector.String(),
 		})
 		if err != nil {
 			logger.WithValues("group", name).Error(err, "Failed to get nodes for group")

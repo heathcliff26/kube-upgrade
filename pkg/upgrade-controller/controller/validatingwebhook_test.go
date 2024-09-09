@@ -4,9 +4,10 @@ import (
 	"context"
 	"testing"
 
-	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestValidate(t *testing.T) {
@@ -15,10 +16,17 @@ func TestValidate(t *testing.T) {
 			KubernetesVersion: "v1.31.0",
 			Groups: map[string]api.KubeUpgradePlanGroup{
 				"control-plane": {
-					Labels: map[string]string{"node-role.kubernetes.io/control-plane": ""},
+					Labels: &metav1.LabelSelector{
+						MatchExpressions: []metav1.LabelSelectorRequirement{
+							{
+								Key:      "node-role.kubernetes.io/control-plane",
+								Operator: metav1.LabelSelectorOpExists,
+							},
+						},
+					},
 				},
 			},
-			Upgraded: &api.UpgradedConfig{
+			Upgraded: api.UpgradedConfig{
 				FleetlockURL: "https://fleetlock.example.com",
 			},
 		},
@@ -27,13 +35,27 @@ func TestValidate(t *testing.T) {
 	validMultipleGroups := minimumValidPlan.DeepCopy()
 	validMultipleGroups.Spec.Groups["compute"] = api.KubeUpgradePlanGroup{
 		DependsOn: []string{"control-plane"},
-		Labels:    map[string]string{"node-role.kubernetes.io/compute": ""},
+		Labels: &metav1.LabelSelector{
+			MatchExpressions: []metav1.LabelSelectorRequirement{
+				{
+					Key:      "node-role.kubernetes.io/compute",
+					Operator: metav1.LabelSelectorOpExists,
+				},
+			},
+		},
 	}
 
 	validGroupWithUpgradedConfig := minimumValidPlan.DeepCopy()
 	validGroupWithUpgradedConfig.Spec.Groups["compute"] = api.KubeUpgradePlanGroup{
 		DependsOn: []string{"control-plane"},
-		Labels:    map[string]string{"node-role.kubernetes.io/compute": ""},
+		Labels: &metav1.LabelSelector{
+			MatchExpressions: []metav1.LabelSelectorRequirement{
+				{
+					Key:      "node-role.kubernetes.io/compute",
+					Operator: metav1.LabelSelectorOpExists,
+				},
+			},
+		},
 		Upgraded: &api.UpgradedConfig{
 			FleetlockGroup: "compute",
 		},
@@ -54,7 +76,14 @@ func TestValidate(t *testing.T) {
 	invalidGroupDependsOn := minimumValidPlan.DeepCopy()
 	invalidGroupDependsOn.Spec.Groups["compute"] = api.KubeUpgradePlanGroup{
 		DependsOn: []string{"control-plane", "infra"},
-		Labels:    map[string]string{"node-role.kubernetes.io/compute": ""},
+		Labels: &metav1.LabelSelector{
+			MatchExpressions: []metav1.LabelSelectorRequirement{
+				{
+					Key:      "node-role.kubernetes.io/compute",
+					Operator: metav1.LabelSelectorOpExists,
+				},
+			},
+		},
 	}
 
 	invalidMissingGroupLabel := minimumValidPlan.DeepCopy()
@@ -65,7 +94,14 @@ func TestValidate(t *testing.T) {
 	invalidGroupUpgradedConfig := minimumValidPlan.DeepCopy()
 	invalidGroupUpgradedConfig.Spec.Groups["compute"] = api.KubeUpgradePlanGroup{
 		DependsOn: []string{"control-plane"},
-		Labels:    map[string]string{"node-role.kubernetes.io/compute": ""},
+		Labels: &metav1.LabelSelector{
+			MatchExpressions: []metav1.LabelSelectorRequirement{
+				{
+					Key:      "node-role.kubernetes.io/compute",
+					Operator: metav1.LabelSelectorOpExists,
+				},
+			},
+		},
 		Upgraded: &api.UpgradedConfig{
 			FleetlockURL: "not-a-url",
 		},
@@ -228,10 +264,17 @@ func TestValidateCreate(t *testing.T) {
 			KubernetesVersion: "v1.31.0",
 			Groups: map[string]api.KubeUpgradePlanGroup{
 				"control-plane": {
-					Labels: map[string]string{"node-role.kubernetes.io/control-plane": ""},
+					Labels: &metav1.LabelSelector{
+						MatchExpressions: []metav1.LabelSelectorRequirement{
+							{
+								Key:      "node-role.kubernetes.io/control-plane",
+								Operator: metav1.LabelSelectorOpExists,
+							},
+						},
+					},
 				},
 			},
-			Upgraded: &api.UpgradedConfig{
+			Upgraded: api.UpgradedConfig{
 				FleetlockURL: "https://fleetlock.example.com",
 			},
 		},
@@ -256,10 +299,17 @@ func TestValidateUpdate(t *testing.T) {
 			KubernetesVersion: "v1.31.0",
 			Groups: map[string]api.KubeUpgradePlanGroup{
 				"control-plane": {
-					Labels: map[string]string{"node-role.kubernetes.io/control-plane": ""},
+					Labels: &metav1.LabelSelector{
+						MatchExpressions: []metav1.LabelSelectorRequirement{
+							{
+								Key:      "node-role.kubernetes.io/control-plane",
+								Operator: metav1.LabelSelectorOpExists,
+							},
+						},
+					},
 				},
 			},
-			Upgraded: &api.UpgradedConfig{
+			Upgraded: api.UpgradedConfig{
 				FleetlockURL: "https://fleetlock.example.com",
 			},
 		},
