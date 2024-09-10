@@ -22,6 +22,6 @@ spec:
       labels:
         matchExpressions:
           - key: node-role.kubernetes.io/control-plane
-            operator: DoesNotExists
+            operator: DoesNotExist
       upgraded:
         fleetlock-group: compute
