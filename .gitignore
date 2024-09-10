@@ -10,3 +10,7 @@ coverprofiles/
 
 # Ignore test files
 test-*.yaml
+
+# Ignore e2e test outputs
+/logs
+tmp_controller_image_kube-upgrade-e2e-*.tar

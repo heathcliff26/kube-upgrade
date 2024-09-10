@@ -12,7 +12,7 @@ upgrade-controller:
 	podman build -t $(REPOSITORY)/kube-upgrade-controller:$(TAG) -f cmd/upgrade-controller/Dockerfile .
 
 test:
-	go test -v -race ./...
+	go test -v -race ./cmd/... ./pkg/...
 
 update-deps:
 	hack/update-deps.sh
@@ -38,8 +38,11 @@ validate: controller-gen
 fmt:
 	gofmt -s -w ./cmd ./pkg
 
+e2e:
+	go test -v ./tests/...
+
 clean:
-	rm -rf bin manifests/release coverprofiles
+	rm -rf bin manifests/release coverprofiles logs tmp_controller_image_kube-upgrade-e2e-*.tar
 
 controller-gen:
 	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.15.0
