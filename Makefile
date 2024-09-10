@@ -29,7 +29,7 @@ lint:
 generate: controller-gen
 	hack/generate.sh
 
-manifests: controller-gen
+manifests:
 	hack/manifests.sh
 
 validate: controller-gen
