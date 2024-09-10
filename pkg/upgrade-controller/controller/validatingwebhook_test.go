@@ -91,6 +91,19 @@ func TestValidate(t *testing.T) {
 		DependsOn: []string{"control-plane"},
 	}
 
+	invalidGroupLabel := minimumValidPlan.DeepCopy()
+	invalidGroupLabel.Spec.Groups["compute"] = api.KubeUpgradePlanGroup{
+		DependsOn: []string{"control-plane"},
+		Labels: &metav1.LabelSelector{
+			MatchExpressions: []metav1.LabelSelectorRequirement{
+				{
+					Key:      "node-role.kubernetes.io/compute",
+					Operator: "InvalidOperator",
+				},
+			},
+		},
+	}
+
 	invalidGroupUpgradedConfig := minimumValidPlan.DeepCopy()
 	invalidGroupUpgradedConfig.Spec.Groups["compute"] = api.KubeUpgradePlanGroup{
 		DependsOn: []string{"control-plane"},
@@ -178,6 +191,11 @@ func TestValidate(t *testing.T) {
 		{
 			Name:  "InvalidMissingGroupLabel",
 			Plan:  invalidMissingGroupLabel,
+			Error: true,
+		},
+		{
+			Name:  "InvalidGroupLabel",
+			Plan:  invalidGroupLabel,
 			Error: true,
 		},
 		{
