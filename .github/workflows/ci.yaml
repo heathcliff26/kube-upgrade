@@ -62,6 +62,18 @@ jobs:
       cache: false
       cmd: "make validate"
 
+  e2e:
+    uses: heathcliff26/ci/.github/workflows/golang-unit-tests.yaml@main
+    needs:
+      - lint
+      - unit-tests
+      - validate
+    with:
+      # Need to use newer version of podman here
+      # TODO: Change back to latest when it tracks 24.04
+      os: ubuntu-24.04
+      cmd: "make e2e"
+
   build-daemon:
     uses: heathcliff26/ci/.github/workflows/golang-build.yaml@main
     needs:
@@ -85,8 +97,7 @@ jobs:
   build-controller:
     uses: heathcliff26/ci/.github/workflows/build-container.yaml@main
     needs:
-      - lint
-      - unit-tests
+      - e2e
     permissions:
       contents: read
       packages: write
