@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"slices"
 	"time"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
@@ -39,6 +41,10 @@ func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error {
 
 		if group.Labels == nil || (len(group.Labels.MatchExpressions) < 1 && len(group.Labels.MatchLabels) < 1) {
 			return fmt.Errorf("group \"%s\" needs at least one label selector", name)
+		}
+		_, err := metav1.LabelSelectorAsSelector(group.Labels)
+		if err != nil {
+			return fmt.Errorf("invalid label selector for group \"%s\": %v", name, err)
 		}
 
 		if group.Upgraded != nil {
