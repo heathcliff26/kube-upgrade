@@ -194,5 +194,60 @@ func TestE2E(t *testing.T) {
 			return ctx
 		}).Feature()
 
-	testenv.Test(t, examplePlanFeat, validationWebhookFeat)
+	mutatingWebhookFeat := features.New("mutating webhook").
+		Setup(func(ctx context.Context, t *testing.T, c *envconf.Config) context.Context {
+			r, err := resources.New(c.Client().RESTConfig())
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			err = decoder.ApplyWithManifestDir(ctx, r, "tests/testdata", "minimal-plan.yaml", []resources.CreateOption{})
+			if err != nil {
+				t.Fatalf("Failed to apply minimal-plan manifest: %v", err)
+			}
+
+			return ctx
+		}).
+		Assess("defaults", func(ctx context.Context, t *testing.T, c *envconf.Config) context.Context {
+			r, err := resources.New(c.Client().RESTConfig())
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			err = api.AddToScheme(r.GetScheme())
+			if err != nil {
+				t.Fatalf("Failed to add CRD to scheme: %v", err)
+			}
+
+			plan := &api.KubeUpgradePlan{}
+
+			err = r.Get(ctx, "minimal-plan", "", plan)
+			if err != nil {
+				t.Fatalf("Failed to fetch upgrade-plan: %v", err)
+			}
+
+			assert := assert.New(t)
+
+			assert.Equal(api.DefaultUpgradedStream, plan.Spec.Upgraded.Stream, "Should set default upgraded stream")
+			assert.Equal(api.DefaultUpgradedFleetlockGroup, plan.Spec.Upgraded.FleetlockGroup, "Should set default upgraded fleetlock-group")
+			assert.Equal(api.DefaultUpgradedCheckInterval, plan.Spec.Upgraded.CheckInterval, "Should set default upgraded check-interval")
+			assert.Equal(api.DefaultUpgradedRetryInterval, plan.Spec.Upgraded.RetryInterval, "Should set default upgraded retry-interval")
+
+			return ctx
+		}).
+		Teardown(func(ctx context.Context, t *testing.T, c *envconf.Config) context.Context {
+			r, err := resources.New(c.Client().RESTConfig())
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			err = decoder.DeleteWithManifestDir(ctx, r, "tests/testdata", "minimal-cr.yaml", []resources.DeleteOption{})
+			if err != nil {
+				t.Fatalf("Failed to delete minimal-plan: %v", err)
+			}
+
+			return ctx
+		}).Feature()
+
+	testenv.Test(t, examplePlanFeat, validationWebhookFeat, mutatingWebhookFeat)
 }
