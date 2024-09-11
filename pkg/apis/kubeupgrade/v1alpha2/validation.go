@@ -3,9 +3,9 @@ package v1alpha2
 import (
 	"fmt"
 	"net/url"
-	"regexp"
 	"time"
 
+	"golang.org/x/mod/semver"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -14,9 +14,11 @@ func ValidateObject_KubeUpgradePlan(plan *KubeUpgradePlan) error {
 }
 
 func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error {
-	versionRegex := regexp.MustCompile(`^v[0-9]+\.[0-9]+\.[0-9]+$`)
-	if !versionRegex.MatchString(spec.KubernetesVersion) {
-		return fmt.Errorf("invalid input for spec.kubernetesVersion, \"%s\" is not a valid version", spec.KubernetesVersion)
+	if !semver.IsValid(spec.KubernetesVersion) {
+		return fmt.Errorf("invalid input for spec.kubernetesVersion, \"%s\" is not a valid semantic version", spec.KubernetesVersion)
+	}
+	if semver.Prerelease(spec.KubernetesVersion) == "" && semver.Canonical(spec.KubernetesVersion) != spec.KubernetesVersion {
+		return fmt.Errorf("invalid input for spec.kubernetesVersion, \"%s\" needs to be a full version like vX.Y.Z", spec.KubernetesVersion)
 	}
 
 	if len(spec.Groups) < 1 {

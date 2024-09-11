@@ -36,8 +36,8 @@ type KubeUpgradeSpec struct {
 	// The kubernetes version the cluster should be at.
 	// If the actual version differs, the cluster will be upgraded
 	// +required
+	// +kubebuilder:validation:Format=semver
 	// +kubebuilder:example=v1.31.0
-	// +kubebuilder:validation:Pattern=^v[0-9]+\.[0-9]+\.[0-9]+$
 	KubernetesVersion string `json:"kubernetesVersion"`
 
 	// The different groups in which the nodes will be upgraded.
