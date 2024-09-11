@@ -53,14 +53,14 @@ func createStatusSummary(status map[string]string) string {
 	}
 	waiting := false
 	unknown := false
-	progressing := false
+	progressing := make([]string, 0, len(status))
 
-	for _, v := range status {
-		switch v {
-		case api.PlanStatusComplete:
-		case api.PlanStatusProgressing:
-			progressing = true
-		case api.PlanStatusWaiting:
+	for group, s := range status {
+		switch {
+		case s == api.PlanStatusComplete:
+		case strings.HasPrefix(s, api.PlanStatusProgressing):
+			progressing = append(progressing, group)
+		case s == api.PlanStatusWaiting:
 			waiting = true
 		default:
 			unknown = true
@@ -69,8 +69,8 @@ func createStatusSummary(status map[string]string) string {
 
 	if unknown {
 		return api.PlanStatusUnknown
-	} else if progressing {
-		return api.PlanStatusProgressing
+	} else if len(progressing) > 0 {
+		return fmt.Sprintf("%s: Upgrading groups %v", api.PlanStatusProgressing, progressing)
 	} else if waiting {
 		return api.PlanStatusWaiting
 	} else {

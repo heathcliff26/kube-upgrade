@@ -82,9 +82,9 @@ func TestReconcile(t *testing.T) {
 					},
 				},
 			},
-			ExpectedSummary: api.PlanStatusProgressing,
+			ExpectedSummary: api.PlanStatusProgressing + ": Upgrading groups [control]",
 			ExpectedGroupStatus: map[string]string{
-				groupControl: api.PlanStatusProgressing,
+				groupControl: api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 				groupCompute: api.PlanStatusWaiting,
 				groupInfra:   api.PlanStatusWaiting,
 			},
@@ -128,9 +128,9 @@ func TestReconcile(t *testing.T) {
 					},
 				},
 				Status: api.KubeUpgradeStatus{
-					Summary: api.PlanStatusProgressing,
+					Summary: api.PlanStatusProgressing + ": Upgrading groups [control]",
 					Groups: map[string]string{
-						groupControl: api.PlanStatusProgressing,
+						groupControl: api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 						groupCompute: api.PlanStatusWaiting,
 						groupInfra:   api.PlanStatusWaiting,
 					},
@@ -140,11 +140,11 @@ func TestReconcile(t *testing.T) {
 				constants.NodeKubernetesVersion: "v1.31.0",
 				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
-			ExpectedSummary: api.PlanStatusProgressing,
+			ExpectedSummary: api.PlanStatusProgressing + ": Upgrading groups [infra]",
 			ExpectedGroupStatus: map[string]string{
 				groupControl: api.PlanStatusComplete,
 				groupCompute: api.PlanStatusWaiting,
-				groupInfra:   api.PlanStatusProgressing,
+				groupInfra:   api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 			},
 			ExpectedAnnotationsControl: map[string]string{
 				constants.NodeKubernetesVersion: "v1.31.0",
@@ -190,11 +190,11 @@ func TestReconcile(t *testing.T) {
 					},
 				},
 				Status: api.KubeUpgradeStatus{
-					Summary: api.PlanStatusProgressing,
+					Summary: api.PlanStatusProgressing + ": Upgrading groups [infra]",
 					Groups: map[string]string{
 						groupControl: api.PlanStatusComplete,
 						groupCompute: api.PlanStatusWaiting,
-						groupInfra:   api.PlanStatusProgressing,
+						groupInfra:   api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 					},
 				},
 			},
@@ -206,10 +206,10 @@ func TestReconcile(t *testing.T) {
 				constants.NodeKubernetesVersion: "v1.31.0",
 				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
-			ExpectedSummary: api.PlanStatusProgressing,
+			ExpectedSummary: api.PlanStatusProgressing + ": Upgrading groups [compute]",
 			ExpectedGroupStatus: map[string]string{
 				groupControl: api.PlanStatusComplete,
-				groupCompute: api.PlanStatusProgressing,
+				groupCompute: api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 				groupInfra:   api.PlanStatusComplete,
 			},
 			ExpectedAnnotationsControl: map[string]string{
@@ -260,10 +260,10 @@ func TestReconcile(t *testing.T) {
 					},
 				},
 				Status: api.KubeUpgradeStatus{
-					Summary: api.PlanStatusProgressing,
+					Summary: api.PlanStatusProgressing + ": Upgrading groups [compute]",
 					Groups: map[string]string{
 						groupControl: api.PlanStatusComplete,
-						groupCompute: api.PlanStatusProgressing,
+						groupCompute: api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 						groupInfra:   api.PlanStatusComplete,
 					},
 				},
@@ -341,9 +341,9 @@ func TestReconcile(t *testing.T) {
 				constants.NodeKubernetesVersion: "v1.30.4",
 				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
-			ExpectedSummary: api.PlanStatusProgressing,
+			ExpectedSummary: api.PlanStatusProgressing + ": Upgrading groups [control]",
 			ExpectedGroupStatus: map[string]string{
-				groupControl: api.PlanStatusProgressing,
+				groupControl: api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 				groupCompute: api.PlanStatusWaiting,
 			},
 			ExpectedAnnotationsControl: map[string]string{
@@ -382,9 +382,9 @@ func TestReconcile(t *testing.T) {
 					},
 				},
 				Status: api.KubeUpgradeStatus{
-					Summary: api.PlanStatusProgressing,
+					Summary: api.PlanStatusProgressing + ": Upgrading groups [control]",
 					Groups: map[string]string{
-						groupControl: api.PlanStatusProgressing,
+						groupControl: api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 						groupCompute: api.PlanStatusWaiting,
 					},
 				},
@@ -397,10 +397,10 @@ func TestReconcile(t *testing.T) {
 				constants.NodeKubernetesVersion: "v1.30.4",
 				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
-			ExpectedSummary: api.PlanStatusProgressing,
+			ExpectedSummary: api.PlanStatusProgressing + ": Upgrading groups [compute]",
 			ExpectedGroupStatus: map[string]string{
 				groupControl: api.PlanStatusComplete,
-				groupCompute: api.PlanStatusProgressing,
+				groupCompute: api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 			},
 			ExpectedAnnotationsControl: map[string]string{
 				constants.NodeKubernetesVersion: "v1.31.0",
@@ -438,10 +438,10 @@ func TestReconcile(t *testing.T) {
 					},
 				},
 				Status: api.KubeUpgradeStatus{
-					Summary: api.PlanStatusProgressing,
+					Summary: api.PlanStatusProgressing + ": Upgrading groups [compute]",
 					Groups: map[string]string{
 						groupControl: api.PlanStatusComplete,
-						groupCompute: api.PlanStatusProgressing,
+						groupCompute: api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 					},
 				},
 			},
@@ -592,9 +592,9 @@ func TestReconcile(t *testing.T) {
 					},
 				},
 			},
-			ExpectedSummary: api.PlanStatusProgressing,
+			ExpectedSummary: api.PlanStatusProgressing + ": Upgrading groups [control]",
 			ExpectedGroupStatus: map[string]string{
-				groupControl: api.PlanStatusProgressing,
+				groupControl: api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 				groupCompute: api.PlanStatusWaiting,
 				groupInfra:   api.PlanStatusWaiting,
 			},

@@ -146,7 +146,7 @@ func TestE2E(t *testing.T) {
 			assert := assert.New(t)
 
 			assert.Equal(len(plan.Spec.Groups), len(plan.Status.Groups), "Should have a status for each group")
-			assert.Equal(api.PlanStatusProgressing, plan.Status.Groups["control-plane"], "control-plane group should be progressing")
+			assert.Equal(api.PlanStatusProgressing+": 0/1 nodes upgraded", plan.Status.Groups["control-plane"], "control-plane group should be progressing")
 			assert.Equal(api.PlanStatusUnknown, plan.Status.Groups["compute"], "compute group should be unknown")
 
 			return ctx

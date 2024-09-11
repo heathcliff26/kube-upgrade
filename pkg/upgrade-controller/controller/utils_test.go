@@ -89,7 +89,7 @@ func TestGroupWaitForDependency(t *testing.T) {
 			Deps: nil,
 			Status: map[string]string{
 				"foo":    api.PlanStatusComplete,
-				"bar":    api.PlanStatusProgressing,
+				"bar":    api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 				"foobar": api.PlanStatusComplete,
 			},
 			Result: false,
@@ -99,7 +99,7 @@ func TestGroupWaitForDependency(t *testing.T) {
 			Deps: []string{"foo", "foobar"},
 			Status: map[string]string{
 				"foo":    api.PlanStatusComplete,
-				"bar":    api.PlanStatusProgressing,
+				"bar":    api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 				"foobar": api.PlanStatusComplete,
 			},
 			Result: false,
@@ -109,7 +109,7 @@ func TestGroupWaitForDependency(t *testing.T) {
 			Deps: []string{"foo", "foobar", "bar"},
 			Status: map[string]string{
 				"foo":    api.PlanStatusComplete,
-				"bar":    api.PlanStatusProgressing,
+				"bar":    api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 				"foobar": api.PlanStatusComplete,
 			},
 			Result: true,
@@ -125,6 +125,7 @@ func TestGroupWaitForDependency(t *testing.T) {
 
 func TestCreateStatusSummary(t *testing.T) {
 	tMatrix := []struct {
+		Name   string
 		Status map[string]string
 		Result string
 	}{
@@ -145,29 +146,34 @@ func TestCreateStatusSummary(t *testing.T) {
 			Result: api.PlanStatusWaiting,
 		},
 		{
+			Name: api.PlanStatusProgressing,
 			Status: map[string]string{
 				"foo":    api.PlanStatusComplete,
-				"bar":    api.PlanStatusProgressing,
+				"bar":    api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 				"foobar": api.PlanStatusComplete,
 			},
-			Result: api.PlanStatusProgressing,
+			Result: api.PlanStatusProgressing + ": Upgrading groups [bar]",
 		},
 		{
 			Status: map[string]string{
 				"foo":    api.PlanStatusUnknown,
-				"bar":    api.PlanStatusProgressing,
+				"bar":    api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 				"foobar": api.PlanStatusComplete,
 			},
 			Result: api.PlanStatusUnknown,
 		},
 		{
+			Name:   "EmptyStatus",
 			Status: map[string]string{},
 			Result: api.PlanStatusUnknown,
 		},
 	}
 
 	for _, tCase := range tMatrix {
-		t.Run(tCase.Result, func(t *testing.T) {
+		if tCase.Name == "" {
+			tCase.Name = tCase.Result
+		}
+		t.Run(tCase.Name, func(t *testing.T) {
 			assert.Equal(t, tCase.Result, createStatusSummary(tCase.Status))
 		})
 	}
