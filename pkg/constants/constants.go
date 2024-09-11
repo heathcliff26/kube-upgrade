@@ -16,6 +16,7 @@ const (
 	NodeUpgradeStatusRebasing  = "rebasing"
 	NodeUpgradeStatusUpgrading = "upgrading"
 	NodeUpgradeStatusCompleted = "completed"
+	NodeUpgradeStatusError     = "error"
 )
 
 const (

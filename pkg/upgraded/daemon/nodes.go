@@ -83,6 +83,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 
 	err = d.UpdateConfigFromAnnotations(node.GetAnnotations())
 	if err != nil {
+		_ = d.updateNodeStatus(constants.NodeUpgradeStatusError)
 		return fmt.Errorf("failed to update daemon config from node annotations: %v", err)
 	}
 
@@ -102,6 +103,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 		}
 		err = d.rpmostree.Rebase(d.stream + ":" + version)
 		if err != nil {
+			_ = d.updateNodeStatus(constants.NodeUpgradeStatusError)
 			return fmt.Errorf("failed to rebase node: %v", err)
 		}
 		// This return is here purely for testing, as a successfull rebase does not return, but instead reboots the system
@@ -117,14 +119,17 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 
 	kubeadmConfigMap, err := d.client.CoreV1().ConfigMaps("kube-system").Get(d.ctx, "kubeadm-config", metav1.GetOptions{})
 	if err != nil {
+		_ = d.updateNodeStatus(constants.NodeUpgradeStatusError)
 		return fmt.Errorf("failed to fetch kubeadm-config: %v", err)
 	}
 	if kubeadmConfigMap.Data == nil {
+		_ = d.updateNodeStatus(constants.NodeUpgradeStatusError)
 		return fmt.Errorf("kubeadm configmap contains no data")
 	}
 	var kubeadmConfig kubeadm.ClusterConfiguration
 	err = yaml.Unmarshal([]byte(kubeadmConfigMap.Data["ClusterConfiguration"]), &kubeadmConfig)
 	if err != nil {
+		_ = d.updateNodeStatus(constants.NodeUpgradeStatusError)
 		return fmt.Errorf("failed to parse kubeadm-config: %v", err)
 	}
 
@@ -136,6 +141,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 		err = d.kubeadm.Node()
 	}
 	if err != nil {
+		_ = d.updateNodeStatus(constants.NodeUpgradeStatusError)
 		return fmt.Errorf("failed run kubeadm: %v", err)
 	}
 
