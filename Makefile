@@ -39,7 +39,7 @@ fmt:
 	gofmt -s -w ./cmd ./pkg
 
 e2e:
-	go test -v ./tests/...
+	go test -count=1 -v ./tests/...
 
 clean:
 	rm -rf bin manifests/release coverprofiles logs tmp_controller_image_kube-upgrade-e2e-*.tar
