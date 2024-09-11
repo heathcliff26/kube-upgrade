@@ -428,9 +428,9 @@ func addKnownTypes(scheme *runtime.Scheme) error <span class="cov8" title="1">{
 import (
         "fmt"
         "net/url"
-        "regexp"
         "time"
 
+        "golang.org/x/mod/semver"
         metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -439,9 +439,11 @@ func ValidateObject_KubeUpgradePlan(plan *KubeUpgradePlan) error <span class="co
 }</span>
 
 func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error <span class="cov8" title="1">{
-        versionRegex := regexp.MustCompile(`^v[0-9]+\.[0-9]+\.[0-9]+$`)
-        if !versionRegex.MatchString(spec.KubernetesVersion) </span><span class="cov8" title="1">{
-                return fmt.Errorf("invalid input for spec.kubernetesVersion, \"%s\" is not a valid version", spec.KubernetesVersion)
+        if !semver.IsValid(spec.KubernetesVersion) </span><span class="cov8" title="1">{
+                return fmt.Errorf("invalid input for spec.kubernetesVersion, \"%s\" is not a valid semantic version", spec.KubernetesVersion)
+        }</span>
+        <span class="cov8" title="1">if semver.Prerelease(spec.KubernetesVersion) == "" &amp;&amp; semver.Canonical(spec.KubernetesVersion) != spec.KubernetesVersion </span><span class="cov8" title="1">{
+                return fmt.Errorf("invalid input for spec.kubernetesVersion, \"%s\" needs to be a full version like vX.Y.Z", spec.KubernetesVersion)
         }</span>
 
         <span class="cov8" title="1">if len(spec.Groups) &lt; 1 </span><span class="cov8" title="1">{
