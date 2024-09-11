@@ -88,13 +88,15 @@ func TestDoNodeUpgrade(t *testing.T) {
 
 			err = d.doNodeUpgrade(node)
 
+			node, _ = d.client.CoreV1().Nodes().Get(context.Background(), node.GetName(), metav1.GetOptions{})
+
 			if succeed {
 				assert.NoError(err, "Should exit without error")
+				assert.Equal(constants.NodeUpgradeStatusRebasing, node.Annotations[constants.NodeUpgradeStatus], "Should have set correct node status")
 			} else {
 				assert.Error(err, "Should exit with error")
+				assert.Equal(constants.NodeUpgradeStatusError, node.Annotations[constants.NodeUpgradeStatus], "Should have set correct node status")
 			}
-			node, _ = d.client.CoreV1().Nodes().Get(context.Background(), node.GetName(), metav1.GetOptions{})
-			assert.Equal(constants.NodeUpgradeStatusRebasing, node.Annotations[constants.NodeUpgradeStatus], "Should have set correct node status")
 		})
 	}
 }
