@@ -69,7 +69,7 @@
 				
 				<option value="file6">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/config.go (100.0%)</option>
 				
-				<option value="file7">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (54.0%)</option>
+				<option value="file7">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (54.5%)</option>
 				
 				<option value="file8">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/errors.go (50.0%)</option>
 				
@@ -790,7 +790,7 @@ func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node, cfg
                 return api.PlanStatusUnknown, false, nil, nil
         }</span>
 
-        <span class="cov8" title="1">completed := true
+        <span class="cov8" title="1">completed := 0
         needUpdate := false
 
         for i := range nodes </span><span class="cov8" title="1">{
@@ -803,24 +803,23 @@ func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node, cfg
                 }</span>
 
                 <span class="cov8" title="1">if nodes[i].Annotations[constants.NodeKubernetesVersion] == kubeVersion </span><span class="cov8" title="1">{
-                        if nodes[i].Annotations[constants.NodeUpgradeStatus] != constants.NodeUpgradeStatusCompleted </span><span class="cov0" title="0">{
-                                completed = false
+                        if nodes[i].Annotations[constants.NodeUpgradeStatus] == constants.NodeUpgradeStatusCompleted </span><span class="cov8" title="1">{
+                                completed++
                         }</span>
                         <span class="cov8" title="1">continue</span>
                 }
 
-                <span class="cov8" title="1">completed = false
-                nodes[i].Annotations[constants.NodeKubernetesVersion] = kubeVersion
+                <span class="cov8" title="1">nodes[i].Annotations[constants.NodeKubernetesVersion] = kubeVersion
                 nodes[i].Annotations[constants.NodeUpgradeStatus] = constants.NodeUpgradeStatusPending
 
                 needUpdate = true</span>
         }
 
         <span class="cov8" title="1">var status string
-        if completed </span><span class="cov8" title="1">{
+        if len(nodes) == completed </span><span class="cov8" title="1">{
                 status = api.PlanStatusComplete
         }</span> else<span class="cov8" title="1"> {
-                status = api.PlanStatusProgressing
+                status = fmt.Sprintf("%s: %d/%d nodes upgraded", api.PlanStatusProgressing, completed, len(nodes))
         }</span>
         <span class="cov8" title="1">return status, needUpdate, nodes, nil</span>
 }
@@ -930,14 +929,14 @@ func createStatusSummary(status map[string]string) string <span class="cov8" tit
         }</span>
         <span class="cov8" title="1">waiting := false
         unknown := false
-        progressing := false
+        progressing := make([]string, 0, len(status))
 
-        for _, v := range status </span><span class="cov8" title="1">{
-                switch v </span>{
-                case api.PlanStatusComplete:<span class="cov8" title="1"></span>
-                case api.PlanStatusProgressing:<span class="cov8" title="1">
-                        progressing = true</span>
-                case api.PlanStatusWaiting:<span class="cov8" title="1">
+        for group, s := range status </span><span class="cov8" title="1">{
+                switch </span>{
+                case s == api.PlanStatusComplete:<span class="cov8" title="1"></span>
+                case strings.HasPrefix(s, api.PlanStatusProgressing):<span class="cov8" title="1">
+                        progressing = append(progressing, group)</span>
+                case s == api.PlanStatusWaiting:<span class="cov8" title="1">
                         waiting = true</span>
                 default:<span class="cov8" title="1">
                         unknown = true</span>
@@ -946,8 +945,8 @@ func createStatusSummary(status map[string]string) string <span class="cov8" tit
 
         <span class="cov8" title="1">if unknown </span><span class="cov8" title="1">{
                 return api.PlanStatusUnknown
-        }</span> else<span class="cov8" title="1"> if progressing </span><span class="cov8" title="1">{
-                return api.PlanStatusProgressing
+        }</span> else<span class="cov8" title="1"> if len(progressing) &gt; 0 </span><span class="cov8" title="1">{
+                return fmt.Sprintf("%s: Upgrading groups %v", api.PlanStatusProgressing, progressing)
         }</span> else<span class="cov8" title="1"> if waiting </span><span class="cov8" title="1">{
                 return api.PlanStatusWaiting
         }</span> else<span class="cov8" title="1"> {
