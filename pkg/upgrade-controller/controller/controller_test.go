@@ -603,6 +603,41 @@ func TestReconcile(t *testing.T) {
 				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusPending,
 			},
 		},
+		{
+			Name: "GroupHasErrorNode",
+			Plan: api.KubeUpgradePlan{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "upgrade-plan",
+				},
+				Spec: api.KubeUpgradeSpec{
+					KubernetesVersion: "v1.31.0",
+					Groups: map[string]api.KubeUpgradePlanGroup{
+						groupControl: {
+							Labels: &metav1.LabelSelector{
+								MatchExpressions: []metav1.LabelSelectorRequirement{
+									{
+										Key:      labelControl,
+										Operator: metav1.LabelSelectorOpExists,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			AnnotationsControl: map[string]string{
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusError,
+			},
+			ExpectedSummary: api.PlanStatusError + ": Some groups encountered errors [control]",
+			ExpectedGroupStatus: map[string]string{
+				groupControl: api.PlanStatusError + ": The nodes [node-control] are reporting errors",
+			},
+			ExpectedAnnotationsControl: map[string]string{
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusError,
+			},
+		},
 	}
 
 	for _, tCase := range tMatrix {

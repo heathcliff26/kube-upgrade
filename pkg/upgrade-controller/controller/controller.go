@@ -197,6 +197,7 @@ func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node, cfg
 
 	completed := 0
 	needUpdate := false
+	errorNodes := make([]string, 0)
 
 	for i := range nodes {
 		if nodes[i].Annotations == nil {
@@ -210,6 +211,8 @@ func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node, cfg
 		if nodes[i].Annotations[constants.NodeKubernetesVersion] == kubeVersion {
 			if nodes[i].Annotations[constants.NodeUpgradeStatus] == constants.NodeUpgradeStatusCompleted {
 				completed++
+			} else if nodes[i].Annotations[constants.NodeUpgradeStatus] == constants.NodeUpgradeStatusError {
+				errorNodes = append(errorNodes, nodes[i].GetName())
 			}
 			continue
 		}
@@ -221,7 +224,9 @@ func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node, cfg
 	}
 
 	var status string
-	if len(nodes) == completed {
+	if len(errorNodes) > 0 {
+		status = fmt.Sprintf("%s: The nodes %v are reporting errors", api.PlanStatusError, errorNodes)
+	} else if len(nodes) == completed {
 		status = api.PlanStatusComplete
 	} else {
 		status = fmt.Sprintf("%s: %d/%d nodes upgraded", api.PlanStatusProgressing, completed, len(nodes))

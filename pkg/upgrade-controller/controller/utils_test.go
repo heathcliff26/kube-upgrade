@@ -163,6 +163,15 @@ func TestCreateStatusSummary(t *testing.T) {
 			Result: api.PlanStatusUnknown,
 		},
 		{
+			Name: api.PlanStatusError,
+			Status: map[string]string{
+				"foo":    api.PlanStatusError,
+				"bar":    api.PlanStatusProgressing + ": 0/1 nodes upgraded",
+				"foobar": api.PlanStatusComplete,
+			},
+			Result: api.PlanStatusError + ": Some groups encountered errors [foo]",
+		},
+		{
 			Name:   "EmptyStatus",
 			Status: map[string]string{},
 			Result: api.PlanStatusUnknown,
