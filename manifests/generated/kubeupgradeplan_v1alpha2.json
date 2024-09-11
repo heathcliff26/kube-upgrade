@@ -178,12 +178,6 @@
         },
         "summary": {
           "description": "A summary of the overall status of the cluster",
-          "enum": [
-            "Unknown",
-            "Waiting",
-            "Progressing",
-            "Complete"
-          ],
           "type": "string"
         }
       },

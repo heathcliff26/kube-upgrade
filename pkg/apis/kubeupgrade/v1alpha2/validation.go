@@ -4,23 +4,13 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
-	"slices"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var (
-	validStatusValues = []string{"Unknown", "Waiting", "Progressing", "Complete"}
-)
-
 func ValidateObject_KubeUpgradePlan(plan *KubeUpgradePlan) error {
-	err := ValidateObject_KubeUpgradeSpec(plan.Spec)
-	if err != nil {
-		return err
-	}
-
-	return ValidateObject_KubeUpgradeStatus(plan.Status)
+	return ValidateObject_KubeUpgradeSpec(plan.Spec)
 }
 
 func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error {
@@ -92,25 +82,6 @@ func ValidateObject_UpgradedConfig(cfg UpgradedConfig) error {
 		_, err := time.ParseDuration(cfg.RetryInterval)
 		if err != nil {
 			return fmt.Errorf("invalid input \"%s\" for retry-interval: %v", cfg.RetryInterval, err)
-		}
-	}
-
-	return nil
-}
-
-func ValidateObject_KubeUpgradeStatus(status KubeUpgradeStatus) error {
-	// Mutating/Validation webhooks for subresources are called later, so it is ok if the status does not exist
-	if status.Summary == "" && len(status.Groups) == 0 {
-		return nil
-	}
-
-	if !slices.Contains(validStatusValues, status.Summary) {
-		return fmt.Errorf("found unknown status \"%s\" in summary, accepted values are: %v", status.Summary, validStatusValues)
-	}
-
-	for group, value := range status.Groups {
-		if !slices.Contains(validStatusValues, value) {
-			return fmt.Errorf("found unknown status \"%s\" in group \"%s\", accepted values are: %v", value, group, validStatusValues)
 		}
 	}
 

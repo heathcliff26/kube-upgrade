@@ -61,9 +61,6 @@ func TestValidate(t *testing.T) {
 		},
 	}
 
-	validWithStatus := minimumValidPlan.DeepCopy()
-	validWithStatus.Status.Summary = "Complete"
-
 	invalidKubernetesVersion := minimumValidPlan.DeepCopy()
 	invalidKubernetesVersion.Spec.KubernetesVersion = "testv1.0.0"
 
@@ -135,13 +132,6 @@ func TestValidate(t *testing.T) {
 	invalidRetryInterval := minimumValidPlan.DeepCopy()
 	invalidRetryInterval.Spec.Upgraded.RetryInterval = "not-a-duration"
 
-	invalidStatusSummary := minimumValidPlan.DeepCopy()
-	invalidStatusSummary.Status.Summary = "invalid-status"
-
-	invalidGroupStatus := minimumValidPlan.DeepCopy()
-	invalidGroupStatus.Status.Summary = "Unknown"
-	invalidGroupStatus.Status.Groups = map[string]string{"control-plane": "invalid-status"}
-
 	tMatrix := []struct {
 		Name  string
 		Plan  *api.KubeUpgradePlan
@@ -163,10 +153,6 @@ func TestValidate(t *testing.T) {
 		{
 			Name: "ValidGroupWithUpgradedConfig",
 			Plan: validGroupWithUpgradedConfig,
-		},
-		{
-			Name: "ValidWithStatus",
-			Plan: validWithStatus,
 		},
 		{
 			Name:  "InvalidKubernetesVersion",
@@ -226,16 +212,6 @@ func TestValidate(t *testing.T) {
 		{
 			Name:  "InvalidRetryInterval",
 			Plan:  invalidRetryInterval,
-			Error: true,
-		},
-		{
-			Name:  "InvalidStatusSummary",
-			Plan:  invalidStatusSummary,
-			Error: true,
-		},
-		{
-			Name:  "InvalidGroupStatus",
-			Plan:  invalidGroupStatus,
 			Error: true,
 		},
 	}
