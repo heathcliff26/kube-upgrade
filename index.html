@@ -69,13 +69,13 @@
 				
 				<option value="file6">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/config.go (100.0%)</option>
 				
-				<option value="file7">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (54.5%)</option>
+				<option value="file7">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (56.7%)</option>
 				
 				<option value="file8">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/errors.go (50.0%)</option>
 				
 				<option value="file9">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/mutatingwebhook.go (100.0%)</option>
 				
-				<option value="file10">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/utils.go (96.8%)</option>
+				<option value="file10">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/utils.go (97.1%)</option>
 				
 				<option value="file11">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/validatingwebhook.go (100.0%)</option>
 				
@@ -792,6 +792,7 @@ func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node, cfg
 
         <span class="cov8" title="1">completed := 0
         needUpdate := false
+        errorNodes := make([]string, 0)
 
         for i := range nodes </span><span class="cov8" title="1">{
                 if nodes[i].Annotations == nil </span><span class="cov8" title="1">{
@@ -805,6 +806,8 @@ func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node, cfg
                 <span class="cov8" title="1">if nodes[i].Annotations[constants.NodeKubernetesVersion] == kubeVersion </span><span class="cov8" title="1">{
                         if nodes[i].Annotations[constants.NodeUpgradeStatus] == constants.NodeUpgradeStatusCompleted </span><span class="cov8" title="1">{
                                 completed++
+                        }</span> else<span class="cov8" title="1"> if nodes[i].Annotations[constants.NodeUpgradeStatus] == constants.NodeUpgradeStatusError </span><span class="cov8" title="1">{
+                                errorNodes = append(errorNodes, nodes[i].GetName())
                         }</span>
                         <span class="cov8" title="1">continue</span>
                 }
@@ -816,7 +819,9 @@ func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node, cfg
         }
 
         <span class="cov8" title="1">var status string
-        if len(nodes) == completed </span><span class="cov8" title="1">{
+        if len(errorNodes) &gt; 0 </span><span class="cov8" title="1">{
+                status = fmt.Sprintf("%s: The nodes %v are reporting errors", api.PlanStatusError, errorNodes)
+        }</span> else<span class="cov8" title="1"> if len(nodes) == completed </span><span class="cov8" title="1">{
                 status = api.PlanStatusComplete
         }</span> else<span class="cov8" title="1"> {
                 status = fmt.Sprintf("%s: %d/%d nodes upgraded", api.PlanStatusProgressing, completed, len(nodes))
@@ -930,6 +935,7 @@ func createStatusSummary(status map[string]string) string <span class="cov8" tit
         <span class="cov8" title="1">waiting := false
         unknown := false
         progressing := make([]string, 0, len(status))
+        errorGroups := make([]string, 0, len(status))
 
         for group, s := range status </span><span class="cov8" title="1">{
                 switch </span>{
@@ -938,6 +944,8 @@ func createStatusSummary(status map[string]string) string <span class="cov8" tit
                         progressing = append(progressing, group)</span>
                 case s == api.PlanStatusWaiting:<span class="cov8" title="1">
                         waiting = true</span>
+                case strings.HasPrefix(s, api.PlanStatusError):<span class="cov8" title="1">
+                        errorGroups = append(errorGroups, group)</span>
                 default:<span class="cov8" title="1">
                         unknown = true</span>
                 }
@@ -945,6 +953,8 @@ func createStatusSummary(status map[string]string) string <span class="cov8" tit
 
         <span class="cov8" title="1">if unknown </span><span class="cov8" title="1">{
                 return api.PlanStatusUnknown
+        }</span> else<span class="cov8" title="1"> if len(errorGroups) &gt; 0 </span><span class="cov8" title="1">{
+                return fmt.Sprintf("%s: Some groups encountered errors %v", api.PlanStatusError, errorGroups)
         }</span> else<span class="cov8" title="1"> if len(progressing) &gt; 0 </span><span class="cov8" title="1">{
                 return fmt.Sprintf("%s: Upgrading groups %v", api.PlanStatusProgressing, progressing)
         }</span> else<span class="cov8" title="1"> if waiting </span><span class="cov8" title="1">{
