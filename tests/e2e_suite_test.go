@@ -181,5 +181,18 @@ func TestE2E(t *testing.T) {
 			return ctx
 		}).Feature()
 
-	testenv.Test(t, examplePlanFeat)
+	validationWebhookFeat := features.New("validation webhook").
+		Assess("rejected", func(ctx context.Context, t *testing.T, c *envconf.Config) context.Context {
+			r, err := resources.New(c.Client().RESTConfig())
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			err = decoder.ApplyWithManifestDir(ctx, r, "tests/testdata", "invalid-plan.yaml", []resources.CreateOption{})
+			assert.ErrorContains(t, err, "admission webhook \"kubeupgrade.heathcliff.eu\" denied the request", "Plan should be rejected by webhook")
+
+			return ctx
+		}).Feature()
+
+	testenv.Test(t, examplePlanFeat, validationWebhookFeat)
 }

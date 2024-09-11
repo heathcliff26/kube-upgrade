@@ -1,0 +1,18 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/heathcliff26/kube-upgrade/main/manifests/generated/kubeupgradeplan_v1alpha2.json
+apiVersion: kubeupgrade.heathcliff.eu/v1alpha2
+kind: KubeUpgradePlan
+metadata:
+  name: invalid-plan
+spec:
+  kubernetesVersion: "v1.30.0"
+  upgraded:
+    fleetlock-url: ""
+  groups:
+    control-plane:
+      labels:
+        matchExpressions:
+          - key: node-role.kubernetes.io/control-plane
+            operator: Exists
+      upgraded:
+        fleetlock-group: control-plane
