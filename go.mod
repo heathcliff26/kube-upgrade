@@ -7,6 +7,7 @@ require (
 	github.com/heathcliff26/fleetlock v1.4.2
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
+	golang.org/x/mod v0.17.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.31.0
 	k8s.io/apimachinery v0.31.0
@@ -58,7 +59,6 @@ require (
 	github.com/vladimirvivien/gexe v0.2.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/exp v0.0.0-20230515195305-f3d0a9c9a5cc // indirect
-	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/oauth2 v0.21.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect

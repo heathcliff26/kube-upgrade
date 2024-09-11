@@ -61,11 +61,17 @@ func TestValidate(t *testing.T) {
 		},
 	}
 
+	validKubernetesVersionWithPreRelease := minimumValidPlan.DeepCopy()
+	validKubernetesVersionWithPreRelease.Spec.KubernetesVersion = "v1.31.0-rc.0"
+
 	invalidKubernetesVersion := minimumValidPlan.DeepCopy()
 	invalidKubernetesVersion.Spec.KubernetesVersion = "testv1.0.0"
 
 	invalidMissingKubernetesVersion := minimumValidPlan.DeepCopy()
 	invalidMissingKubernetesVersion.Spec.KubernetesVersion = ""
+
+	invalidKubernetesVersionMajorOnly := minimumValidPlan.DeepCopy()
+	invalidKubernetesVersionMajorOnly.Spec.KubernetesVersion = "v1"
 
 	invalidMissingGroups := minimumValidPlan.DeepCopy()
 	invalidMissingGroups.Spec.Groups = map[string]api.KubeUpgradePlanGroup{}
@@ -155,6 +161,10 @@ func TestValidate(t *testing.T) {
 			Plan: validGroupWithUpgradedConfig,
 		},
 		{
+			Name: "ValidKubernetesVersionWithPreRelease",
+			Plan: validKubernetesVersionWithPreRelease,
+		},
+		{
 			Name:  "InvalidKubernetesVersion",
 			Plan:  invalidKubernetesVersion,
 			Error: true,
@@ -162,6 +172,11 @@ func TestValidate(t *testing.T) {
 		{
 			Name:  "InvalidMissingKubernetesVersion",
 			Plan:  invalidMissingKubernetesVersion,
+			Error: true,
+		},
+		{
+			Name:  "InvalidKubernetesVersionMajorOnly",
+			Plan:  invalidKubernetesVersionMajorOnly,
 			Error: true,
 		},
 		{
