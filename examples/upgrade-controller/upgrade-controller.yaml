@@ -515,7 +515,6 @@ webhooks:
           - UPDATE
         resources:
           - kubeupgradeplans
-          - kubeupgradeplans/status
     sideEffects: None
 ---
 apiVersion: apps/v1
