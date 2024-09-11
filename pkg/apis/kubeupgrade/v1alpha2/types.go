@@ -9,6 +9,7 @@ const (
 	PlanStatusProgressing = "Progressing"
 	PlanStatusWaiting     = "Waiting"
 	PlanStatusComplete    = "Complete"
+	PlanStatusError       = "Error"
 )
 
 // +genclient

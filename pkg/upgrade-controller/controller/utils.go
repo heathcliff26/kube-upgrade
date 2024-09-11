@@ -54,6 +54,7 @@ func createStatusSummary(status map[string]string) string {
 	waiting := false
 	unknown := false
 	progressing := make([]string, 0, len(status))
+	errorGroups := make([]string, 0, len(status))
 
 	for group, s := range status {
 		switch {
@@ -62,6 +63,8 @@ func createStatusSummary(status map[string]string) string {
 			progressing = append(progressing, group)
 		case s == api.PlanStatusWaiting:
 			waiting = true
+		case strings.HasPrefix(s, api.PlanStatusError):
+			errorGroups = append(errorGroups, group)
 		default:
 			unknown = true
 		}
@@ -69,6 +72,8 @@ func createStatusSummary(status map[string]string) string {
 
 	if unknown {
 		return api.PlanStatusUnknown
+	} else if len(errorGroups) > 0 {
+		return fmt.Sprintf("%s: Some groups encountered errors %v", api.PlanStatusError, errorGroups)
 	} else if len(progressing) > 0 {
 		return fmt.Sprintf("%s: Upgrading groups %v", api.PlanStatusProgressing, progressing)
 	} else if waiting {
