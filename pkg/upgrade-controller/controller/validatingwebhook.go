@@ -9,7 +9,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
-// +kubebuilder:webhook:path=/validate-kubeupgrade-heathcliff-eu-v1alpha2-kubeupgradeplan,mutating=false,failurePolicy=fail,groups=kubeupgrade.heathcliff.eu,resources=kubeupgradeplans;kubeupgradeplans/status,verbs=create;update,versions=v1alpha2,name=kubeupgrade.heathcliff.eu,admissionReviewVersions=v1,sideEffects=None
+// +kubebuilder:webhook:path=/validate-kubeupgrade-heathcliff-eu-v1alpha2-kubeupgradeplan,mutating=false,failurePolicy=fail,groups=kubeupgrade.heathcliff.eu,resources=kubeupgradeplans,verbs=create;update,versions=v1alpha2,name=kubeupgrade.heathcliff.eu,admissionReviewVersions=v1,sideEffects=None
 
 // planValidatingHook validates the plan
 type planValidatingHook struct{}

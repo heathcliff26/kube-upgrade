@@ -53,5 +53,4 @@ webhooks:
           - UPDATE
         resources:
           - kubeupgradeplans
-          - kubeupgradeplans/status
     sideEffects: None
