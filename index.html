@@ -89,7 +89,7 @@
 				
 				<option value="file16">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (44.9%)</option>
 				
-				<option value="file17">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/nodes.go (32.6%)</option>
+				<option value="file17">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/nodes.go (35.5%)</option>
 				
 				<option value="file18">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/stream.go (35.3%)</option>
 				
@@ -1581,8 +1581,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
 
         <span class="cov8" title="1">err = d.UpdateConfigFromAnnotations(node.GetAnnotations())
         if err != nil </span><span class="cov0" title="0">{
-                _ = d.updateNodeStatus(constants.NodeUpgradeStatusError)
-                return fmt.Errorf("failed to update daemon config from node annotations: %v", err)
+                return d.returnNodeUpgradeError(fmt.Errorf("failed to update daemon config from node annotations: %v", err))
         }</span>
 
         <span class="cov8" title="1">version := node.Annotations[constants.NodeKubernetesVersion]
@@ -1601,8 +1600,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
                 }</span>
                 <span class="cov8" title="1">err = d.rpmostree.Rebase(d.stream + ":" + version)
                 if err != nil </span><span class="cov8" title="1">{
-                        _ = d.updateNodeStatus(constants.NodeUpgradeStatusError)
-                        return fmt.Errorf("failed to rebase node: %v", err)
+                        return d.returnNodeUpgradeError(fmt.Errorf("failed to rebase node: %v", err))
                 }</span>
                 // This return is here purely for testing, as a successfull rebase does not return, but instead reboots the system
                 <span class="cov8" title="1">return nil</span>
@@ -1617,18 +1615,15 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
 
         <span class="cov0" title="0">kubeadmConfigMap, err := d.client.CoreV1().ConfigMaps("kube-system").Get(d.ctx, "kubeadm-config", metav1.GetOptions{})
         if err != nil </span><span class="cov0" title="0">{
-                _ = d.updateNodeStatus(constants.NodeUpgradeStatusError)
-                return fmt.Errorf("failed to fetch kubeadm-config: %v", err)
+                return d.returnNodeUpgradeError(fmt.Errorf("failed to fetch kubeadm-config: %v", err))
         }</span>
         <span class="cov0" title="0">if kubeadmConfigMap.Data == nil </span><span class="cov0" title="0">{
-                _ = d.updateNodeStatus(constants.NodeUpgradeStatusError)
-                return fmt.Errorf("kubeadm configmap contains no data")
+                return d.returnNodeUpgradeError(fmt.Errorf("kubeadm configmap contains no data"))
         }</span>
         <span class="cov0" title="0">var kubeadmConfig kubeadm.ClusterConfiguration
         err = yaml.Unmarshal([]byte(kubeadmConfigMap.Data["ClusterConfiguration"]), &amp;kubeadmConfig)
         if err != nil </span><span class="cov0" title="0">{
-                _ = d.updateNodeStatus(constants.NodeUpgradeStatusError)
-                return fmt.Errorf("failed to parse kubeadm-config: %v", err)
+                return d.returnNodeUpgradeError(fmt.Errorf("failed to parse kubeadm-config: %v", err))
         }</span>
 
         <span class="cov0" title="0">if version != kubeadmConfig.KubernetesVersion </span><span class="cov0" title="0">{
@@ -1639,8 +1634,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
                 err = d.kubeadm.Node()
         }</span>
         <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
-                _ = d.updateNodeStatus(constants.NodeUpgradeStatusError)
-                return fmt.Errorf("failed run kubeadm: %v", err)
+                return d.returnNodeUpgradeError(fmt.Errorf("failed run kubeadm: %v", err))
         }</span>
 
         <span class="cov0" title="0">err = d.updateNodeStatus(constants.NodeUpgradeStatusCompleted)
@@ -1675,6 +1669,15 @@ func (d *daemon) updateNodeStatus(status string) error <span class="cov8" title=
 func (d *daemon) getNode() (*corev1.Node, error) <span class="cov8" title="1">{
         return d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
 }</span>
+
+// Return the given error, but also set the node status to error
+func (d *daemon) returnNodeUpgradeError(err error) error <span class="cov8" title="1">{
+        statusErr := d.updateNodeStatus(constants.NodeUpgradeStatusError)
+        if statusErr != nil </span><span class="cov0" title="0">{
+                slog.Error("Failed to set node to error status", slog.Any("error", statusErr))
+        }</span>
+        <span class="cov8" title="1">return err</span>
+}
 </pre>
 		
 		<pre class="file" id="file18" style="display: none">package daemon
