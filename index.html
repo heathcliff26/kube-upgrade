@@ -69,7 +69,7 @@
 				
 				<option value="file6">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/config.go (100.0%)</option>
 				
-				<option value="file7">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (56.7%)</option>
+				<option value="file7">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (57.5%)</option>
 				
 				<option value="file8">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/errors.go (50.0%)</option>
 				
@@ -606,6 +606,7 @@ import (
         api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
         "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/scheme"
         "github.com/heathcliff26/kube-upgrade/pkg/constants"
+        "golang.org/x/mod/semver"
         corev1 "k8s.io/api/core/v1"
         metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
         "k8s.io/client-go/kubernetes"
@@ -749,7 +750,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
                         return err
                 }</span>
 
-                <span class="cov8" title="1">status, update, nodes, err := c.reconcileNodes(plan.Spec.KubernetesVersion, nodeList.Items, upgradedCfg)
+                <span class="cov8" title="1">status, update, nodes, err := c.reconcileNodes(plan.Spec.KubernetesVersion, plan.Spec.AllowDowngrade, nodeList.Items, upgradedCfg)
                 if err != nil </span><span class="cov0" title="0">{
                         logger.WithValues("group", name).Error(err, "Failed to reconcile nodes for group")
                         return err
@@ -787,7 +788,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
         return nil</span>
 }
 
-func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node, cfgAnnotations map[string]string) (string, bool, []corev1.Node, error) <span class="cov8" title="1">{
+func (c *controller) reconcileNodes(kubeVersion string, downgrade bool, nodes []corev1.Node, cfgAnnotations map[string]string) (string, bool, []corev1.Node, error) <span class="cov8" title="1">{
         if len(nodes) == 0 </span><span class="cov0" title="0">{
                 return api.PlanStatusUnknown, false, nil, nil
         }</span>
@@ -803,6 +804,10 @@ func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node, cfg
 
                 <span class="cov8" title="1">if applyConfigAnnotations(nodes[i].Annotations, cfgAnnotations) </span><span class="cov8" title="1">{
                         needUpdate = true
+                }</span>
+
+                <span class="cov8" title="1">if !downgrade &amp;&amp; semver.Compare(kubeVersion, nodes[i].Status.NodeInfo.KubeletVersion) &lt; 0 </span><span class="cov8" title="1">{
+                        return api.PlanStatusError, false, nil, fmt.Errorf("node %s version %s is newer than %s, but downgrade is disabled", nodes[i].GetName(), nodes[i].Status.NodeInfo.KubeletVersion, kubeVersion)
                 }</span>
 
                 <span class="cov8" title="1">if nodes[i].Annotations[constants.NodeKubernetesVersion] == kubeVersion </span><span class="cov8" title="1">{
