@@ -83,8 +83,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 
 	err = d.UpdateConfigFromAnnotations(node.GetAnnotations())
 	if err != nil {
-		_ = d.updateNodeStatus(constants.NodeUpgradeStatusError)
-		return fmt.Errorf("failed to update daemon config from node annotations: %v", err)
+		return d.returnNodeUpgradeError(fmt.Errorf("failed to update daemon config from node annotations: %v", err))
 	}
 
 	version := node.Annotations[constants.NodeKubernetesVersion]
@@ -103,8 +102,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 		}
 		err = d.rpmostree.Rebase(d.stream + ":" + version)
 		if err != nil {
-			_ = d.updateNodeStatus(constants.NodeUpgradeStatusError)
-			return fmt.Errorf("failed to rebase node: %v", err)
+			return d.returnNodeUpgradeError(fmt.Errorf("failed to rebase node: %v", err))
 		}
 		// This return is here purely for testing, as a successfull rebase does not return, but instead reboots the system
 		return nil
@@ -119,18 +117,15 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 
 	kubeadmConfigMap, err := d.client.CoreV1().ConfigMaps("kube-system").Get(d.ctx, "kubeadm-config", metav1.GetOptions{})
 	if err != nil {
-		_ = d.updateNodeStatus(constants.NodeUpgradeStatusError)
-		return fmt.Errorf("failed to fetch kubeadm-config: %v", err)
+		return d.returnNodeUpgradeError(fmt.Errorf("failed to fetch kubeadm-config: %v", err))
 	}
 	if kubeadmConfigMap.Data == nil {
-		_ = d.updateNodeStatus(constants.NodeUpgradeStatusError)
-		return fmt.Errorf("kubeadm configmap contains no data")
+		return d.returnNodeUpgradeError(fmt.Errorf("kubeadm configmap contains no data"))
 	}
 	var kubeadmConfig kubeadm.ClusterConfiguration
 	err = yaml.Unmarshal([]byte(kubeadmConfigMap.Data["ClusterConfiguration"]), &kubeadmConfig)
 	if err != nil {
-		_ = d.updateNodeStatus(constants.NodeUpgradeStatusError)
-		return fmt.Errorf("failed to parse kubeadm-config: %v", err)
+		return d.returnNodeUpgradeError(fmt.Errorf("failed to parse kubeadm-config: %v", err))
 	}
 
 	if version != kubeadmConfig.KubernetesVersion {
@@ -141,8 +136,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 		err = d.kubeadm.Node()
 	}
 	if err != nil {
-		_ = d.updateNodeStatus(constants.NodeUpgradeStatusError)
-		return fmt.Errorf("failed run kubeadm: %v", err)
+		return d.returnNodeUpgradeError(fmt.Errorf("failed run kubeadm: %v", err))
 	}
 
 	err = d.updateNodeStatus(constants.NodeUpgradeStatusCompleted)
@@ -176,4 +170,13 @@ func (d *daemon) updateNodeStatus(status string) error {
 // Retrieve the node from the API
 func (d *daemon) getNode() (*corev1.Node, error) {
 	return d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
+}
+
+// Return the given error, but also set the node status to error
+func (d *daemon) returnNodeUpgradeError(err error) error {
+	statusErr := d.updateNodeStatus(constants.NodeUpgradeStatusError)
+	if statusErr != nil {
+		slog.Error("Failed to set node to error status", slog.Any("error", statusErr))
+	}
+	return err
 }
