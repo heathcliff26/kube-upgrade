@@ -15,6 +15,29 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
+func TestDoNodeUpgradeWithRetry(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	d := &daemon{
+		client:        fake.NewSimpleClientset(),
+		node:          "not-a-node",
+		ctx:           ctx,
+		retryInterval: time.Second,
+	}
+
+	done := make(chan struct{}, 1)
+	go func() {
+		// Should not panic with nil
+		d.doNodeUpgradeWithRetry(nil)
+	}()
+	t.Cleanup(cancel)
+
+	select {
+	case <-done:
+		t.Fatal("The upgrade should not succeed")
+	case <-time.After(time.Second * 3):
+	}
+}
+
 func TestDoNodeUpgrade(t *testing.T) {
 	t.Run("LockAlreadyReserved", func(t *testing.T) {
 		assert := assert.New(t)
