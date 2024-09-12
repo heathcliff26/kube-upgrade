@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
+	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm"
 	rpmostree "github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
@@ -60,6 +61,11 @@ func TestDoNodeUpgrade(t *testing.T) {
 				t.FailNow()
 			}
 
+			kubeadmCMD, err := kubeadm.New("testdata/fake-kubeadm.sh")
+			if !assert.NoError(err, "Failed to create kubeadm command") {
+				t.FailNow()
+			}
+
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			t.Cleanup(cancel)
 
@@ -67,6 +73,7 @@ func TestDoNodeUpgrade(t *testing.T) {
 				ctx:       ctx,
 				fleetlock: client,
 				rpmostree: rpmOstreeCMD,
+				kubeadm:   kubeadmCMD,
 				client:    fake.NewSimpleClientset(),
 				node:      "testnode",
 			}
@@ -76,11 +83,6 @@ func TestDoNodeUpgrade(t *testing.T) {
 					Name: d.node,
 					Annotations: map[string]string{
 						constants.NodeKubernetesVersion: "v1.31.0",
-					},
-				},
-				Status: corev1.NodeStatus{
-					NodeInfo: corev1.NodeSystemInfo{
-						KubeletVersion: "v1.30.4",
 					},
 				},
 			}

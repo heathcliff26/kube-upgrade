@@ -18,6 +18,7 @@ func TestNew(t *testing.T) {
 	cmd, err = New("testdata/print-args.sh")
 	assert.NoError(err, "Should succeed")
 	assert.NotNil(cmd, "Should return a command")
+	assert.Equal("version --output short", cmd.version, "Should have set the version without newline")
 }
 
 func TestApply(t *testing.T) {

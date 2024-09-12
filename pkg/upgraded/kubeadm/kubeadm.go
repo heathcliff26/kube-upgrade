@@ -1,14 +1,18 @@
 package kubeadm
 
 import (
+	"fmt"
+	"os/exec"
+	"strings"
 	"sync"
 
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils"
 )
 
 type KubeadmCMD struct {
-	binary string
-	mutex  sync.Mutex
+	binary  string
+	mutex   sync.Mutex
+	version string
 }
 
 // Create a new wrapper for kubeadm
@@ -18,9 +22,17 @@ func New(path string) (*KubeadmCMD, error) {
 		return nil, err
 	}
 
-	return &KubeadmCMD{
+	k := &KubeadmCMD{
 		binary: path,
-	}, nil
+	}
+
+	k.version, err = k.getVersion()
+	if err != nil {
+		return nil, fmt.Errorf("failed to read kubeadm version: %v", err)
+	}
+	k.version, _ = strings.CutSuffix(k.version, "\n")
+
+	return k, nil
 }
 
 // Run kubeadm upgrade apply
@@ -37,4 +49,16 @@ func (k *KubeadmCMD) Node() error {
 	defer k.mutex.Unlock()
 
 	return utils.CreateCMDWithStdout(k.binary, "upgrade", "node").Run()
+}
+
+func (k *KubeadmCMD) Version() string {
+	return k.version
+}
+
+func (k *KubeadmCMD) getVersion() (string, error) {
+	out, err := exec.Command(k.binary, "version", "--output", "short").Output()
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
 }

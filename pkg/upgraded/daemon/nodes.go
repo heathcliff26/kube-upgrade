@@ -95,8 +95,8 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 		return fmt.Errorf("failed to aquire lock: %v", err)
 	}
 
-	if version != node.Status.NodeInfo.KubeletVersion {
-		slog.Info("Rebasing os to new kubernetes version", slog.String("version", version))
+	if version != d.kubeadm.Version() {
+		slog.Info("Rebasing os to new kubernetes version", slog.String("version", version), slog.String("current", d.kubeadm.Version()))
 		err := d.updateNodeStatus(constants.NodeUpgradeStatusRebasing)
 		if err != nil {
 			return fmt.Errorf("failed to update node status: %v", err)
