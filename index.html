@@ -99,7 +99,7 @@
 				
 				<option value="file21">github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock/utils.go (81.8%)</option>
 				
-				<option value="file22">github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm/kubeadm.go (70.0%)</option>
+				<option value="file22">github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm/kubeadm.go (75.0%)</option>
 				
 				<option value="file23">github.com/heathcliff26/kube-upgrade/pkg/upgraded/root.go (14.3%)</option>
 				
@@ -1588,8 +1588,8 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
                 return fmt.Errorf("failed to aquire lock: %v", err)
         }</span>
 
-        <span class="cov8" title="1">if version != node.Status.NodeInfo.KubeletVersion </span><span class="cov8" title="1">{
-                slog.Info("Rebasing os to new kubernetes version", slog.String("version", version))
+        <span class="cov8" title="1">if version != d.kubeadm.Version() </span><span class="cov8" title="1">{
+                slog.Info("Rebasing os to new kubernetes version", slog.String("version", version), slog.String("current", d.kubeadm.Version()))
                 err := d.updateNodeStatus(constants.NodeUpgradeStatusRebasing)
                 if err != nil </span><span class="cov0" title="0">{
                         return fmt.Errorf("failed to update node status: %v", err)
@@ -1980,14 +1980,18 @@ func TrimTrailingSlash(url string) string <span class="cov8" title="1">{
 		<pre class="file" id="file22" style="display: none">package kubeadm
 
 import (
+        "fmt"
+        "os/exec"
+        "strings"
         "sync"
 
         "github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils"
 )
 
 type KubeadmCMD struct {
-        binary string
-        mutex  sync.Mutex
+        binary  string
+        mutex   sync.Mutex
+        version string
 }
 
 // Create a new wrapper for kubeadm
@@ -1997,9 +2001,17 @@ func New(path string) (*KubeadmCMD, error) <span class="cov8" title="1">{
                 return nil, err
         }</span>
 
-        <span class="cov8" title="1">return &amp;KubeadmCMD{
+        <span class="cov8" title="1">k := &amp;KubeadmCMD{
                 binary: path,
-        }, nil</span>
+        }
+
+        k.version, err = k.getVersion()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to read kubeadm version: %v", err)
+        }</span>
+        <span class="cov8" title="1">k.version, _ = strings.CutSuffix(k.version, "\n")
+
+        return k, nil</span>
 }
 
 // Run kubeadm upgrade apply
@@ -2017,6 +2029,18 @@ func (k *KubeadmCMD) Node() error <span class="cov0" title="0">{
 
         return utils.CreateCMDWithStdout(k.binary, "upgrade", "node").Run()
 }</span>
+
+func (k *KubeadmCMD) Version() string <span class="cov8" title="1">{
+        return k.version
+}</span>
+
+func (k *KubeadmCMD) getVersion() (string, error) <span class="cov8" title="1">{
+        out, err := exec.Command(k.binary, "version", "--output", "short").Output()
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+        <span class="cov8" title="1">return string(out), nil</span>
+}
 </pre>
 		
 		<pre class="file" id="file23" style="display: none">package upgraded
