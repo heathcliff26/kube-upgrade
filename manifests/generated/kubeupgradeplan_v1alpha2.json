@@ -13,6 +13,10 @@
     },
     "spec": {
       "properties": {
+        "allowDowngrade": {
+          "description": "Allow downgrading to older kubernetes versions.\nOnly enable if you know what you are doing.",
+          "type": "boolean"
+        },
         "groups": {
           "additionalProperties": {
             "properties": {
@@ -120,7 +124,7 @@
           "type": "object"
         },
         "kubernetesVersion": {
-          "description": "The kubernetes version the cluster should be at.\nIf the actual version differs, the cluster will be upgraded",
+          "description": "The kubernetes version the cluster should be at.\nIf the actual version differs, the cluster will be upgraded.",
           "example": "v1.31.0",
           "format": "semver",
           "type": "string"

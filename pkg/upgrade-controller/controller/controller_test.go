@@ -7,7 +7,7 @@ import (
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 	"github.com/stretchr/testify/assert"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kubeFake "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/klog/v2"
@@ -671,12 +671,49 @@ func TestReconcile(t *testing.T) {
 	}
 }
 
+func TestReconcileNodes(t *testing.T) {
+	c := &controller{
+		nodes: kubeFake.NewSimpleClientset().CoreV1().Nodes(),
+	}
+
+	nodeControl := &corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: nodeControl,
+			Labels: map[string]string{
+				labelControl: labelValue,
+			},
+		},
+		Status: corev1.NodeStatus{
+			NodeInfo: corev1.NodeSystemInfo{
+				KubeletVersion: "v1.31.1",
+			},
+		},
+	}
+	nodeControl, _ = c.nodes.Create(context.Background(), nodeControl, metav1.CreateOptions{})
+
+	assert := assert.New(t)
+
+	status, needUpdate, nodes, err := c.reconcileNodes("v1.31.0", false, []corev1.Node{*nodeControl}, map[string]string{})
+
+	assert.Equal(api.PlanStatusError, status, "Should return error status")
+	assert.False(needUpdate, "Should not request update")
+	assert.Nil(nodes, "Should not return nodes")
+	assert.Error(err, "Should return an error")
+
+	status, needUpdate, nodes, err = c.reconcileNodes("v1.31.0", true, []corev1.Node{*nodeControl}, map[string]string{})
+
+	assert.NotEqual(api.PlanStatusError, status, "Should not return error status")
+	assert.True(needUpdate, "Should request update")
+	assert.Equal("v1.31.0", nodes[0].GetAnnotations()[constants.NodeKubernetesVersion], "Should set kubernets wanted version on node")
+	assert.NoError(err, "Should not return an error")
+}
+
 func createFakeController(annotationsControl, annotationsCompute, annotationsInfra map[string]string) *controller {
 	c := &controller{
 		nodes: kubeFake.NewSimpleClientset().CoreV1().Nodes(),
 	}
 
-	nodeControl := &v1.Node{
+	nodeControl := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: nodeControl,
 			Labels: map[string]string{
@@ -685,7 +722,7 @@ func createFakeController(annotationsControl, annotationsCompute, annotationsInf
 			Annotations: annotationsControl,
 		},
 	}
-	nodeCompute := &v1.Node{
+	nodeCompute := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: nodeCompute,
 			Labels: map[string]string{
@@ -694,7 +731,7 @@ func createFakeController(annotationsControl, annotationsCompute, annotationsInf
 			Annotations: annotationsCompute,
 		},
 	}
-	nodeInfra := &v1.Node{
+	nodeInfra := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: nodeInfra,
 			Labels: map[string]string{

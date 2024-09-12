@@ -9,6 +9,7 @@ import (
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
 	"github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/scheme"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
+	"golang.org/x/mod/semver"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -152,7 +153,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 			return err
 		}
 
-		status, update, nodes, err := c.reconcileNodes(plan.Spec.KubernetesVersion, nodeList.Items, upgradedCfg)
+		status, update, nodes, err := c.reconcileNodes(plan.Spec.KubernetesVersion, plan.Spec.AllowDowngrade, nodeList.Items, upgradedCfg)
 		if err != nil {
 			logger.WithValues("group", name).Error(err, "Failed to reconcile nodes for group")
 			return err
@@ -190,7 +191,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 	return nil
 }
 
-func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node, cfgAnnotations map[string]string) (string, bool, []corev1.Node, error) {
+func (c *controller) reconcileNodes(kubeVersion string, downgrade bool, nodes []corev1.Node, cfgAnnotations map[string]string) (string, bool, []corev1.Node, error) {
 	if len(nodes) == 0 {
 		return api.PlanStatusUnknown, false, nil, nil
 	}
@@ -206,6 +207,10 @@ func (c *controller) reconcileNodes(kubeVersion string, nodes []corev1.Node, cfg
 
 		if applyConfigAnnotations(nodes[i].Annotations, cfgAnnotations) {
 			needUpdate = true
+		}
+
+		if !downgrade && semver.Compare(kubeVersion, nodes[i].Status.NodeInfo.KubeletVersion) < 0 {
+			return api.PlanStatusError, false, nil, fmt.Errorf("node %s version %s is newer than %s, but downgrade is disabled", nodes[i].GetName(), nodes[i].Status.NodeInfo.KubeletVersion, kubeVersion)
 		}
 
 		if nodes[i].Annotations[constants.NodeKubernetesVersion] == kubeVersion {
