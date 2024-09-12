@@ -34,11 +34,17 @@ type KubeUpgradePlan struct {
 
 type KubeUpgradeSpec struct {
 	// The kubernetes version the cluster should be at.
-	// If the actual version differs, the cluster will be upgraded
+	// If the actual version differs, the cluster will be upgraded.
 	// +required
 	// +kubebuilder:validation:Format=semver
 	// +kubebuilder:example=v1.31.0
 	KubernetesVersion string `json:"kubernetesVersion"`
+
+	// Allow downgrading to older kubernetes versions.
+	// Only enable if you know what you are doing.
+	// +optional
+	// +default=false
+	AllowDowngrade bool `json:"allowDowngrade,omitempty"`
 
 	// The different groups in which the nodes will be upgraded.
 	// At minimum needs to separate control-plane from compute nodes, to ensure that control-plane nodes will be upgraded first.

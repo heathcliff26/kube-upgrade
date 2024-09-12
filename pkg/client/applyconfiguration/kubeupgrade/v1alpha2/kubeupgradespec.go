@@ -6,6 +6,7 @@ package v1alpha2
 // with apply.
 type KubeUpgradeSpecApplyConfiguration struct {
 	KubernetesVersion *string                                           `json:"kubernetesVersion,omitempty"`
+	AllowDowngrade    *bool                                             `json:"allowDowngrade,omitempty"`
 	Groups            map[string]KubeUpgradePlanGroupApplyConfiguration `json:"groups,omitempty"`
 	Upgraded          *UpgradedConfigApplyConfiguration                 `json:"upgraded,omitempty"`
 }
@@ -21,6 +22,14 @@ func KubeUpgradeSpec() *KubeUpgradeSpecApplyConfiguration {
 // If called multiple times, the KubernetesVersion field is set to the value of the last call.
 func (b *KubeUpgradeSpecApplyConfiguration) WithKubernetesVersion(value string) *KubeUpgradeSpecApplyConfiguration {
 	b.KubernetesVersion = &value
+	return b
+}
+
+// WithAllowDowngrade sets the AllowDowngrade field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the AllowDowngrade field is set to the value of the last call.
+func (b *KubeUpgradeSpecApplyConfiguration) WithAllowDowngrade(value bool) *KubeUpgradeSpecApplyConfiguration {
+	b.AllowDowngrade = &value
 	return b
 }
 

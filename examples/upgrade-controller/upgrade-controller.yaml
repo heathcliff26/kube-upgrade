@@ -204,6 +204,11 @@ spec:
             type: object
           spec:
             properties:
+              allowDowngrade:
+                description: |-
+                  Allow downgrading to older kubernetes versions.
+                  Only enable if you know what you are doing.
+                type: boolean
               groups:
                 additionalProperties:
                   properties:
@@ -305,7 +310,7 @@ spec:
               kubernetesVersion:
                 description: |-
                   The kubernetes version the cluster should be at.
-                  If the actual version differs, the cluster will be upgraded
+                  If the actual version differs, the cluster will be upgraded.
                 example: v1.31.0
                 format: semver
                 type: string
