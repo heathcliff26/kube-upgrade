@@ -87,9 +87,9 @@
 				
 				<option value="file15">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/config.go (94.9%)</option>
 				
-				<option value="file16">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (44.9%)</option>
+				<option value="file16">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (46.2%)</option>
 				
-				<option value="file17">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/nodes.go (35.5%)</option>
+				<option value="file17">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/nodes.go (44.1%)</option>
 				
 				<option value="file18">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/stream.go (35.3%)</option>
 				
@@ -1422,7 +1422,7 @@ func NewDaemon(cfg *config.Config) (*daemon, error) <span class="cov8" title="1"
 func (d *daemon) retry(f func() bool) <span class="cov8" title="1">{
         for !f() </span><span class="cov8" title="1">{
                 select </span>{
-                case &lt;-d.ctx.Done():<span class="cov0" title="0">
+                case &lt;-d.ctx.Done():<span class="cov8" title="1">
                         return</span>
                 case &lt;-time.After(d.retryInterval):<span class="cov8" title="1"></span>
                 }
@@ -1551,13 +1551,13 @@ func (d *daemon) checkNodeStatus(node *corev1.Node) <span class="cov0" title="0"
 }
 
 // Update the node until it succeeds
-func (d *daemon) doNodeUpgradeWithRetry(node *corev1.Node) <span class="cov0" title="0">{
-        d.retry(func() bool </span><span class="cov0" title="0">{
+func (d *daemon) doNodeUpgradeWithRetry(node *corev1.Node) <span class="cov8" title="1">{
+        d.retry(func() bool </span><span class="cov8" title="1">{
                 err := d.doNodeUpgrade(node)
                 if err == nil </span><span class="cov0" title="0">{
                         return true
                 }</span>
-                <span class="cov0" title="0">slog.Error("Failed to upgrade node", "err", err, slog.String("node", node.GetName()))
+                <span class="cov8" title="1">slog.Error("Failed to upgrade node", "err", err, slog.String("node", d.node))
                 return false</span>
         })
 }
@@ -1568,10 +1568,10 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
         defer d.upgrade.Unlock()
 
         var err error
-        if node == nil </span><span class="cov0" title="0">{
+        if node == nil </span><span class="cov8" title="1">{
                 // Need to fetch fresh data here, as the informer might called with a stale node version
                 node, err = d.getNode()
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov8" title="1">{
                         return fmt.Errorf("failed to get node data from server: %v", err)
                 }</span>
                 <span class="cov0" title="0">if !nodeNeedsUpgrade(node) </span><span class="cov0" title="0">{
