@@ -59,7 +59,7 @@ func (d *daemon) doNodeUpgradeWithRetry(node *corev1.Node) {
 		if err == nil {
 			return true
 		}
-		slog.Error("Failed to upgrade node", "err", err, slog.String("node", node.GetName()))
+		slog.Error("Failed to upgrade node", "err", err, slog.String("node", d.node))
 		return false
 	})
 }
