@@ -277,7 +277,7 @@ spec:
                         check-interval:
                           description: The interval between regular checks
                           example: 3h;24h;30m
-                          format: duration
+                          format: go-duration
                           type: string
                         fleetlock-group:
                           description: The group to use for fleetlock
@@ -292,7 +292,7 @@ spec:
                           description: The interval between retries when an operation
                             fails
                           example: 5m;1m;30s
-                          format: duration
+                          format: go-duration
                           type: string
                         stream:
                           description: The container image repository for os rebases
@@ -321,7 +321,7 @@ spec:
                   check-interval:
                     description: The interval between regular checks
                     example: 3h;24h;30m
-                    format: duration
+                    format: go-duration
                     type: string
                   fleetlock-group:
                     description: The group to use for fleetlock
@@ -335,7 +335,7 @@ spec:
                   retry-interval:
                     description: The interval between retries when an operation fails
                     example: 5m;1m;30s
-                    format: duration
+                    format: go-duration
                     type: string
                   stream:
                     description: The container image repository for os rebases
