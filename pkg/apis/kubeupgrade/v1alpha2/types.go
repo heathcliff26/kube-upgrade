@@ -103,14 +103,14 @@ type UpgradedConfig struct {
 
 	// The interval between regular checks
 	// +optional
-	// +kubebuilder:validation:Format=duration
+	// +kubebuilder:validation:Format=go-duration
 	// +default="3h"
 	// +kubebuilder:example="3h;24h;30m"
 	CheckInterval string `json:"check-interval,omitempty"`
 
 	// The interval between retries when an operation fails
 	// +optional
-	// +kubebuilder:validation:Format=duration
+	// +kubebuilder:validation:Format=go-duration
 	// +default="5m"
 	// +kubebuilder:example="5m;1m;30s"
 	RetryInterval string `json:"retry-interval,omitempty"`

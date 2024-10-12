@@ -84,7 +84,7 @@
                   "check-interval": {
                     "description": "The interval between regular checks",
                     "example": "3h;24h;30m",
-                    "format": "duration",
+                    "format": "go-duration",
                     "type": "string"
                   },
                   "fleetlock-group": {
@@ -100,7 +100,7 @@
                   "retry-interval": {
                     "description": "The interval between retries when an operation fails",
                     "example": "5m;1m;30s",
-                    "format": "duration",
+                    "format": "go-duration",
                     "type": "string"
                   },
                   "stream": {
@@ -135,7 +135,7 @@
             "check-interval": {
               "description": "The interval between regular checks",
               "example": "3h;24h;30m",
-              "format": "duration",
+              "format": "go-duration",
               "type": "string"
             },
             "fleetlock-group": {
@@ -151,7 +151,7 @@
             "retry-interval": {
               "description": "The interval between retries when an operation fails",
               "example": "5m;1m;30s",
-              "format": "duration",
+              "format": "go-duration",
               "type": "string"
             },
             "stream": {
