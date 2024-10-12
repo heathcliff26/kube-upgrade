@@ -1,11 +1,12 @@
 #!/bin/bash
 
-#!/bin/bash
-
 set -e
 
 script_dir="$(dirname "${BASH_SOURCE[0]}" | xargs realpath)"
-base_dir="${script_dir}/.."
+
+if ! command -v kubeconform 2>&1 >/dev/null; then
+    go install github.com/yannh/kubeconform/cmd/kubeconform@latest
+fi
 
 echo "Check if source code is formatted"
 make fmt
@@ -37,3 +38,6 @@ if [ $rc -ne 0 ]; then
     echo "FATAL: Need to run \"make manifests\" and update the examples with the result"
     exit 1
 fi
+
+echo "Check if the generated example plan is conform"
+kubeconform -schema-location manifests/generated/kubeupgradeplan_v1alpha2.json -verbose -strict examples/upgrade-controller/upgrade-cr.yaml
