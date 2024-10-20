@@ -87,9 +87,9 @@
 				
 				<option value="file15">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/config.go (94.9%)</option>
 				
-				<option value="file16">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (46.2%)</option>
+				<option value="file16">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (44.4%)</option>
 				
-				<option value="file17">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/nodes.go (44.1%)</option>
+				<option value="file17">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/node.go (47.5%)</option>
 				
 				<option value="file18">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/stream.go (35.3%)</option>
 				
@@ -109,7 +109,7 @@
 				
 				<option value="file26">github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils/utils.go (93.3%)</option>
 				
-				<option value="file27">github.com/heathcliff26/kube-upgrade/pkg/version/version.go (73.7%)</option>
+				<option value="file27">github.com/heathcliff26/kube-upgrade/pkg/version/version.go (75.0%)</option>
 				
 				</select>
 			</div>
@@ -1464,6 +1464,11 @@ func (d *daemon) Run() error <span class="cov0" title="0">{
                 return fmt.Errorf("failed to update daemon config from node annotations: %v", err)
         }</span>
 
+        <span class="cov0" title="0">node, err = d.annotateNodeWithUpgradedVersion(node)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to annotate node with upgraded version: %v", err)
+        }</span>
+
         <span class="cov0" title="0">if !nodeNeedsUpgrade(node) </span><span class="cov0" title="0">{
                 slog.Debug("Releasing any log that may be held by this machine")
                 d.releaseLock()
@@ -1505,6 +1510,7 @@ import (
 
         "github.com/heathcliff26/kube-upgrade/pkg/constants"
         "github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm"
+        "github.com/heathcliff26/kube-upgrade/pkg/version"
         "gopkg.in/yaml.v3"
         corev1 "k8s.io/api/core/v1"
         metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -1677,6 +1683,20 @@ func (d *daemon) returnNodeUpgradeError(err error) error <span class="cov8" titl
                 slog.Error("Failed to set node to error status", slog.Any("error", statusErr))
         }</span>
         <span class="cov8" title="1">return err</span>
+}
+
+// Annotate the node with the current upgraded version
+func (d *daemon) annotateNodeWithUpgradedVersion(node *corev1.Node) (*corev1.Node, error) <span class="cov8" title="1">{
+        if node.Annotations == nil </span><span class="cov8" title="1">{
+                node.Annotations = make(map[string]string)
+        }</span>
+
+        <span class="cov8" title="1">if node.Annotations[constants.NodeUpgradedVersion] == version.Version() </span><span class="cov8" title="1">{
+                return node, nil
+        }</span>
+
+        <span class="cov8" title="1">node.Annotations[constants.NodeUpgradedVersion] = version.Version()
+        return d.client.CoreV1().Nodes().Update(d.ctx, node, metav1.UpdateOptions{})</span>
 }
 </pre>
 		
@@ -2277,12 +2297,13 @@ import (
 
 var version = "devel"
 
+// Create a new version command with the given app name
 func NewCommand(name string) *cobra.Command <span class="cov8" title="1">{
         cmd := &amp;cobra.Command{
                 Use:   "version",
                 Short: "Print version information and exit",
                 Run: func(cmd *cobra.Command, args []string) </span><span class="cov0" title="0">{
-                        fmt.Print(Version(name))
+                        fmt.Print(VersionInfoString(name))
                 }</span>,
         }
         // Override to prevent parent function from running
@@ -2291,7 +2312,13 @@ func NewCommand(name string) *cobra.Command <span class="cov8" title="1">{
         <span class="cov8" title="1">return cmd</span>
 }
 
-func Version(name string) string <span class="cov8" title="1">{
+// Return the version string
+func Version() string <span class="cov8" title="1">{
+        return version
+}</span>
+
+// Return a formated string containing the version, git commit and go version the app was compiled with.
+func VersionInfoString(name string) string <span class="cov8" title="1">{
         var commit string
         buildinfo, _ := debug.ReadBuildInfo()
         for _, item := range buildinfo.Settings </span><span class="cov0" title="0">{
