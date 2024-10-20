@@ -10,12 +10,13 @@ import (
 
 var version = "devel"
 
+// Create a new version command with the given app name
 func NewCommand(name string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "version",
 		Short: "Print version information and exit",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Print(Version(name))
+			fmt.Print(VersionInfoString(name))
 		},
 	}
 	// Override to prevent parent function from running
@@ -24,7 +25,13 @@ func NewCommand(name string) *cobra.Command {
 	return cmd
 }
 
-func Version(name string) string {
+// Return the version string
+func Version() string {
+	return version
+}
+
+// Return a formated string containing the version, git commit and go version the app was compiled with.
+func VersionInfoString(name string) string {
 	var commit string
 	buildinfo, _ := debug.ReadBuildInfo()
 	for _, item := range buildinfo.Settings {
