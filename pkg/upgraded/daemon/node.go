@@ -7,6 +7,7 @@ import (
 
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm"
+	"github.com/heathcliff26/kube-upgrade/pkg/version"
 	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -179,4 +180,18 @@ func (d *daemon) returnNodeUpgradeError(err error) error {
 		slog.Error("Failed to set node to error status", slog.Any("error", statusErr))
 	}
 	return err
+}
+
+// Annotate the node with the current upgraded version
+func (d *daemon) annotateNodeWithUpgradedVersion(node *corev1.Node) (*corev1.Node, error) {
+	if node.Annotations == nil {
+		node.Annotations = make(map[string]string)
+	}
+
+	if node.Annotations[constants.NodeUpgradedVersion] == version.Version() {
+		return node, nil
+	}
+
+	node.Annotations[constants.NodeUpgradedVersion] = version.Version()
+	return d.client.CoreV1().Nodes().Update(d.ctx, node, metav1.UpdateOptions{})
 }

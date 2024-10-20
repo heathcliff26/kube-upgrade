@@ -9,6 +9,7 @@ const (
 const (
 	NodeKubernetesVersion = NodePrefix + "kubernetesVersion"
 	NodeUpgradeStatus     = NodePrefix + "status"
+	NodeUpgradedVersion   = NodePrefix + "upgradedVersion"
 )
 
 const (
