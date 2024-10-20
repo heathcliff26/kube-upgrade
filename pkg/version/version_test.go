@@ -18,7 +18,20 @@ func TestNewVersionCommand(t *testing.T) {
 }
 
 func TestVersion(t *testing.T) {
-	result := Version("test")
+	assert := assert.New(t)
+
+	oldVersion := version
+	t.Cleanup(func() {
+		version = oldVersion
+	})
+
+	version = "v0.0.0-unit-test"
+
+	assert.Equal(version, Version(), "Version should return the content of the version variable")
+}
+
+func TestVersionInfoString(t *testing.T) {
+	result := VersionInfoString("test")
 
 	lines := strings.Split(result, "\n")
 
