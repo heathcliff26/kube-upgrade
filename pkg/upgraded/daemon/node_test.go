@@ -9,6 +9,7 @@ import (
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm"
 	rpmostree "github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree"
+	"github.com/heathcliff26/kube-upgrade/pkg/version"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,6 +29,7 @@ func TestDoNodeUpgradeWithRetry(t *testing.T) {
 	go func() {
 		// Should not panic with nil
 		d.doNodeUpgradeWithRetry(nil)
+		done <- struct{}{}
 	}()
 	t.Cleanup(cancel)
 
@@ -182,4 +184,43 @@ func TestUpdateNodeStatus(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAnnotateNodeWithUpgradedVersion(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	t.Cleanup(cancel)
+
+	d := &daemon{
+		ctx:    ctx,
+		client: fake.NewSimpleClientset(),
+		node:   "testnode",
+	}
+
+	node := &corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: d.node,
+		},
+	}
+	node, _ = d.client.CoreV1().Nodes().Create(context.Background(), node, metav1.CreateOptions{})
+
+	assert := assert.New(t)
+
+	node, err := d.annotateNodeWithUpgradedVersion(node)
+	assert.NoError(err, "Should set version when no annotations are set")
+	assert.Equal(version.Version(), node.Annotations[constants.NodeUpgradedVersion], "Should return updated node when no annotations are set")
+	node, _ = d.client.CoreV1().Nodes().Get(context.Background(), node.GetName(), metav1.GetOptions{})
+	assert.Equal(version.Version(), node.Annotations[constants.NodeUpgradedVersion], "Should set version when no annotations are set")
+
+	node.Annotations[constants.NodeUpgradedVersion] = "old-version"
+	node, _ = d.client.CoreV1().Nodes().Update(context.Background(), node, metav1.UpdateOptions{})
+
+	node, err = d.annotateNodeWithUpgradedVersion(node)
+	assert.NoError(err, "Should update version")
+	assert.Equal(version.Version(), node.Annotations[constants.NodeUpgradedVersion], "Should return updated node")
+	node, _ = d.client.CoreV1().Nodes().Get(context.Background(), node.GetName(), metav1.GetOptions{})
+	assert.Equal(version.Version(), node.Annotations[constants.NodeUpgradedVersion], "Should update version")
+
+	_ = d.client.CoreV1().Nodes().Delete(context.Background(), node.GetName(), metav1.DeleteOptions{})
+	_, err = d.annotateNodeWithUpgradedVersion(node)
+	assert.NoError(err, "Should not update node when version already matches")
 }

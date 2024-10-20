@@ -150,6 +150,11 @@ func (d *daemon) Run() error {
 		return fmt.Errorf("failed to update daemon config from node annotations: %v", err)
 	}
 
+	node, err = d.annotateNodeWithUpgradedVersion(node)
+	if err != nil {
+		return fmt.Errorf("failed to annotate node with upgraded version: %v", err)
+	}
+
 	if !nodeNeedsUpgrade(node) {
 		slog.Debug("Releasing any log that may be held by this machine")
 		d.releaseLock()
