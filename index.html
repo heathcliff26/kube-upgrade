@@ -87,7 +87,7 @@
 				
 				<option value="file15">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/config.go (94.9%)</option>
 				
-				<option value="file16">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (44.4%)</option>
+				<option value="file16">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (39.2%)</option>
 				
 				<option value="file17">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/node.go (47.5%)</option>
 				
@@ -1086,7 +1086,6 @@ import (
         "log/slog"
         "os"
         "strings"
-        "time"
 
         "gopkg.in/yaml.v3"
 )
@@ -1096,12 +1095,8 @@ const (
 
         DEFAULT_LOG_LEVEL       = "info"
         DEFAULT_KUBECONFIG      = "/etc/kubernetes/kubelet.conf"
-        DEFAULT_STREAM          = "ghcr.io/heathcliff26/fcos-k8s"
-        DEFAULT_FLEETLOCK_GROUP = "default"
         DEFAULT_RPM_OSTREE_PATH = "/usr/bin/rpm-ostree"
         DEFAULT_KUBEADM_PATH    = "/usr/bin/kubeadm"
-        DEFAULT_CHECK_INTERVAL  = 3 * time.Hour
-        DEFAULT_RETRY_INTERVAL  = 5 * time.Minute
 )
 
 var logLevel = &amp;slog.LevelVar{}
@@ -1121,26 +1116,10 @@ type Config struct {
         LogLevel string `yaml:"logLevel,omitempty"`
         // The path to the kubeconfig file, default is the kubelet config under "/etc/kubernetes/kubelet.conf"
         Kubeconfig string `yaml:"kubeconfig,omitempty"`
-        // The container image repository for os rebases
-        Stream string `yaml:"stream,omitempty"`
-        // Configuration for fleetlock node locking
-        Fleetlock FleetlockConfig `yaml:"fleetlock"`
         // The path to the rpm-ostree binary, default "/usr/bin/rpm-ostree"
         RPMOStreePath string `yaml:"rpm-ostree-path,omitempty"`
         // The path to the kubeadm binary, default "/usr/bin/kubeadm"
         KubeadmPath string `yaml:"kubeadm-path,omitempty"`
-
-        // The interval between regular checks, default 3h
-        CheckInterval time.Duration `yaml:"check-interval,omitempty"`
-        // The interval between retries when an operation fails, default 5m
-        RetryInterval time.Duration `yaml:"retry-interval,omitempty"`
-}
-
-type FleetlockConfig struct {
-        // URL to fleetlock server
-        URL string `yaml:"url"`
-        // The node group to use for fleetlock, default group is "default"
-        Group string `yaml:"group,omitempty"`
 }
 
 // Parse a given string and set the resulting log level
@@ -1162,16 +1141,10 @@ func setLogLevel(level string) error <span class="cov8" title="1">{
 
 func DefaultConfig() *Config <span class="cov8" title="1">{
         return &amp;Config{
-                LogLevel:   DEFAULT_LOG_LEVEL,
-                Kubeconfig: DEFAULT_KUBECONFIG,
-                Stream:     DEFAULT_STREAM,
-                Fleetlock: FleetlockConfig{
-                        Group: DEFAULT_FLEETLOCK_GROUP,
-                },
+                LogLevel:      DEFAULT_LOG_LEVEL,
+                Kubeconfig:    DEFAULT_KUBECONFIG,
                 RPMOStreePath: DEFAULT_RPM_OSTREE_PATH,
                 KubeadmPath:   DEFAULT_KUBEADM_PATH,
-                CheckInterval: DEFAULT_CHECK_INTERVAL,
-                RetryInterval: DEFAULT_RETRY_INTERVAL,
         }
 }</span>
 
@@ -1333,6 +1306,13 @@ import (
         "k8s.io/client-go/tools/clientcmd"
 )
 
+const (
+        defaultStream         = "ghcr.io/heathcliff26/fcos-k8s"
+        defaultFleetlockGroup = "default"
+        defaultCheckInterval  = 3 * time.Hour
+        defaultRetryInterval  = 5 * time.Minute
+)
+
 type daemon struct {
         fleetlock     *fleetlock.FleetlockClient
         checkInterval time.Duration
@@ -1353,20 +1333,14 @@ type daemon struct {
 
 // Create a new daemon
 func NewDaemon(cfg *config.Config) (*daemon, error) <span class="cov8" title="1">{
-        var err error
-        var fleetlockClient *fleetlock.FleetlockClient
-        if cfg.Fleetlock.URL != "" </span><span class="cov8" title="1">{
-                slog.Debug("Creating fleetlock client with url", slog.String("url", cfg.Fleetlock.URL))
-                fleetlockClient, err = fleetlock.NewClient(cfg.Fleetlock.URL, cfg.Fleetlock.Group)
-        }</span> else<span class="cov8" title="1"> {
-                slog.Debug("Creating fleetlock client without url")
-                fleetlockClient, err = fleetlock.NewEmptyClient()
-                if err != nil &amp;&amp; cfg.Fleetlock.Group != "" </span><span class="cov0" title="0">{
-                        err = fleetlockClient.SetGroup(cfg.Fleetlock.Group)
-                }</span>
-        }
-        <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
+        fleetlockClient, err := fleetlock.NewEmptyClient()
+        if err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("failed to create fleetlock client: %v", err)
+
+        }</span>
+        <span class="cov8" title="1">err = fleetlockClient.SetGroup(defaultFleetlockGroup)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to set fleetlock group: %v", err)
         }</span>
 
         <span class="cov8" title="1">rpmOstreeCMD, err := rpmostree.New(cfg.RPMOStreePath)
@@ -1390,10 +1364,6 @@ func NewDaemon(cfg *config.Config) (*daemon, error) <span class="cov8" title="1"
                 return nil, fmt.Errorf("failed to create kubernetes client: %v", err)
         }</span>
 
-        <span class="cov8" title="1">if cfg.Stream == "" </span><span class="cov8" title="1">{
-                return nil, fmt.Errorf("no image stream provided for kubernetes updates")
-        }</span>
-
         <span class="cov8" title="1">machineID, err := utils.GetMachineID()
         if err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("failed to get machine-id: %v", err)
@@ -1406,13 +1376,13 @@ func NewDaemon(cfg *config.Config) (*daemon, error) <span class="cov8" title="1"
 
         return &amp;daemon{
                 fleetlock:     fleetlockClient,
-                checkInterval: cfg.CheckInterval,
-                retryInterval: cfg.RetryInterval,
+                checkInterval: defaultCheckInterval,
+                retryInterval: defaultRetryInterval,
 
                 rpmostree: rpmOstreeCMD,
                 kubeadm:   kubeadmCMD,
 
-                stream: cfg.Stream,
+                stream: defaultStream,
                 node:   node,
                 client: kubeClient,
         }, nil</span>
