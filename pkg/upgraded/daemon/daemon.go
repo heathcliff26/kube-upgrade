@@ -19,6 +19,13 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
+const (
+	defaultStream         = "ghcr.io/heathcliff26/fcos-k8s"
+	defaultFleetlockGroup = "default"
+	defaultCheckInterval  = 3 * time.Hour
+	defaultRetryInterval  = 5 * time.Minute
+)
+
 type daemon struct {
 	fleetlock     *fleetlock.FleetlockClient
 	checkInterval time.Duration
@@ -39,20 +46,14 @@ type daemon struct {
 
 // Create a new daemon
 func NewDaemon(cfg *config.Config) (*daemon, error) {
-	var err error
-	var fleetlockClient *fleetlock.FleetlockClient
-	if cfg.Fleetlock.URL != "" {
-		slog.Debug("Creating fleetlock client with url", slog.String("url", cfg.Fleetlock.URL))
-		fleetlockClient, err = fleetlock.NewClient(cfg.Fleetlock.URL, cfg.Fleetlock.Group)
-	} else {
-		slog.Debug("Creating fleetlock client without url")
-		fleetlockClient, err = fleetlock.NewEmptyClient()
-		if err != nil && cfg.Fleetlock.Group != "" {
-			err = fleetlockClient.SetGroup(cfg.Fleetlock.Group)
-		}
-	}
+	fleetlockClient, err := fleetlock.NewEmptyClient()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create fleetlock client: %v", err)
+
+	}
+	err = fleetlockClient.SetGroup(defaultFleetlockGroup)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set fleetlock group: %v", err)
 	}
 
 	rpmOstreeCMD, err := rpmostree.New(cfg.RPMOStreePath)
@@ -76,10 +77,6 @@ func NewDaemon(cfg *config.Config) (*daemon, error) {
 		return nil, fmt.Errorf("failed to create kubernetes client: %v", err)
 	}
 
-	if cfg.Stream == "" {
-		return nil, fmt.Errorf("no image stream provided for kubernetes updates")
-	}
-
 	machineID, err := utils.GetMachineID()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get machine-id: %v", err)
@@ -92,13 +89,13 @@ func NewDaemon(cfg *config.Config) (*daemon, error) {
 
 	return &daemon{
 		fleetlock:     fleetlockClient,
-		checkInterval: cfg.CheckInterval,
-		retryInterval: cfg.RetryInterval,
+		checkInterval: defaultCheckInterval,
+		retryInterval: defaultRetryInterval,
 
 		rpmostree: rpmOstreeCMD,
 		kubeadm:   kubeadmCMD,
 
-		stream: cfg.Stream,
+		stream: defaultStream,
 		node:   node,
 		client: kubeClient,
 	}, nil

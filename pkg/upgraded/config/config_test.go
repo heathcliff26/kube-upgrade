@@ -3,7 +3,6 @@ package config
 import (
 	"log/slog"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -11,9 +10,6 @@ import (
 func TestValidConfig(t *testing.T) {
 	c := DefaultConfig()
 	c.LogLevel = "debug"
-	c.Fleetlock.URL = "http://fleetlock.example.com"
-	c.CheckInterval = time.Hour * 1
-	c.RetryInterval = time.Hour * 5
 
 	res, err := LoadConfig("testdata/valid-config.yaml")
 
@@ -72,13 +68,8 @@ func TestDefaultConfig(t *testing.T) {
 
 	assert.Equal(DEFAULT_LOG_LEVEL, c.LogLevel)
 	assert.Equal(DEFAULT_KUBECONFIG, c.Kubeconfig)
-	assert.Equal(DEFAULT_STREAM, c.Stream)
-	assert.Equal("", c.Fleetlock.URL)
-	assert.Equal(DEFAULT_FLEETLOCK_GROUP, c.Fleetlock.Group)
 	assert.Equal(DEFAULT_RPM_OSTREE_PATH, c.RPMOStreePath)
 	assert.Equal(DEFAULT_KUBEADM_PATH, c.KubeadmPath)
-	assert.Equal(DEFAULT_CHECK_INTERVAL, c.CheckInterval)
-	assert.Equal(DEFAULT_RETRY_INTERVAL, c.RetryInterval)
 }
 
 func TestInvalidConfigs(t *testing.T) {
