@@ -1,6 +1,2 @@
 ---
 logLevel: debug
-fleetlock:
-  url: http://fleetlock.example.com
-check-interval: 1h
-retry-interval: 5h

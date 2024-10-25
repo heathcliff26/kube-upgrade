@@ -23,115 +23,47 @@ func TestNewDaemon(t *testing.T) {
 		{
 			Name: "NoNodeFound",
 			CFG: config.Config{
-				Kubeconfig: "testdata/kubeconfig",
-				Stream:     config.DEFAULT_STREAM,
-				Fleetlock: config.FleetlockConfig{
-					URL:   "https://fleetlock.example.com",
-					Group: config.DEFAULT_FLEETLOCK_GROUP,
-				},
+				Kubeconfig:    "testdata/kubeconfig",
 				RPMOStreePath: "testdata/exit-0.sh",
 				KubeadmPath:   "testdata/exit-0.sh",
-				CheckInterval: config.DEFAULT_CHECK_INTERVAL,
-				RetryInterval: config.DEFAULT_RETRY_INTERVAL,
 			},
-			Error: "failed to get kubernetes node name for host",
-		},
-		{
-			Name: "NoFleetlockUrl",
-			CFG: config.Config{
-				Kubeconfig: "testdata/kubeconfig",
-				Stream:     config.DEFAULT_STREAM,
-				Fleetlock: config.FleetlockConfig{
-					URL:   "",
-					Group: config.DEFAULT_FLEETLOCK_GROUP,
-				},
-				RPMOStreePath: "testdata/exit-0.sh",
-				KubeadmPath:   "testdata/exit-0.sh",
-				CheckInterval: config.DEFAULT_CHECK_INTERVAL,
-				RetryInterval: config.DEFAULT_RETRY_INTERVAL,
-			},
-			// This means it should create an empty fleetlock client instead of failling
 			Error: "failed to get kubernetes node name for host",
 		},
 		{
 			Name: "NoRPMOstree",
 			CFG: config.Config{
-				Kubeconfig: "testdata/kubeconfig",
-				Stream:     config.DEFAULT_STREAM,
-				Fleetlock: config.FleetlockConfig{
-					URL:   "https://fleetlock.example.com",
-					Group: config.DEFAULT_FLEETLOCK_GROUP,
-				},
+				Kubeconfig:    "testdata/kubeconfig",
 				RPMOStreePath: "",
 				KubeadmPath:   "testdata/exit-0.sh",
-				CheckInterval: config.DEFAULT_CHECK_INTERVAL,
-				RetryInterval: config.DEFAULT_RETRY_INTERVAL,
 			},
 			Error: "failed to create rpm-ostree cmd wrapper:",
 		},
 		{
 			Name: "NoKubeadm",
 			CFG: config.Config{
-				Kubeconfig: "testdata/kubeconfig",
-				Stream:     config.DEFAULT_STREAM,
-				Fleetlock: config.FleetlockConfig{
-					URL:   "https://fleetlock.example.com",
-					Group: config.DEFAULT_FLEETLOCK_GROUP,
-				},
+				Kubeconfig:    "testdata/kubeconfig",
 				RPMOStreePath: "testdata/exit-0.sh",
 				KubeadmPath:   "",
-				CheckInterval: config.DEFAULT_CHECK_INTERVAL,
-				RetryInterval: config.DEFAULT_RETRY_INTERVAL,
 			},
 			Error: "failed to create kubeadm cmd wrapper:",
 		},
 		{
 			Name: "EmptyKubeconfig",
 			CFG: config.Config{
-				Kubeconfig: "",
-				Stream:     config.DEFAULT_STREAM,
-				Fleetlock: config.FleetlockConfig{
-					URL:   "https://fleetlock.example.com",
-					Group: config.DEFAULT_FLEETLOCK_GROUP,
-				},
+				Kubeconfig:    "",
 				RPMOStreePath: "testdata/exit-0.sh",
 				KubeadmPath:   "testdata/exit-0.sh",
-				CheckInterval: config.DEFAULT_CHECK_INTERVAL,
-				RetryInterval: config.DEFAULT_RETRY_INTERVAL,
 			},
 			Error: "no kubeconfig provided",
 		},
 		{
 			Name: "KubeconfigFileNotFound",
 			CFG: config.Config{
-				Kubeconfig: "not-a-file",
-				Stream:     config.DEFAULT_STREAM,
-				Fleetlock: config.FleetlockConfig{
-					URL:   "https://fleetlock.example.com",
-					Group: config.DEFAULT_FLEETLOCK_GROUP,
-				},
+				Kubeconfig:    "not-a-file",
 				RPMOStreePath: "testdata/exit-0.sh",
 				KubeadmPath:   "testdata/exit-0.sh",
-				CheckInterval: config.DEFAULT_CHECK_INTERVAL,
-				RetryInterval: config.DEFAULT_RETRY_INTERVAL,
 			},
 			Error: "failed to read kubeconfig:",
-		},
-		{
-			Name: "NoImage",
-			CFG: config.Config{
-				Kubeconfig: "testdata/kubeconfig",
-				Stream:     "",
-				Fleetlock: config.FleetlockConfig{
-					URL:   "https://fleetlock.example.com",
-					Group: config.DEFAULT_FLEETLOCK_GROUP,
-				},
-				RPMOStreePath: "testdata/exit-0.sh",
-				KubeadmPath:   "testdata/exit-0.sh",
-				CheckInterval: config.DEFAULT_CHECK_INTERVAL,
-				RetryInterval: config.DEFAULT_RETRY_INTERVAL,
-			},
-			Error: "no image stream provided for kubernetes updates",
 		},
 	}
 

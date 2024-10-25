@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"os"
 	"strings"
-	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -14,12 +13,8 @@ const (
 
 	DEFAULT_LOG_LEVEL       = "info"
 	DEFAULT_KUBECONFIG      = "/etc/kubernetes/kubelet.conf"
-	DEFAULT_STREAM          = "ghcr.io/heathcliff26/fcos-k8s"
-	DEFAULT_FLEETLOCK_GROUP = "default"
 	DEFAULT_RPM_OSTREE_PATH = "/usr/bin/rpm-ostree"
 	DEFAULT_KUBEADM_PATH    = "/usr/bin/kubeadm"
-	DEFAULT_CHECK_INTERVAL  = 3 * time.Hour
-	DEFAULT_RETRY_INTERVAL  = 5 * time.Minute
 )
 
 var logLevel = &slog.LevelVar{}
@@ -39,26 +34,10 @@ type Config struct {
 	LogLevel string `yaml:"logLevel,omitempty"`
 	// The path to the kubeconfig file, default is the kubelet config under "/etc/kubernetes/kubelet.conf"
 	Kubeconfig string `yaml:"kubeconfig,omitempty"`
-	// The container image repository for os rebases
-	Stream string `yaml:"stream,omitempty"`
-	// Configuration for fleetlock node locking
-	Fleetlock FleetlockConfig `yaml:"fleetlock"`
 	// The path to the rpm-ostree binary, default "/usr/bin/rpm-ostree"
 	RPMOStreePath string `yaml:"rpm-ostree-path,omitempty"`
 	// The path to the kubeadm binary, default "/usr/bin/kubeadm"
 	KubeadmPath string `yaml:"kubeadm-path,omitempty"`
-
-	// The interval between regular checks, default 3h
-	CheckInterval time.Duration `yaml:"check-interval,omitempty"`
-	// The interval between retries when an operation fails, default 5m
-	RetryInterval time.Duration `yaml:"retry-interval,omitempty"`
-}
-
-type FleetlockConfig struct {
-	// URL to fleetlock server
-	URL string `yaml:"url"`
-	// The node group to use for fleetlock, default group is "default"
-	Group string `yaml:"group,omitempty"`
 }
 
 // Parse a given string and set the resulting log level
@@ -80,16 +59,10 @@ func setLogLevel(level string) error {
 
 func DefaultConfig() *Config {
 	return &Config{
-		LogLevel:   DEFAULT_LOG_LEVEL,
-		Kubeconfig: DEFAULT_KUBECONFIG,
-		Stream:     DEFAULT_STREAM,
-		Fleetlock: FleetlockConfig{
-			Group: DEFAULT_FLEETLOCK_GROUP,
-		},
+		LogLevel:      DEFAULT_LOG_LEVEL,
+		Kubeconfig:    DEFAULT_KUBECONFIG,
 		RPMOStreePath: DEFAULT_RPM_OSTREE_PATH,
 		KubeadmPath:   DEFAULT_KUBEADM_PATH,
-		CheckInterval: DEFAULT_CHECK_INTERVAL,
-		RetryInterval: DEFAULT_RETRY_INTERVAL,
 	}
 }
 
