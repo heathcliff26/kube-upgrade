@@ -11,7 +11,7 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-func TestFindNodeByMachineID(t *testing.T) {
+func TestFindNodeByListingAllNodes(t *testing.T) {
 	client := fake.NewSimpleClientset()
 	node := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
@@ -25,7 +25,7 @@ func TestFindNodeByMachineID(t *testing.T) {
 	}
 	_, _ = client.CoreV1().Nodes().Create(context.Background(), node, metav1.CreateOptions{})
 
-	res, err := findNodeByMachineID(client, "1234567890")
+	res, err := findNodeByListingAllNodes(client, "1234567890")
 
 	assert := assert.New(t)
 
