@@ -3,10 +3,10 @@
 package v1alpha1
 
 import (
-	v1alpha1 "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/listers"
-	"k8s.io/client-go/tools/cache"
+	kubeupgradev1alpha1 "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	listers "k8s.io/client-go/listers"
+	cache "k8s.io/client-go/tools/cache"
 )
 
 // KubeUpgradePlanLister helps list KubeUpgradePlans.
@@ -14,7 +14,7 @@ import (
 type KubeUpgradePlanLister interface {
 	// List lists all KubeUpgradePlans in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1alpha1.KubeUpgradePlan, err error)
+	List(selector labels.Selector) (ret []*kubeupgradev1alpha1.KubeUpgradePlan, err error)
 	// KubeUpgradePlans returns an object that can list and get KubeUpgradePlans.
 	KubeUpgradePlans(namespace string) KubeUpgradePlanNamespaceLister
 	KubeUpgradePlanListerExpansion
@@ -22,17 +22,17 @@ type KubeUpgradePlanLister interface {
 
 // kubeUpgradePlanLister implements the KubeUpgradePlanLister interface.
 type kubeUpgradePlanLister struct {
-	listers.ResourceIndexer[*v1alpha1.KubeUpgradePlan]
+	listers.ResourceIndexer[*kubeupgradev1alpha1.KubeUpgradePlan]
 }
 
 // NewKubeUpgradePlanLister returns a new KubeUpgradePlanLister.
 func NewKubeUpgradePlanLister(indexer cache.Indexer) KubeUpgradePlanLister {
-	return &kubeUpgradePlanLister{listers.New[*v1alpha1.KubeUpgradePlan](indexer, v1alpha1.Resource("kubeupgradeplan"))}
+	return &kubeUpgradePlanLister{listers.New[*kubeupgradev1alpha1.KubeUpgradePlan](indexer, kubeupgradev1alpha1.Resource("kubeupgradeplan"))}
 }
 
 // KubeUpgradePlans returns an object that can list and get KubeUpgradePlans.
 func (s *kubeUpgradePlanLister) KubeUpgradePlans(namespace string) KubeUpgradePlanNamespaceLister {
-	return kubeUpgradePlanNamespaceLister{listers.NewNamespaced[*v1alpha1.KubeUpgradePlan](s.ResourceIndexer, namespace)}
+	return kubeUpgradePlanNamespaceLister{listers.NewNamespaced[*kubeupgradev1alpha1.KubeUpgradePlan](s.ResourceIndexer, namespace)}
 }
 
 // KubeUpgradePlanNamespaceLister helps list and get KubeUpgradePlans.
@@ -40,15 +40,15 @@ func (s *kubeUpgradePlanLister) KubeUpgradePlans(namespace string) KubeUpgradePl
 type KubeUpgradePlanNamespaceLister interface {
 	// List lists all KubeUpgradePlans in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1alpha1.KubeUpgradePlan, err error)
+	List(selector labels.Selector) (ret []*kubeupgradev1alpha1.KubeUpgradePlan, err error)
 	// Get retrieves the KubeUpgradePlan from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1alpha1.KubeUpgradePlan, error)
+	Get(name string) (*kubeupgradev1alpha1.KubeUpgradePlan, error)
 	KubeUpgradePlanNamespaceListerExpansion
 }
 
 // kubeUpgradePlanNamespaceLister implements the KubeUpgradePlanNamespaceLister
 // interface.
 type kubeUpgradePlanNamespaceLister struct {
-	listers.ResourceIndexer[*v1alpha1.KubeUpgradePlan]
+	listers.ResourceIndexer[*kubeupgradev1alpha1.KubeUpgradePlan]
 }

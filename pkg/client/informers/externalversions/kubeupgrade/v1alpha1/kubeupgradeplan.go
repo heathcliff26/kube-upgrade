@@ -3,13 +3,13 @@
 package v1alpha1
 
 import (
-	"context"
+	context "context"
 	time "time"
 
-	kubeupgradev1alpha1 "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
+	apiskubeupgradev1alpha1 "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
 	versioned "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned"
 	internalinterfaces "github.com/heathcliff26/kube-upgrade/pkg/client/informers/externalversions/internalinterfaces"
-	v1alpha1 "github.com/heathcliff26/kube-upgrade/pkg/client/listers/kubeupgrade/v1alpha1"
+	kubeupgradev1alpha1 "github.com/heathcliff26/kube-upgrade/pkg/client/listers/kubeupgrade/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	watch "k8s.io/apimachinery/pkg/watch"
@@ -20,7 +20,7 @@ import (
 // KubeUpgradePlans.
 type KubeUpgradePlanInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1alpha1.KubeUpgradePlanLister
+	Lister() kubeupgradev1alpha1.KubeUpgradePlanLister
 }
 
 type kubeUpgradePlanInformer struct {
@@ -55,7 +55,7 @@ func NewFilteredKubeUpgradePlanInformer(client versioned.Interface, namespace st
 				return client.KubeupgradeV1alpha1().KubeUpgradePlans(namespace).Watch(context.TODO(), options)
 			},
 		},
-		&kubeupgradev1alpha1.KubeUpgradePlan{},
+		&apiskubeupgradev1alpha1.KubeUpgradePlan{},
 		resyncPeriod,
 		indexers,
 	)
@@ -66,9 +66,9 @@ func (f *kubeUpgradePlanInformer) defaultInformer(client versioned.Interface, re
 }
 
 func (f *kubeUpgradePlanInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&kubeupgradev1alpha1.KubeUpgradePlan{}, f.defaultInformer)
+	return f.factory.InformerFor(&apiskubeupgradev1alpha1.KubeUpgradePlan{}, f.defaultInformer)
 }
 
-func (f *kubeUpgradePlanInformer) Lister() v1alpha1.KubeUpgradePlanLister {
-	return v1alpha1.NewKubeUpgradePlanLister(f.Informer().GetIndexer())
+func (f *kubeUpgradePlanInformer) Lister() kubeupgradev1alpha1.KubeUpgradePlanLister {
+	return kubeupgradev1alpha1.NewKubeUpgradePlanLister(f.Informer().GetIndexer())
 }
