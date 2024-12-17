@@ -3,8 +3,8 @@
 package versioned
 
 import (
-	"fmt"
-	"net/http"
+	fmt "fmt"
+	http "net/http"
 
 	kubeupgradev1alpha1 "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/typed/kubeupgrade/v1alpha1"
 	kubeupgradev1alpha2 "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/typed/kubeupgrade/v1alpha2"

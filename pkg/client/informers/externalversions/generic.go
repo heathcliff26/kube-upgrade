@@ -3,7 +3,7 @@
 package externalversions
 
 import (
-	"fmt"
+	fmt "fmt"
 
 	v1alpha1 "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
 	v1alpha2 "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"

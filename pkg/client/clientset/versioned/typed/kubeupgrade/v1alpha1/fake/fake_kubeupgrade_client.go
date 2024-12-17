@@ -13,7 +13,7 @@ type FakeKubeupgradeV1alpha1 struct {
 }
 
 func (c *FakeKubeupgradeV1alpha1) KubeUpgradePlans(namespace string) v1alpha1.KubeUpgradePlanInterface {
-	return &FakeKubeUpgradePlans{c, namespace}
+	return newFakeKubeUpgradePlans(c, namespace)
 }
 
 // RESTClient returns a RESTClient that is used to communicate
