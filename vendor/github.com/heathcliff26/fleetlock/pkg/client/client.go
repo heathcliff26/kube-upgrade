@@ -1,11 +1,11 @@
-package fleetlock
+package client
 
 import (
 	"fmt"
 	"net/http"
 	"sync"
 
-	"github.com/heathcliff26/fleetlock/pkg/server/client"
+	"github.com/heathcliff26/fleetlock/pkg/api"
 )
 
 type FleetlockClient struct {
@@ -70,29 +70,29 @@ func (c *FleetlockClient) Release() error {
 	return fmt.Errorf("failed to release lock kind=\"%s\" reason=\"%s\"", res.Kind, res.Value)
 }
 
-func (c *FleetlockClient) doRequest(path string) (bool, client.FleetLockResponse, error) {
+func (c *FleetlockClient) doRequest(path string) (bool, api.FleetLockResponse, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 
-	body, err := client.PrepareRequest(c.group, c.appID)
+	body, err := api.PrepareRequest(c.group, c.appID)
 	if err != nil {
-		return false, client.FleetLockResponse{}, fmt.Errorf("failed to prepare request body: %v", err)
+		return false, api.FleetLockResponse{}, fmt.Errorf("failed to prepare request body: %v", err)
 	}
 	req, err := http.NewRequest(http.MethodPost, c.url+path, body)
 	if err != nil {
-		return false, client.FleetLockResponse{}, fmt.Errorf("failed to create http post request: %v", err)
+		return false, api.FleetLockResponse{}, fmt.Errorf("failed to create http post request: %v", err)
 	}
 	req.Header.Set("fleet-lock-protocol", "true")
 	req.Header.Set("Content-Type", "application/json")
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return false, client.FleetLockResponse{}, fmt.Errorf("failed to send request to server: %v", err)
+		return false, api.FleetLockResponse{}, fmt.Errorf("failed to send request to server: %v", err)
 	}
 
-	resBody, err := client.ParseResponse(res.Body)
+	resBody, err := api.ParseResponse(res.Body)
 	if err != nil {
-		return false, client.FleetLockResponse{}, fmt.Errorf("failed to prepare response body: %v", err)
+		return false, api.FleetLockResponse{}, fmt.Errorf("failed to prepare response body: %v", err)
 	}
 
 	return res.StatusCode == http.StatusOK, resBody, nil
@@ -143,5 +143,29 @@ func (c *FleetlockClient) SetGroup(group string) error {
 		return fmt.Errorf("the fleetlock group can't be empty")
 	}
 	c.group = group
+	return nil
+}
+
+// Get the fleetlock id
+func (c *FleetlockClient) GetID() string {
+	if c == nil {
+		return ""
+	}
+
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+
+	return c.appID
+}
+
+// Change the fleetlock id
+func (c *FleetlockClient) SetID(id string) error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	if id == "" {
+		return fmt.Errorf("the fleetlock id can't be empty")
+	}
+	c.appID = id
 	return nil
 }

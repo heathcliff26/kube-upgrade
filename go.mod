@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/go-logr/logr v1.4.2
-	github.com/heathcliff26/fleetlock v1.5.1
+	github.com/heathcliff26/fleetlock v1.6.0-rc.0
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/mod v0.22.0

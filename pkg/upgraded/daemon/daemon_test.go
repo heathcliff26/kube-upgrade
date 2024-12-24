@@ -2,15 +2,12 @@ package daemon
 
 import (
 	"context"
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 
-	fleetlockclient "github.com/heathcliff26/fleetlock/pkg/server/client"
+	fleetlock "github.com/heathcliff26/fleetlock/pkg/client"
+	"github.com/heathcliff26/fleetlock/pkg/fake"
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/config"
-	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -110,23 +107,13 @@ func cancelOnTimeout(t *testing.T, ctx context.Context, cancel context.CancelFun
 	}()
 }
 
-func NewFakeFleetlockServer(t *testing.T, statusCode int) (*fleetlock.FleetlockClient, *httptest.Server) {
-	assert := assert.New(t)
+func NewFakeFleetlockServer(t *testing.T, statusCode int) (*fleetlock.FleetlockClient, *fake.FakeServer) {
+	testGroup := "default"
 
-	srv := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		rw.WriteHeader(statusCode)
-		b, err := json.MarshalIndent(fleetlockclient.FleetLockResponse{
-			Kind:  "ok",
-			Value: "Success",
-		}, "", "  ")
-		if !assert.NoError(err, "Error in fake server: failed to prepare response") {
-			return
-		}
+	srv := fake.NewFakeServer(t, statusCode, "")
+	srv.Group = testGroup
 
-		_, err = rw.Write(b)
-		assert.NoError(err, "Error in fake server: failed to send response")
-	}))
-	c, err := fleetlock.NewClient(srv.URL, "default")
-	assert.NoError(err, "Error in creating fake server: failed to create client")
+	c, err := fleetlock.NewClient(srv.URL(), "default")
+	assert.NoError(t, err, "Error in creating fake server: failed to create client")
 	return c, srv
 }

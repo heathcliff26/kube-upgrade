@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
+	fleetlock "github.com/heathcliff26/fleetlock/pkg/client"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
-	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

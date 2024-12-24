@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock"
+	fleetlock "github.com/heathcliff26/fleetlock/pkg/client"
 	rpmostree "github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
