@@ -1,16 +1,26 @@
-package fleetlock
+package client
 
 import (
+	"log/slog"
+	"os"
 	"strings"
 
 	systemdutils "github.com/heathcliff26/fleetlock/pkg/systemd-utils"
-	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils"
-	"k8s.io/klog/v2"
 )
+
+// Read the machine-id from /etc/machine-id
+func GetMachineID() (string, error) {
+	b, err := os.ReadFile("/etc/machine-id")
+	if err != nil {
+		return "", err
+	}
+	machineID := strings.TrimRight(string(b), "\r\n")
+	return machineID, nil
+}
 
 // Find the machine-id of the current node and generate a zincati appID from it.
 func GetZincateAppID() (string, error) {
-	machineID, err := utils.GetMachineID()
+	machineID, err := GetMachineID()
 	if err != nil {
 		return "", err
 	}
@@ -28,7 +38,7 @@ func GetZincateAppID() (string, error) {
 func TrimTrailingSlash(url string) string {
 	res, found := strings.CutSuffix(url, "/")
 	if found {
-		klog.Warning("Removed trailing slash in URL, as this could lead to undefined behaviour")
+		slog.Info("Removed trailing slash in URL, as this could lead to undefined behaviour")
 	}
 	return res
 }

@@ -54,6 +54,8 @@ github.com/gorilla/websocket v1.5.0 h1:PPwGk2jz7EePpoHN/+ClbZu8SPxiqlu12wZP/3sWm
 github.com/gorilla/websocket v1.5.0/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/heathcliff26/fleetlock v1.5.1 h1:ln63TlNMYtSJqIgN9dqn1TrdGBPSm5n51TIlMg9T3K0=
 github.com/heathcliff26/fleetlock v1.5.1/go.mod h1:aSJyvbiEMLw4RJcJ5StJpgBfS9C3aA/8YpaT6YM7DTM=
+github.com/heathcliff26/fleetlock v1.6.0-rc.0 h1:hYYEfyLH4P0TpwWsXB6b10DKVoVlKSNYcIKiRkWEY78=
+github.com/heathcliff26/fleetlock v1.6.0-rc.0/go.mod h1:nft3MAkly8qEX2yYmc+W9QpVwGis7Kr8PXMqy792nos=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=

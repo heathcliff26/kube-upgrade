@@ -10,8 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	fleetlock "github.com/heathcliff26/fleetlock/pkg/client"
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/config"
-	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock"
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm"
 	rpmostree "github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree"
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils"
