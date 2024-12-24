@@ -95,21 +95,17 @@
 				
 				<option value="file19">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/utils.go (68.8%)</option>
 				
-				<option value="file20">github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock/client.go (87.7%)</option>
+				<option value="file20">github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm/kubeadm.go (75.0%)</option>
 				
-				<option value="file21">github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock/utils.go (81.8%)</option>
+				<option value="file21">github.com/heathcliff26/kube-upgrade/pkg/upgraded/root.go (14.3%)</option>
 				
-				<option value="file22">github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm/kubeadm.go (75.0%)</option>
+				<option value="file22">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/rpm-ostree.go (92.0%)</option>
 				
-				<option value="file23">github.com/heathcliff26/kube-upgrade/pkg/upgraded/root.go (14.3%)</option>
+				<option value="file23">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/utils.go (100.0%)</option>
 				
-				<option value="file24">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/rpm-ostree.go (92.0%)</option>
+				<option value="file24">github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils/utils.go (93.3%)</option>
 				
-				<option value="file25">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/utils.go (100.0%)</option>
-				
-				<option value="file26">github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils/utils.go (93.3%)</option>
-				
-				<option value="file27">github.com/heathcliff26/kube-upgrade/pkg/version/version.go (75.0%)</option>
+				<option value="file25">github.com/heathcliff26/kube-upgrade/pkg/version/version.go (75.0%)</option>
 				
 				</select>
 			</div>
@@ -1297,8 +1293,8 @@ import (
         "syscall"
         "time"
 
+        fleetlock "github.com/heathcliff26/fleetlock/pkg/client"
         "github.com/heathcliff26/kube-upgrade/pkg/upgraded/config"
-        "github.com/heathcliff26/kube-upgrade/pkg/upgraded/fleetlock"
         "github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm"
         rpmostree "github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree"
         "github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils"
@@ -1827,192 +1823,7 @@ func nodeNeedsUpgrade(node *corev1.Node) bool <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file20" style="display: none">package fleetlock
-
-import (
-        "fmt"
-        "net/http"
-        "sync"
-
-        "github.com/heathcliff26/fleetlock/pkg/server/client"
-)
-
-type FleetlockClient struct {
-        url   string
-        group string
-        appID string
-
-        mutex sync.RWMutex
-}
-
-// Create a new client for fleetlock
-func NewClient(url, group string) (*FleetlockClient, error) <span class="cov8" title="1">{
-        c, err := NewEmptyClient()
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-
-        <span class="cov8" title="1">err = c.SetURL(url)
-        if err != nil </span><span class="cov8" title="1">{
-                return nil, err
-        }</span>
-
-        <span class="cov8" title="1">err = c.SetGroup(group)
-        if err != nil </span><span class="cov8" title="1">{
-                return nil, err
-        }</span>
-
-        <span class="cov8" title="1">return c, nil</span>
-}
-
-// Create a new fleetlock client without url or group set
-func NewEmptyClient() (*FleetlockClient, error) <span class="cov8" title="1">{
-        appID, err := GetZincateAppID()
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, fmt.Errorf("failed to create zincati app id: %v", err)
-        }</span>
-
-        <span class="cov8" title="1">return &amp;FleetlockClient{
-                appID: appID,
-        }, nil</span>
-}
-
-// Aquire a lock for this machine
-func (c *FleetlockClient) Lock() error <span class="cov8" title="1">{
-        ok, res, err := c.doRequest("/v1/pre-reboot")
-        if err != nil </span><span class="cov0" title="0">{
-                return err
-        }</span> else<span class="cov8" title="1"> if ok </span><span class="cov8" title="1">{
-                return nil
-        }</span>
-        <span class="cov8" title="1">return fmt.Errorf("failed to aquire lock kind=\"%s\" reason=\"%s\"", res.Kind, res.Value)</span>
-}
-
-// Release the hold lock
-func (c *FleetlockClient) Release() error <span class="cov8" title="1">{
-        ok, res, err := c.doRequest("/v1/steady-state")
-        if err != nil </span><span class="cov0" title="0">{
-                return err
-        }</span> else<span class="cov8" title="1"> if ok </span><span class="cov8" title="1">{
-                return nil
-        }</span>
-        <span class="cov8" title="1">return fmt.Errorf("failed to release lock kind=\"%s\" reason=\"%s\"", res.Kind, res.Value)</span>
-}
-
-func (c *FleetlockClient) doRequest(path string) (bool, client.FleetLockResponse, error) <span class="cov8" title="1">{
-        c.mutex.RLock()
-        defer c.mutex.RUnlock()
-
-        body, err := client.PrepareRequest(c.group, c.appID)
-        if err != nil </span><span class="cov0" title="0">{
-                return false, client.FleetLockResponse{}, fmt.Errorf("failed to prepare request body: %v", err)
-        }</span>
-        <span class="cov8" title="1">req, err := http.NewRequest(http.MethodPost, c.url+path, body)
-        if err != nil </span><span class="cov0" title="0">{
-                return false, client.FleetLockResponse{}, fmt.Errorf("failed to create http post request: %v", err)
-        }</span>
-        <span class="cov8" title="1">req.Header.Set("fleet-lock-protocol", "true")
-        req.Header.Set("Content-Type", "application/json")
-
-        res, err := http.DefaultClient.Do(req)
-        if err != nil </span><span class="cov0" title="0">{
-                return false, client.FleetLockResponse{}, fmt.Errorf("failed to send request to server: %v", err)
-        }</span>
-
-        <span class="cov8" title="1">resBody, err := client.ParseResponse(res.Body)
-        if err != nil </span><span class="cov0" title="0">{
-                return false, client.FleetLockResponse{}, fmt.Errorf("failed to prepare response body: %v", err)
-        }</span>
-
-        <span class="cov8" title="1">return res.StatusCode == http.StatusOK, resBody, nil</span>
-}
-
-// Get the fleetlock server url
-func (c *FleetlockClient) GetURL() string <span class="cov8" title="1">{
-        if c == nil </span><span class="cov8" title="1">{
-                return ""
-        }</span>
-
-        <span class="cov8" title="1">c.mutex.RLock()
-        defer c.mutex.RUnlock()
-
-        return c.url</span>
-}
-
-// Change the fleetlock server url
-func (c *FleetlockClient) SetURL(url string) error <span class="cov8" title="1">{
-        c.mutex.Lock()
-        defer c.mutex.Unlock()
-
-        if url == "" </span><span class="cov8" title="1">{
-                return fmt.Errorf("the fleetlock server url can't be empty")
-        }</span>
-        <span class="cov8" title="1">c.url = TrimTrailingSlash(url)
-        return nil</span>
-}
-
-// Get the fleetlock group
-func (c *FleetlockClient) GetGroup() string <span class="cov8" title="1">{
-        if c == nil </span><span class="cov8" title="1">{
-                return ""
-        }</span>
-
-        <span class="cov8" title="1">c.mutex.RLock()
-        defer c.mutex.RUnlock()
-
-        return c.group</span>
-}
-
-// Change the fleetlock group
-func (c *FleetlockClient) SetGroup(group string) error <span class="cov8" title="1">{
-        c.mutex.Lock()
-        defer c.mutex.Unlock()
-
-        if group == "" </span><span class="cov8" title="1">{
-                return fmt.Errorf("the fleetlock group can't be empty")
-        }</span>
-        <span class="cov8" title="1">c.group = group
-        return nil</span>
-}
-</pre>
-		
-		<pre class="file" id="file21" style="display: none">package fleetlock
-
-import (
-        "strings"
-
-        systemdutils "github.com/heathcliff26/fleetlock/pkg/systemd-utils"
-        "github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils"
-        "k8s.io/klog/v2"
-)
-
-// Find the machine-id of the current node and generate a zincati appID from it.
-func GetZincateAppID() (string, error) <span class="cov8" title="1">{
-        machineID, err := utils.GetMachineID()
-        if err != nil </span><span class="cov0" title="0">{
-                return "", err
-        }</span>
-
-        <span class="cov8" title="1">appID, err := systemdutils.ZincatiMachineID(machineID)
-        if err != nil </span><span class="cov0" title="0">{
-                return "", err
-        }</span>
-        <span class="cov8" title="1">return appID, nil</span>
-}
-
-// When having // in a URL, it somehow converts the request from POST to GET.
-// See: https://github.com/golang/go/issues/69063
-// In general it could lead to unintended behaviour.
-func TrimTrailingSlash(url string) string <span class="cov8" title="1">{
-        res, found := strings.CutSuffix(url, "/")
-        if found </span><span class="cov8" title="1">{
-                klog.Warning("Removed trailing slash in URL, as this could lead to undefined behaviour")
-        }</span>
-        <span class="cov8" title="1">return res</span>
-}
-</pre>
-		
-		<pre class="file" id="file22" style="display: none">package kubeadm
+		<pre class="file" id="file20" style="display: none">package kubeadm
 
 import (
         "fmt"
@@ -2078,7 +1889,7 @@ func (k *KubeadmCMD) getVersion() (string, error) <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file23" style="display: none">package upgraded
+		<pre class="file" id="file21" style="display: none">package upgraded
 
 import (
         "log/slog"
@@ -2163,7 +1974,7 @@ func run(cfgPath string) <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file24" style="display: none">package rpmostree
+		<pre class="file" id="file22" style="display: none">package rpmostree
 
 import (
         "fmt"
@@ -2237,7 +2048,7 @@ func (r *RPMOStreeCMD) Rebase(image string) error <span class="cov8" title="1">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file25" style="display: none">package rpmostree
+		<pre class="file" id="file23" style="display: none">package rpmostree
 
 import (
         "os/exec"
@@ -2252,7 +2063,7 @@ func getExitCode(err error) (int, bool) <span class="cov8" title="1">{
 }
 </pre>
 		
-		<pre class="file" id="file26" style="display: none">package utils
+		<pre class="file" id="file24" style="display: none">package utils
 
 import (
         "fmt"
@@ -2292,7 +2103,7 @@ func CheckExistsAndIsExecutable(path string) error <span class="cov8" title="1">
 }
 </pre>
 		
-		<pre class="file" id="file27" style="display: none">package version
+		<pre class="file" id="file25" style="display: none">package version
 
 import (
         "fmt"
