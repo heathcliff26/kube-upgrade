@@ -12,7 +12,9 @@ upgrade-controller:
 	podman build -t $(REPOSITORY)/kube-upgrade-controller:$(TAG) -f cmd/upgrade-controller/Dockerfile .
 
 test:
-	go test -v -race ./cmd/... ./pkg/...
+	go test -v -race -coverprofile=coverprofile.out.tmp -coverpkg "./pkg/..." ./cmd/... ./pkg/...
+	grep -v "zz_generated" "coverprofile.out.tmp" | grep -v "github.com/heathcliff26/kube-upgrade/pkg/client" > "coverprofile.out"
+	rm coverprofile.out.tmp
 
 update-deps:
 	hack/update-deps.sh
@@ -42,7 +44,7 @@ e2e:
 	go test -count=1 -v ./tests/...
 
 clean:
-	rm -rf bin manifests/release coverprofiles logs tmp_controller_image_kube-upgrade-e2e-*.tar
+	rm -rf bin manifests/release coverprofiles coverprofile.out logs tmp_controller_image_kube-upgrade-e2e-*.tar
 
 controller-gen:
 	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.15.0
