@@ -454,22 +454,22 @@ func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error <span class="cov
         <span class="cov9" title="16">if len(spec.Groups) &lt; 1 </span><span class="cov1" title="1">{
                 return fmt.Errorf("need at least one node group for upgrades")
         }</span>
-        <span class="cov8" title="15">for name, group := range spec.Groups </span><span class="cov9" title="21">{
+        <span class="cov8" title="15">for name, group := range spec.Groups </span><span class="cov9" title="20">{
                 for _, dependency := range group.DependsOn </span><span class="cov6" title="7">{
                         if _, ok := spec.Groups[dependency]; !ok </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" depends on non-existing group \"%s\"", name, dependency)
                         }</span>
                 }
 
-                <span class="cov9" title="20">if group.Labels == nil || (len(group.Labels.MatchExpressions) &lt; 1 &amp;&amp; len(group.Labels.MatchLabels) &lt; 1) </span><span class="cov1" title="1">{
+                <span class="cov9" title="19">if group.Labels == nil || (len(group.Labels.MatchExpressions) &lt; 1 &amp;&amp; len(group.Labels.MatchLabels) &lt; 1) </span><span class="cov1" title="1">{
                         return fmt.Errorf("group \"%s\" needs at least one label selector", name)
                 }</span>
-                <span class="cov9" title="19">_, err := metav1.LabelSelectorAsSelector(group.Labels)
+                <span class="cov9" title="18">_, err := metav1.LabelSelectorAsSelector(group.Labels)
                 if err != nil </span><span class="cov1" title="1">{
                         return fmt.Errorf("invalid label selector for group \"%s\": %v", name, err)
                 }</span>
 
-                <span class="cov9" title="18">if group.Upgraded != nil </span><span class="cov3" title="2">{
+                <span class="cov9" title="17">if group.Upgraded != nil </span><span class="cov3" title="2">{
                         err := ValidateObject_UpgradedConfig(*group.Upgraded)
                         if err != nil </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" has an invalid upgraded config: %v", name, err)
