@@ -68,7 +68,7 @@ sudo systemctl enable --now upgraded.service
 | Container Registry                                                                             | Image                              |
 | ---------------------------------------------------------------------------------------------- | ---------------------------------- |
 | [Github Container](https://github.com/users/heathcliff26/packages/container/package/kube-upgrade-controller) | `ghcr.io/heathcliff26/kube-upgrade-controller`   |
-| [Docker Hub](https://hub.docker.com/repository/docker/heathcliff26/kube-upgrade-controller)                  | `docker.io/heathcliff26/kube-upgrade-controller` |
+| [Docker Hub](https://hub.docker.com/r/heathcliff26/kube-upgrade-controller)                  | `docker.io/heathcliff26/kube-upgrade-controller` |
 
 ### Tags
 
