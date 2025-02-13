@@ -105,7 +105,7 @@
 				
 				<option value="file24">github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils/utils.go (93.3%)</option>
 				
-				<option value="file25">github.com/heathcliff26/kube-upgrade/pkg/version/version.go (75.0%)</option>
+				<option value="file25">github.com/heathcliff26/kube-upgrade/pkg/version/version.go (80.0%)</option>
 				
 				</select>
 			</div>
@@ -2125,7 +2125,7 @@ import (
 var version = "devel"
 
 // Create a new version command with the given app name
-func NewCommand(name string) *cobra.Command <span class="cov5" title="3">{
+func NewCommand(name string) *cobra.Command <span class="cov4" title="3">{
         cmd := &amp;cobra.Command{
                 Use:   "version",
                 Short: "Print version information and exit",
@@ -2134,13 +2134,13 @@ func NewCommand(name string) *cobra.Command <span class="cov5" title="3">{
                 }</span>,
         }
         // Override to prevent parent function from running
-        <span class="cov5" title="3">cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) </span>{<span class="cov0" title="0">}</span>
+        <span class="cov4" title="3">cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) </span>{<span class="cov0" title="0">}</span>
 
-        <span class="cov5" title="3">return cmd</span>
+        <span class="cov4" title="3">return cmd</span>
 }
 
 // Return the version string
-func Version() string <span class="cov10" title="10">{
+func Version() string <span class="cov9" title="10">{
         return version
 }</span>
 
@@ -2148,7 +2148,7 @@ func Version() string <span class="cov10" title="10">{
 func VersionInfoString(name string) string <span class="cov1" title="1">{
         var commit string
         buildinfo, _ := debug.ReadBuildInfo()
-        for _, item := range buildinfo.Settings </span><span class="cov0" title="0">{
+        for _, item := range buildinfo.Settings </span><span class="cov10" title="12">{
                 if item.Key == "vcs.revision" </span><span class="cov0" title="0">{
                         commit = item.Value
                         break</span>
