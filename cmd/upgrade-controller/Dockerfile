@@ -5,7 +5,6 @@ FROM --platform=$BUILDPLATFORM docker.io/library/golang:1.24.0 AS build-stage
 
 ARG BUILDPLATFORM
 ARG TARGETARCH
-ARG RELEASE_VERSION
 
 WORKDIR /app
 
