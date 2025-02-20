@@ -17,7 +17,7 @@ import (
 )
 
 func TestDoNodeUpgradeWithRetry(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	d := &daemon{
 		client:        fake.NewSimpleClientset(),
 		node:          "not-a-node",
@@ -91,7 +91,7 @@ func TestDoNodeUpgrade(t *testing.T) {
 				t.FailNow()
 			}
 
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 			t.Cleanup(cancel)
 
 			d := &daemon{
@@ -111,11 +111,11 @@ func TestDoNodeUpgrade(t *testing.T) {
 					},
 				},
 			}
-			node, _ = d.client.CoreV1().Nodes().Create(context.Background(), node, metav1.CreateOptions{})
+			node, _ = d.client.CoreV1().Nodes().Create(ctx, node, metav1.CreateOptions{})
 
 			err = d.doNodeUpgrade(node)
 
-			node, _ = d.client.CoreV1().Nodes().Get(context.Background(), node.GetName(), metav1.GetOptions{})
+			node, _ = d.client.CoreV1().Nodes().Get(ctx, node.GetName(), metav1.GetOptions{})
 
 			if succeed {
 				assert.NoError(err, "Should exit without error")
@@ -163,13 +163,15 @@ func TestUpdateNodeStatus(t *testing.T) {
 		t.Run(tCase.Name, func(t *testing.T) {
 			assert := assert.New(t)
 
+			ctx := t.Context()
+
 			c := fake.NewSimpleClientset()
 			d := &daemon{
 				client: c,
-				ctx:    context.Background(),
+				ctx:    ctx,
 			}
 			if tCase.Node != nil {
-				_, _ = c.CoreV1().Nodes().Create(context.Background(), tCase.Node, metav1.CreateOptions{})
+				_, _ = c.CoreV1().Nodes().Create(ctx, tCase.Node, metav1.CreateOptions{})
 				d.node = tCase.Node.GetName()
 			} else {
 				d.node = "not-a-node"
@@ -179,7 +181,7 @@ func TestUpdateNodeStatus(t *testing.T) {
 				assert.Error(d.updateNodeStatus("new-status"), "Should fail")
 			} else {
 				assert.NoError(d.updateNodeStatus("new-status"), "Should succeed")
-				node, _ := c.CoreV1().Nodes().Get(context.Background(), d.node, metav1.GetOptions{})
+				node, _ := c.CoreV1().Nodes().Get(ctx, d.node, metav1.GetOptions{})
 				assert.Equal("new-status", node.GetAnnotations()[constants.NodeUpgradeStatus], "Should have set status")
 			}
 		})
@@ -187,7 +189,7 @@ func TestUpdateNodeStatus(t *testing.T) {
 }
 
 func TestAnnotateNodeWithUpgradedVersion(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	t.Cleanup(cancel)
 
 	d := &daemon{
@@ -201,26 +203,26 @@ func TestAnnotateNodeWithUpgradedVersion(t *testing.T) {
 			Name: d.node,
 		},
 	}
-	node, _ = d.client.CoreV1().Nodes().Create(context.Background(), node, metav1.CreateOptions{})
+	node, _ = d.client.CoreV1().Nodes().Create(ctx, node, metav1.CreateOptions{})
 
 	assert := assert.New(t)
 
 	node, err := d.annotateNodeWithUpgradedVersion(node)
 	assert.NoError(err, "Should set version when no annotations are set")
 	assert.Equal(version.Version(), node.Annotations[constants.NodeUpgradedVersion], "Should return updated node when no annotations are set")
-	node, _ = d.client.CoreV1().Nodes().Get(context.Background(), node.GetName(), metav1.GetOptions{})
+	node, _ = d.client.CoreV1().Nodes().Get(ctx, node.GetName(), metav1.GetOptions{})
 	assert.Equal(version.Version(), node.Annotations[constants.NodeUpgradedVersion], "Should set version when no annotations are set")
 
 	node.Annotations[constants.NodeUpgradedVersion] = "old-version"
-	node, _ = d.client.CoreV1().Nodes().Update(context.Background(), node, metav1.UpdateOptions{})
+	node, _ = d.client.CoreV1().Nodes().Update(ctx, node, metav1.UpdateOptions{})
 
 	node, err = d.annotateNodeWithUpgradedVersion(node)
 	assert.NoError(err, "Should update version")
 	assert.Equal(version.Version(), node.Annotations[constants.NodeUpgradedVersion], "Should return updated node")
-	node, _ = d.client.CoreV1().Nodes().Get(context.Background(), node.GetName(), metav1.GetOptions{})
+	node, _ = d.client.CoreV1().Nodes().Get(ctx, node.GetName(), metav1.GetOptions{})
 	assert.Equal(version.Version(), node.Annotations[constants.NodeUpgradedVersion], "Should update version")
 
-	_ = d.client.CoreV1().Nodes().Delete(context.Background(), node.GetName(), metav1.DeleteOptions{})
+	_ = d.client.CoreV1().Nodes().Delete(ctx, node.GetName(), metav1.DeleteOptions{})
 	_, err = d.annotateNodeWithUpgradedVersion(node)
 	assert.NoError(err, "Should not update node when version already matches")
 }

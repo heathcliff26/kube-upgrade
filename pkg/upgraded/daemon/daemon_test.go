@@ -77,7 +77,7 @@ func TestNewDaemon(t *testing.T) {
 }
 
 func TestRetry(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	d := &daemon{
 		retryInterval: time.Millisecond,
 		ctx:           ctx,

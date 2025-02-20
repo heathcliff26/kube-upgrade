@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"testing"
 
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
@@ -642,11 +641,13 @@ func TestReconcile(t *testing.T) {
 
 	for _, tCase := range tMatrix {
 		t.Run(tCase.Name, func(t *testing.T) {
-			c := createFakeController(tCase.AnnotationsControl, tCase.AnnotationsCompute, tCase.AnnotationsInfra)
+			c := createFakeController(t, tCase.AnnotationsControl, tCase.AnnotationsCompute, tCase.AnnotationsInfra)
 
 			assert := assert.New(t)
 
-			err := c.reconcile(context.Background(), &tCase.Plan, klog.NewKlogr())
+			ctx := t.Context()
+
+			err := c.reconcile(ctx, &tCase.Plan, klog.NewKlogr())
 
 			if !assert.NoError(err, "Reconcile should succeed") {
 				t.FailNow()
@@ -660,9 +661,9 @@ func TestReconcile(t *testing.T) {
 
 			assert.Equal(tCase.ExpectedGroupStatus, tCase.Plan.Status.Groups, "Group status should match")
 
-			nodeControl, _ := c.nodes.Get(context.Background(), nodeControl, metav1.GetOptions{})
-			nodeCompute, _ := c.nodes.Get(context.Background(), nodeCompute, metav1.GetOptions{})
-			nodeInfra, _ := c.nodes.Get(context.Background(), nodeInfra, metav1.GetOptions{})
+			nodeControl, _ := c.nodes.Get(ctx, nodeControl, metav1.GetOptions{})
+			nodeCompute, _ := c.nodes.Get(ctx, nodeCompute, metav1.GetOptions{})
+			nodeInfra, _ := c.nodes.Get(ctx, nodeInfra, metav1.GetOptions{})
 
 			assert.Equal(tCase.ExpectedAnnotationsControl, nodeControl.GetAnnotations(), "Control group should have expected annotations")
 			assert.Equal(tCase.ExpectedAnnotationsCompute, nodeCompute.GetAnnotations(), "Compute group should have expected annotations")
@@ -689,7 +690,7 @@ func TestReconcileNodes(t *testing.T) {
 			},
 		},
 	}
-	nodeControl, _ = c.nodes.Create(context.Background(), nodeControl, metav1.CreateOptions{})
+	nodeControl, _ = c.nodes.Create(t.Context(), nodeControl, metav1.CreateOptions{})
 
 	assert := assert.New(t)
 
@@ -708,7 +709,7 @@ func TestReconcileNodes(t *testing.T) {
 	assert.NoError(err, "Should not return an error")
 }
 
-func createFakeController(annotationsControl, annotationsCompute, annotationsInfra map[string]string) *controller {
+func createFakeController(t *testing.T, annotationsControl, annotationsCompute, annotationsInfra map[string]string) *controller {
 	c := &controller{
 		nodes: kubeFake.NewSimpleClientset().CoreV1().Nodes(),
 	}
@@ -740,9 +741,11 @@ func createFakeController(annotationsControl, annotationsCompute, annotationsInf
 			Annotations: annotationsInfra,
 		},
 	}
-	_, _ = c.nodes.Create(context.Background(), nodeControl, metav1.CreateOptions{})
-	_, _ = c.nodes.Create(context.Background(), nodeCompute, metav1.CreateOptions{})
-	_, _ = c.nodes.Create(context.Background(), nodeInfra, metav1.CreateOptions{})
+
+	ctx := t.Context()
+	_, _ = c.nodes.Create(ctx, nodeControl, metav1.CreateOptions{})
+	_, _ = c.nodes.Create(ctx, nodeCompute, metav1.CreateOptions{})
+	_, _ = c.nodes.Create(ctx, nodeInfra, metav1.CreateOptions{})
 
 	return c
 }

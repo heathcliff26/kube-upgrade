@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"testing"
 
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
@@ -235,7 +234,7 @@ func TestValidate(t *testing.T) {
 		t.Run(tCase.Name, func(t *testing.T) {
 			assert := assert.New(t)
 
-			if !assert.NoError((&planMutatingHook{}).Default(context.Background(), tCase.Plan), "Should add defaults to plan") {
+			if !assert.NoError((&planMutatingHook{}).Default(t.Context(), tCase.Plan), "Should add defaults to plan") {
 				t.FailNow()
 			}
 
@@ -263,7 +262,9 @@ func TestValidate(t *testing.T) {
 func TestValidateCreate(t *testing.T) {
 	assert := assert.New(t)
 
-	warn, err := (&planValidatingHook{}).ValidateCreate(context.Background(), &api.KubeUpgradePlan{})
+	ctx := t.Context()
+
+	warn, err := (&planValidatingHook{}).ValidateCreate(ctx, &api.KubeUpgradePlan{})
 
 	assert.Nil(warn, "Should not return a warning")
 	assert.Error(err, "Should return an error")
@@ -289,7 +290,7 @@ func TestValidateCreate(t *testing.T) {
 		},
 	}
 
-	warn, err = (&planValidatingHook{}).ValidateCreate(context.Background(), plan)
+	warn, err = (&planValidatingHook{}).ValidateCreate(ctx, plan)
 
 	assert.Nil(warn, "Should not return a warning")
 	assert.NoError(err, "Should not return an error")
@@ -298,7 +299,9 @@ func TestValidateCreate(t *testing.T) {
 func TestValidateUpdate(t *testing.T) {
 	assert := assert.New(t)
 
-	warn, err := (&planValidatingHook{}).ValidateUpdate(context.Background(), &api.KubeUpgradePlan{}, &api.KubeUpgradePlan{})
+	ctx := t.Context()
+
+	warn, err := (&planValidatingHook{}).ValidateUpdate(ctx, &api.KubeUpgradePlan{}, &api.KubeUpgradePlan{})
 
 	assert.Nil(warn, "Should not return a warning")
 	assert.Error(err, "Should return an error")
@@ -324,7 +327,7 @@ func TestValidateUpdate(t *testing.T) {
 		},
 	}
 
-	warn, err = (&planValidatingHook{}).ValidateUpdate(context.Background(), &api.KubeUpgradePlan{}, plan)
+	warn, err = (&planValidatingHook{}).ValidateUpdate(ctx, &api.KubeUpgradePlan{}, plan)
 
 	assert.Nil(warn, "Should not return a warning")
 	assert.NoError(err, "Should not return an error")
@@ -333,7 +336,7 @@ func TestValidateUpdate(t *testing.T) {
 func TestValidateDelete(t *testing.T) {
 	assert := assert.New(t)
 
-	warn, err := (&planValidatingHook{}).ValidateDelete(context.Background(), nil)
+	warn, err := (&planValidatingHook{}).ValidateDelete(t.Context(), nil)
 
 	assert.Nil(warn, "Should not return a warning")
 	assert.NoError(err, "Should not return an error")
