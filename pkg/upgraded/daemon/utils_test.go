@@ -1,7 +1,6 @@
 package daemon
 
 import (
-	"context"
 	"testing"
 
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
@@ -23,7 +22,7 @@ func TestFindNodeByListingAllNodes(t *testing.T) {
 			},
 		},
 	}
-	_, _ = client.CoreV1().Nodes().Create(context.Background(), node, metav1.CreateOptions{})
+	_, _ = client.CoreV1().Nodes().Create(t.Context(), node, metav1.CreateOptions{})
 
 	res, err := findNodeByListingAllNodes(client, "1234567890")
 

@@ -1,7 +1,6 @@
 package daemon
 
 import (
-	"context"
 	"net/http"
 	"testing"
 
@@ -27,7 +26,7 @@ func TestDoUpgrade(t *testing.T) {
 				Name: d.node,
 			},
 		}
-		_, _ = d.client.CoreV1().Nodes().Create(context.Background(), node, metav1.CreateOptions{})
+		_, _ = d.client.CoreV1().Nodes().Create(t.Context(), node, metav1.CreateOptions{})
 
 		return d
 	}

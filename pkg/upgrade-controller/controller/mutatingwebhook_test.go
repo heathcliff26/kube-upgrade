@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"testing"
 
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
@@ -110,13 +109,13 @@ func TestDefault(t *testing.T) {
 		t.Run(tCase.Name, func(t *testing.T) {
 			assert := assert.New(t)
 
-			err := (&planMutatingHook{}).Default(context.Background(), tCase.Plan)
+			err := (&planMutatingHook{}).Default(t.Context(), tCase.Plan)
 
 			assert.NoError(err, "Should succeed")
 			assert.Equal(tCase.Result, tCase.Plan)
 		})
 	}
 	t.Run("InvalidObject", func(t *testing.T) {
-		assert.Error(t, (&planMutatingHook{}).Default(context.Background(), &corev1.Pod{}), "Should return an error")
+		assert.Error(t, (&planMutatingHook{}).Default(t.Context(), &corev1.Pod{}), "Should return an error")
 	})
 }

@@ -21,7 +21,7 @@ func TestUpdateConfigFromNode(t *testing.T) {
 		t.FailNow()
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	t.Cleanup(cancel)
 
 	d := &daemon{
@@ -39,7 +39,7 @@ func TestUpdateConfigFromNode(t *testing.T) {
 			},
 		},
 	}
-	_, _ = d.client.CoreV1().Nodes().Create(context.Background(), node, metav1.CreateOptions{})
+	_, _ = d.client.CoreV1().Nodes().Create(ctx, node, metav1.CreateOptions{})
 
 	assert.NoError(d.UpdateConfigFromNode(), "Should succeed")
 	assert.Equal("registry.example.com/fcos-k8s", d.stream, "Should have updated stream")
