@@ -1,5 +1,5 @@
 package kubeadm
 
 type ClusterConfiguration struct {
-	KubernetesVersion string `yaml:"kubernetesVersion,omitempty"`
+	KubernetesVersion string `json:"kubernetesVersion,omitempty"`
 }

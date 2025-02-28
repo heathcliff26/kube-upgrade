@@ -8,12 +8,12 @@ import (
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm"
 	"github.com/heathcliff26/kube-upgrade/pkg/version"
-	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/tools/cache"
+	"sigs.k8s.io/yaml"
 )
 
 // Watch for node upgrades and preform them if necessary

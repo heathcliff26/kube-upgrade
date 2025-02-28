@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"gopkg.in/yaml.v3"
+	"sigs.k8s.io/yaml"
 )
 
 const (
@@ -31,13 +31,13 @@ func init() {
 
 type Config struct {
 	// The log level used by slog, default "info"
-	LogLevel string `yaml:"logLevel,omitempty"`
+	LogLevel string `json:"logLevel,omitempty"`
 	// The path to the kubeconfig file, default is the kubelet config under "/etc/kubernetes/kubelet.conf"
-	Kubeconfig string `yaml:"kubeconfig,omitempty"`
+	Kubeconfig string `json:"kubeconfig,omitempty"`
 	// The path to the rpm-ostree binary, default "/usr/bin/rpm-ostree"
-	RPMOStreePath string `yaml:"rpm-ostree-path,omitempty"`
+	RPMOStreePath string `json:"rpm-ostree-path,omitempty"`
 	// The path to the kubeadm binary, default "/usr/bin/kubeadm"
-	KubeadmPath string `yaml:"kubeadm-path,omitempty"`
+	KubeadmPath string `json:"kubeadm-path,omitempty"`
 }
 
 // Parse a given string and set the resulting log level
