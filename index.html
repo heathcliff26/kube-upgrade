@@ -1092,7 +1092,7 @@ import (
         "os"
         "strings"
 
-        "gopkg.in/yaml.v3"
+        "sigs.k8s.io/yaml"
 )
 
 const (
@@ -1118,13 +1118,13 @@ func init() <span class="cov4" title="3">{
 
 type Config struct {
         // The log level used by slog, default "info"
-        LogLevel string `yaml:"logLevel,omitempty"`
+        LogLevel string `json:"logLevel,omitempty"`
         // The path to the kubeconfig file, default is the kubelet config under "/etc/kubernetes/kubelet.conf"
-        Kubeconfig string `yaml:"kubeconfig,omitempty"`
+        Kubeconfig string `json:"kubeconfig,omitempty"`
         // The path to the rpm-ostree binary, default "/usr/bin/rpm-ostree"
-        RPMOStreePath string `yaml:"rpm-ostree-path,omitempty"`
+        RPMOStreePath string `json:"rpm-ostree-path,omitempty"`
         // The path to the kubeadm binary, default "/usr/bin/kubeadm"
-        KubeadmPath string `yaml:"kubeadm-path,omitempty"`
+        KubeadmPath string `json:"kubeadm-path,omitempty"`
 }
 
 // Parse a given string and set the resulting log level
@@ -1486,12 +1486,12 @@ import (
         "github.com/heathcliff26/kube-upgrade/pkg/constants"
         "github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm"
         "github.com/heathcliff26/kube-upgrade/pkg/version"
-        "gopkg.in/yaml.v3"
         corev1 "k8s.io/api/core/v1"
         metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
         "k8s.io/apimachinery/pkg/fields"
         "k8s.io/client-go/informers"
         "k8s.io/client-go/tools/cache"
+        "sigs.k8s.io/yaml"
 )
 
 // Watch for node upgrades and preform them if necessary
