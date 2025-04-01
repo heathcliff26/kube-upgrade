@@ -214,9 +214,10 @@ func (c *controller) reconcileNodes(kubeVersion string, downgrade bool, nodes []
 		}
 
 		if nodes[i].Annotations[constants.NodeKubernetesVersion] == kubeVersion {
-			if nodes[i].Annotations[constants.NodeUpgradeStatus] == constants.NodeUpgradeStatusCompleted {
+			switch nodes[i].Annotations[constants.NodeUpgradeStatus] {
+			case constants.NodeUpgradeStatusCompleted:
 				completed++
-			} else if nodes[i].Annotations[constants.NodeUpgradeStatus] == constants.NodeUpgradeStatusError {
+			case constants.NodeUpgradeStatusError:
 				errorNodes = append(errorNodes, nodes[i].GetName())
 			}
 			continue
