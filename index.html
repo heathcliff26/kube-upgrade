@@ -1166,6 +1166,7 @@ func LoadConfig(path string) (*Config, error) <span class="cov6" title="5">{
                 p = DEFAULT_CONFIG_PATH
         }</span>
 
+        // #nosec G304: Local users can decide on their file path themselves.
         <span class="cov6" title="5">f, err := os.ReadFile(p)
         if os.IsNotExist(err) &amp;&amp; path == "" </span><span class="cov1" title="1">{
                 slog.Info("No config file specified and default file does not exist, falling back to default values.", slog.String("default-path", DEFAULT_CONFIG_PATH))
@@ -1891,6 +1892,7 @@ func (k *KubeadmCMD) Version() string <span class="cov6" title="4">{
 }</span>
 
 func (k *KubeadmCMD) getVersion() (string, error) <span class="cov8" title="7">{
+        // #nosec G204: Binary path is controlled by the user
         out, err := exec.Command(k.binary, "version", "--output", "short").Output()
         if err != nil </span><span class="cov0" title="0">{
                 return "", err
@@ -2016,6 +2018,7 @@ func (r *RPMOStreeCMD) CheckForUpgrade() (bool, error) <span class="cov4" title=
         r.mutex.Lock()
         defer r.mutex.Unlock()
 
+        // #nosec G204: Binary path is controlled by the user
         cmd := exec.Command(r.binary, "upgrade", "--check")
         out, err := cmd.CombinedOutput()
         code, ok := getExitCode(err)
