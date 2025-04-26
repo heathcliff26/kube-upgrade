@@ -57,7 +57,7 @@ e2e:
 
 # Scan code for vulnerabilities using gosec
 gosec:
-	gosec ./...
+	gosec -exclude-generated ./...
 
 # Remove build artifacts and temporary files
 clean:

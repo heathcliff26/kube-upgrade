@@ -60,6 +60,8 @@ jobs:
     permissions:
       contents: read
       security-events: write
+    with:
+      args: "-exclude-generated ./..."
 
   unit-tests:
     uses: heathcliff26/ci/.github/workflows/golang-unit-tests.yaml@main
