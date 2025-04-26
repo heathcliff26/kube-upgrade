@@ -55,6 +55,10 @@ fmt:
 e2e:
 	go test -count=1 -v ./tests/...
 
+# Scan code for vulnerabilities using gosec
+gosec:
+	gosec ./...
+
 # Remove build artifacts and temporary files
 clean:
 	rm -rf bin manifests/release coverprofiles coverprofile.out logs tmp_controller_image_kube-upgrade-e2e-*.tar
@@ -84,6 +88,7 @@ help:
 	manifests \
 	validate \
 	fmt \
+	gosec \
 	clean \
 	controller-gen \
 	help \
