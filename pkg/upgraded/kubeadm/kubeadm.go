@@ -56,6 +56,7 @@ func (k *KubeadmCMD) Version() string {
 }
 
 func (k *KubeadmCMD) getVersion() (string, error) {
+	// #nosec G204: Binary path is controlled by the user
 	out, err := exec.Command(k.binary, "version", "--output", "short").Output()
 	if err != nil {
 		return "", err

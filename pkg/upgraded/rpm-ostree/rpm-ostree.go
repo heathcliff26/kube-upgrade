@@ -30,6 +30,7 @@ func (r *RPMOStreeCMD) CheckForUpgrade() (bool, error) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
+	// #nosec G204: Binary path is controlled by the user
 	cmd := exec.Command(r.binary, "upgrade", "--check")
 	out, err := cmd.CombinedOutput()
 	code, ok := getExitCode(err)

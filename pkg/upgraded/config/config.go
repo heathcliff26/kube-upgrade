@@ -78,6 +78,7 @@ func LoadConfig(path string) (*Config, error) {
 		p = DEFAULT_CONFIG_PATH
 	}
 
+	// #nosec G304: Local users can decide on their file path themselves.
 	f, err := os.ReadFile(p)
 	if os.IsNotExist(err) && path == "" {
 		slog.Info("No config file specified and default file does not exist, falling back to default values.", slog.String("default-path", DEFAULT_CONFIG_PATH))
