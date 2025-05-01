@@ -32,7 +32,7 @@ coverprofile:
 	hack/coverprofile.sh
 
 # Run linter
-lint:
+lint: golangci-lint
 	golangci-lint run -v
 
 # Generate code and artifacts
@@ -63,9 +63,13 @@ gosec:
 clean:
 	rm -rf bin manifests/release coverprofiles coverprofile.out logs tmp_controller_image_kube-upgrade-e2e-*.tar
 
+# Install the golangci-lint tool
+golangci-lint:
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+
 # Install the controller-gen tool
 controller-gen:
-	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.15.0
+	go install sigs.k8s.io/controller-tools/cmd/controller-gen@latest
 
 # Show this help message
 help:
