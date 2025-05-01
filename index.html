@@ -1514,7 +1514,7 @@ func (d *daemon) watchForNodeUpgrade() <span class="cov0" title="0">{
                 d.cancel()
                 return
         }</span>
-        <span class="cov0" title="0">err = informer.SetWatchErrorHandler(cache.DefaultWatchErrorHandler)
+        <span class="cov0" title="0">err = informer.SetWatchErrorHandlerWithContext(cache.DefaultWatchErrorHandler)
         if err != nil </span><span class="cov0" title="0">{
                 slog.Error("Failed to set watch error handler to kubernetes informer")
                 d.cancel()
