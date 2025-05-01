@@ -80,3 +80,11 @@ require (
 )
 
 tool k8s.io/code-generator
+
+tool k8s.io/code-generator/cmd/conversion-gen
+
+tool k8s.io/code-generator/cmd/deepcopy-gen
+
+tool k8s.io/code-generator/cmd/defaulter-gen
+
+tool k8s.io/code-generator/cmd/validation-gen
