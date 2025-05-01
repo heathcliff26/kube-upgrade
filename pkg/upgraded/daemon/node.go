@@ -34,7 +34,7 @@ func (d *daemon) watchForNodeUpgrade() {
 		d.cancel()
 		return
 	}
-	err = informer.SetWatchErrorHandler(cache.DefaultWatchErrorHandler)
+	err = informer.SetWatchErrorHandlerWithContext(cache.DefaultWatchErrorHandler)
 	if err != nil {
 		slog.Error("Failed to set watch error handler to kubernetes informer")
 		d.cancel()
