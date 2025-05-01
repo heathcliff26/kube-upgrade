@@ -27,6 +27,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      security-events: write
     with:
       tag: ${{ inputs.tag }}
       latest: ${{ inputs.latest }}
