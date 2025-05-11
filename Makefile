@@ -69,7 +69,7 @@ golangci-lint:
 
 # Install the controller-gen tool
 controller-gen:
-	go install sigs.k8s.io/controller-tools/cmd/controller-gen@latest
+	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.18.0
 
 # Show this help message
 help:
