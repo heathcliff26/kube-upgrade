@@ -24,13 +24,13 @@ kube::codegen::gen_client \
 gobin="${GOBIN:-$(go env GOPATH)/bin}"
 
 echo "Generating manifests"
-"${gobin}/controller-gen"   crd \
-                            rbac:roleName=upgrade-controller \
-                            webhook \
-                            paths="./..." \
-                            output:crd:artifacts:config=manifests/generated \
-                            output:rbac:artifacts:config=manifests/generated \
-                            output:webhook:artifacts:config=manifests/generated
+"${gobin}/controller-gen" crd \
+    rbac:roleName=upgrade-controller \
+    webhook \
+    paths="./..." \
+    output:crd:artifacts:config=manifests/generated \
+    output:rbac:artifacts:config=manifests/generated \
+    output:webhook:artifacts:config=manifests/generated
 
 echo "Patching webhook manifests"
 yq -i e '.webhooks[0].clientConfig.service.name = "upgrade-controller-webhooks"' manifests/generated/manifests.yaml
@@ -43,7 +43,7 @@ yq -i e '.metadata.name = "kube-upgrade-webhook"' manifests/generated/manifests.
 popd >/dev/null
 
 echo "Generating json schema for yaml validation"
-pushd "${base_dir}/manifests/generated">/dev/null
+pushd "${base_dir}/manifests/generated" >/dev/null
 
 python3 "${base_dir}/hack/external/openapi2jsonschema.py" kubeupgrade.heathcliff.eu_kubeupgradeplans.yaml
 
