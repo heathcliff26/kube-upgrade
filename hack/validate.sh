@@ -4,7 +4,7 @@ set -e
 
 script_dir="$(dirname "${BASH_SOURCE[0]}" | xargs realpath)"
 
-if ! command -v kubeconform 2>&1 >/dev/null; then
+if ! command -v kubeconform >/dev/null 2>&1; then
     go install github.com/yannh/kubeconform/cmd/kubeconform@latest
 fi
 
@@ -13,7 +13,16 @@ make fmt
 rc=0
 git update-index --refresh && git diff-index --quiet HEAD -- || rc=1
 if [ $rc -ne 0 ]; then
-    echo "FATAL: Need to run \"make fmt\""
+    echo "FATAL: Need to run \"make fmt\"" >&2
+    exit 1
+fi
+
+echo "Check if go.mod and vendor are up to date"
+make update-deps
+rc=0
+git update-index --refresh && git diff-index --quiet HEAD -- || rc=1
+if [ $rc -ne 0 ]; then
+    echo "FATAL: Need to run \"make update-deps\"" >&2
     exit 1
 fi
 
@@ -23,7 +32,7 @@ echo "Check if the auto generated code is up to date"
 rc=0
 git update-index --refresh && git diff-index --quiet HEAD -- || rc=1
 if [ $rc -ne 0 ]; then
-    echo "FATAL: Need to run \"make generate\""
+    echo "FATAL: Need to run \"make generate\"" >&2
     exit 1
 fi
 
@@ -36,7 +45,7 @@ git update-index --refresh || echo "examples/upgrade-controller/upgrade-cr.yaml 
 rc=0
 git diff-index -I "kubernetesVersion: v1.*" --quiet HEAD -- || rc=1
 if [ $rc -ne 0 ]; then
-    echo "FATAL: Need to run \"make manifests\" and update the examples with the result"
+    echo "FATAL: Need to run \"make manifests\" and update the examples with the result" >&2
     exit 1
 fi
 
