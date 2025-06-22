@@ -5,7 +5,7 @@ kind: KubeUpgradePlan
 metadata:
   name: upgrade-plan
 spec:
-  kubernetesVersion: v1.33.0
+  kubernetesVersion: v1.33.2
   upgraded:
     fleetlock-url: https://fleetlock.example.com
   groups:
