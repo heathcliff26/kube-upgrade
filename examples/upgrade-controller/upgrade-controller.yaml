@@ -325,7 +325,6 @@ spec:
                   The kubernetes version the cluster should be at.
                   If the actual version differs, the cluster will be upgraded.
                 example: v1.31.0
-                format: semver
                 type: string
               upgraded:
                 description: The configuration for all upgraded daemons. Can be overwritten
