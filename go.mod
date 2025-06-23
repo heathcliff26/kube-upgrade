@@ -4,13 +4,13 @@ go 1.24.0
 
 require (
 	github.com/go-logr/logr v1.4.3
-	github.com/heathcliff26/fleetlock v1.7.4
+	github.com/heathcliff26/fleetlock v1.7.5
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/mod v0.24.0
-	k8s.io/api v0.33.1
-	k8s.io/apimachinery v0.33.1
-	k8s.io/client-go v0.33.1
+	golang.org/x/mod v0.25.0
+	k8s.io/api v0.33.2
+	k8s.io/apimachinery v0.33.2
+	k8s.io/client-go v0.33.2
 	k8s.io/klog/v2 v2.130.1
 	sigs.k8s.io/controller-runtime v0.21.0
 	sigs.k8s.io/e2e-framework v0.6.0
@@ -70,7 +70,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiextensions-apiserver v0.33.0 // indirect
-	k8s.io/code-generator v0.33.1 // indirect
+	k8s.io/code-generator v0.33.2 // indirect
 	k8s.io/component-base v0.33.0 // indirect
 	k8s.io/gengo/v2 v2.0.0-20250207200755-1244d31929d7 // indirect
 	k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff // indirect
