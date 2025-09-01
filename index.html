@@ -2150,7 +2150,7 @@ func Version() string <span class="cov9" title="10">{
 func VersionInfoString(name string) string <span class="cov1" title="1">{
         var commit string
         buildinfo, _ := debug.ReadBuildInfo()
-        for _, item := range buildinfo.Settings </span><span class="cov10" title="12">{
+        for _, item := range buildinfo.Settings </span><span class="cov10" title="13">{
                 if item.Key == "vcs.revision" </span><span class="cov0" title="0">{
                         commit = item.Value
                         break</span>
