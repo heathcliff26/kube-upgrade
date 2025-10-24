@@ -71,3 +71,12 @@ func (r *RPMOStreeCMD) Rebase(image string) error {
 
 	return utils.CreateCMDWithStdout(r.binary, "rebase", "--reboot", "ostree-unverified-registry:"+image).Run()
 }
+
+// Register upgraded as the driver for updates with rpm-ostree.
+// This will prevent the user from calling rpm-ostree directly, unless they bypass the check.
+func (r *RPMOStreeCMD) RegisterAsDriver() error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	return utils.CreateCMDWithStdout(r.binary, "deploy", "--register-driver=upgraded").Run()
+}

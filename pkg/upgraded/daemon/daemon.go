@@ -137,6 +137,11 @@ func (d *daemon) Run() error {
 		cancel()
 	}()
 
+	err := d.rpmostree.RegisterAsDriver()
+	if err != nil {
+		return fmt.Errorf("failed to register upgraded as driver for rpm-ostree: %v", err)
+	}
+
 	node, err := d.getNode()
 	if err != nil {
 		return fmt.Errorf("failed to get node status: %v", err)
