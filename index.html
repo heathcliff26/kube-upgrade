@@ -87,7 +87,7 @@
 				
 				<option value="file15">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/config.go (94.9%)</option>
 				
-				<option value="file16">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (39.2%)</option>
+				<option value="file16">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (55.8%)</option>
 				
 				<option value="file17">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/node.go (47.5%)</option>
 				
@@ -99,7 +99,7 @@
 				
 				<option value="file21">github.com/heathcliff26/kube-upgrade/pkg/upgraded/root.go (14.3%)</option>
 				
-				<option value="file22">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/rpm-ostree.go (92.0%)</option>
+				<option value="file22">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/rpm-ostree.go (92.9%)</option>
 				
 				<option value="file23">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/utils.go (100.0%)</option>
 				
@@ -1420,19 +1420,24 @@ func (d *daemon) releaseLock() <span class="cov1" title="1">{
 }
 
 // Run the main daemon loop
-func (d *daemon) Run() error <span class="cov0" title="0">{
+func (d *daemon) Run() error <span class="cov4" title="2">{
         stop := make(chan os.Signal, 1)
         signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
         ctx, cancel := context.WithCancel(context.Background())
         d.ctx = ctx
         d.cancel = cancel
-        go func() </span><span class="cov0" title="0">{
+        go func() </span><span class="cov4" title="2">{
                 &lt;-stop
                 cancel()
         }</span>()
 
-        <span class="cov0" title="0">node, err := d.getNode()
-        if err != nil </span><span class="cov0" title="0">{
+        <span class="cov4" title="2">err := d.rpmostree.RegisterAsDriver()
+        if err != nil </span><span class="cov1" title="1">{
+                return fmt.Errorf("failed to register upgraded as driver for rpm-ostree: %v", err)
+        }</span>
+
+        <span class="cov1" title="1">node, err := d.getNode()
+        if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to get node status: %v", err)
         }</span>
 
@@ -1546,7 +1551,7 @@ func (d *daemon) doNodeUpgradeWithRetry(node *corev1.Node) <span class="cov1" ti
 }
 
 // Update the node by first rebasing to a new version and then upgrading kubernetes
-func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov7" title="6">{
+func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov6" title="6">{
         d.upgrade.Lock()
         defer d.upgrade.Unlock()
 
@@ -1631,7 +1636,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov7" title
 }
 
 // Update the kube-upgrade node status annotation with the given status
-func (d *daemon) updateNodeStatus(status string) error <span class="cov7" title="6">{
+func (d *daemon) updateNodeStatus(status string) error <span class="cov6" title="6">{
         node, err := d.getNode()
         if err != nil </span><span class="cov1" title="1">{
                 return err
@@ -1649,7 +1654,7 @@ func (d *daemon) updateNodeStatus(status string) error <span class="cov7" title=
 }
 
 // Retrieve the node from the API
-func (d *daemon) getNode() (*corev1.Node, error) <span class="cov10" title="14">{
+func (d *daemon) getNode() (*corev1.Node, error) <span class="cov10" title="15">{
         return d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
 }</span>
 
@@ -2002,13 +2007,13 @@ type RPMOStreeCMD struct {
 }
 
 // Create a new wrapper for rpm-ostree
-func New(path string) (*RPMOStreeCMD, error) <span class="cov10" title="16">{
+func New(path string) (*RPMOStreeCMD, error) <span class="cov10" title="18">{
         err := utils.CheckExistsAndIsExecutable(path)
         if err != nil </span><span class="cov3" title="2">{
                 return nil, err
         }</span>
 
-        <span class="cov9" title="14">return &amp;RPMOStreeCMD{
+        <span class="cov9" title="16">return &amp;RPMOStreeCMD{
                 binary: path,
         }, nil</span>
 }
@@ -2059,6 +2064,15 @@ func (r *RPMOStreeCMD) Rebase(image string) error <span class="cov4" title="3">{
 
         return utils.CreateCMDWithStdout(r.binary, "rebase", "--reboot", "ostree-unverified-registry:"+image).Run()
 }</span>
+
+// Register upgraded as the driver for updates with rpm-ostree.
+// This will prevent the user from calling rpm-ostree directly, unless they bypass the check.
+func (r *RPMOStreeCMD) RegisterAsDriver() error <span class="cov3" title="2">{
+        r.mutex.Lock()
+        defer r.mutex.Unlock()
+
+        return utils.CreateCMDWithStdout(r.binary, "deploy", "--register-driver=upgraded").Run()
+}</span>
 </pre>
 		
 		<pre class="file" id="file23" style="display: none">package rpmostree
@@ -2096,7 +2110,7 @@ func GetMachineID() (string, error) <span class="cov2" title="2">{
 }
 
 // Create a command that writes to stdout/stderr
-func CreateCMDWithStdout(name string, arg ...string) *exec.Cmd <span class="cov6" title="7">{
+func CreateCMDWithStdout(name string, arg ...string) *exec.Cmd <span class="cov6" title="9">{
         cmd := exec.Command(name, arg...)
         cmd.Stderr = os.Stderr
         cmd.Stdout = os.Stdout
@@ -2104,15 +2118,15 @@ func CreateCMDWithStdout(name string, arg ...string) *exec.Cmd <span class="cov6
 }</span>
 
 // Check if the given file exists and is executable
-func CheckExistsAndIsExecutable(path string) error <span class="cov10" title="28">{
+func CheckExistsAndIsExecutable(path string) error <span class="cov10" title="30">{
         f, err := os.Stat(path)
         if err != nil </span><span class="cov5" title="5">{
                 return err
         }</span>
-        <span class="cov9" title="23">if f.Mode().Perm()&amp;0100 == 0 </span><span class="cov1" title="1">{
+        <span class="cov9" title="25">if f.Mode().Perm()&amp;0100 == 0 </span><span class="cov1" title="1">{
                 return fmt.Errorf("%s is not an executable", path)
         }</span>
-        <span class="cov9" title="22">return nil</span>
+        <span class="cov9" title="24">return nil</span>
 }
 </pre>
 		
