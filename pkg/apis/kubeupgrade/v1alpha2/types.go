@@ -86,7 +86,6 @@ type KubeUpgradeStatus struct {
 type UpgradedConfig struct {
 	// The container image repository for os rebases
 	// +optional
-	// +default="ghcr.io/heathcliff26/fcos-k8s"
 	// +kubebuilder:example="ghcr.io/heathcliff26/fcos-k8s"
 	Stream string `json:"stream,omitempty"`
 
@@ -96,21 +95,18 @@ type UpgradedConfig struct {
 	FleetlockURL string `json:"fleetlock-url"`
 
 	// The group to use for fleetlock
-	// +default="default"
 	// +kubebuilder:example="control-plane;compute"
 	FleetlockGroup string `json:"fleetlock-group,omitempty"`
 
 	// The interval between regular checks
 	// +optional
 	// +kubebuilder:validation:Format=go-duration
-	// +default="3h"
 	// +kubebuilder:example="3h;24h;30m"
 	CheckInterval string `json:"check-interval,omitempty"`
 
 	// The interval between retries when an operation fails
 	// +optional
 	// +kubebuilder:validation:Format=go-duration
-	// +default="5m"
 	// +kubebuilder:example="5m;1m;30s"
 	RetryInterval string `json:"retry-interval,omitempty"`
 }

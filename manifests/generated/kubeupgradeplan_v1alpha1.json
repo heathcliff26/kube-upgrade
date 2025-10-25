@@ -38,14 +38,12 @@
                 "nullable": true,
                 "properties": {
                   "check-interval": {
-                    "default": "3h",
                     "description": "The interval between regular checks",
                     "example": "3h;24h;30m",
                     "format": "duration",
                     "type": "string"
                   },
                   "fleetlock-group": {
-                    "default": "default",
                     "description": "The group to use for fleetlock",
                     "example": "control-plane;compute",
                     "type": "string"
@@ -56,14 +54,12 @@
                     "type": "string"
                   },
                   "retry-interval": {
-                    "default": "5m",
                     "description": "The interval between retries when an operation fails",
                     "example": "5m;1m;30s",
                     "format": "duration",
                     "type": "string"
                   },
                   "stream": {
-                    "default": "ghcr.io/heathcliff26/fcos-k8s",
                     "description": "The container image repository for os rebases",
                     "example": "ghcr.io/heathcliff26/fcos-k8s",
                     "type": "string"
@@ -94,14 +90,12 @@
           "nullable": true,
           "properties": {
             "check-interval": {
-              "default": "3h",
               "description": "The interval between regular checks",
               "example": "3h;24h;30m",
               "format": "duration",
               "type": "string"
             },
             "fleetlock-group": {
-              "default": "default",
               "description": "The group to use for fleetlock",
               "example": "control-plane;compute",
               "type": "string"
@@ -112,14 +106,12 @@
               "type": "string"
             },
             "retry-interval": {
-              "default": "5m",
               "description": "The interval between retries when an operation fails",
               "example": "5m;1m;30s",
               "format": "duration",
               "type": "string"
             },
             "stream": {
-              "default": "ghcr.io/heathcliff26/fcos-k8s",
               "description": "The container image repository for os rebases",
               "example": "ghcr.io/heathcliff26/fcos-k8s",
               "type": "string"

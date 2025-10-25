@@ -233,6 +233,11 @@ func TestE2E(t *testing.T) {
 			assert.Equal(api.DefaultUpgradedCheckInterval, plan.Spec.Upgraded.CheckInterval, "Should set default upgraded check-interval")
 			assert.Equal(api.DefaultUpgradedRetryInterval, plan.Spec.Upgraded.RetryInterval, "Should set default upgraded retry-interval")
 
+			assert.Empty(plan.Spec.Groups["control-plane"].Upgraded.Stream, "Should leave group upgraded stream empty")
+			assert.Equal("control-plane", plan.Spec.Groups["control-plane"].Upgraded.FleetlockGroup, "Should set fleetlock group for control-plane")
+			assert.Empty(plan.Spec.Groups["control-plane"].Upgraded.CheckInterval, "Should leave group upgraded check-interval empty")
+			assert.Empty(plan.Spec.Groups["control-plane"].Upgraded.RetryInterval, "Should leave group upgraded retry-interval empty")
+
 			return ctx
 		}).
 		Teardown(func(ctx context.Context, t *testing.T, c *envconf.Config) context.Context {
