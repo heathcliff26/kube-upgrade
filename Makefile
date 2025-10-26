@@ -7,7 +7,7 @@ default: upgraded upgrade-controller
 
 # Build the upgraded binary
 upgraded:
-	hack/build.sh upgraded
+	podman build -t $(REPOSITORY)/kube-upgraded:$(TAG) -f cmd/upgraded/Dockerfile .
 
 # Build the upgrade controller container image
 upgrade-controller:
