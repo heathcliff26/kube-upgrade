@@ -21,6 +21,9 @@ RUN GOOS=linux GOARCH="${TARGETARCH}" hack/build.sh upgraded
 # Create final docker image
 FROM quay.io/fedora/fedora:42@sha256:096a51c8e4458df9e24725c039baba598b64b33f6a6ca5d586b08463551a93bc AS final-stage
 
+# Force systemd to connect via the system dbus socket, instead of PID 1 socket
+ENV SYSTEMCTL_FORCE_BUS=1
+
 RUN dnf install -y --setopt=install_weak_deps=False \
         rpm-ostree && \
     dnf clean -y all
