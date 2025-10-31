@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
 	"strings"
 
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
@@ -78,4 +79,12 @@ func nodeNeedsUpgrade(node *corev1.Node) bool {
 		return false
 	}
 	return true
+}
+
+// Delete the specified directory if it exists
+func deleteDir(path string) error {
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		return os.RemoveAll(path)
+	}
+	return nil
 }
