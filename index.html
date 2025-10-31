@@ -89,11 +89,11 @@
 				
 				<option value="file16">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (55.8%)</option>
 				
-				<option value="file17">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/node.go (47.5%)</option>
+				<option value="file17">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/node.go (46.1%)</option>
 				
 				<option value="file18">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/stream.go (35.3%)</option>
 				
-				<option value="file19">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/utils.go (68.8%)</option>
+				<option value="file19">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/utils.go (71.4%)</option>
 				
 				<option value="file20">github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm/kubeadm.go (75.0%)</option>
 				
@@ -454,22 +454,22 @@ func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error <span class="cov
         <span class="cov9" title="16">if len(spec.Groups) &lt; 1 </span><span class="cov1" title="1">{
                 return fmt.Errorf("need at least one node group for upgrades")
         }</span>
-        <span class="cov8" title="15">for name, group := range spec.Groups </span><span class="cov9" title="21">{
+        <span class="cov8" title="15">for name, group := range spec.Groups </span><span class="cov9" title="19">{
                 for _, dependency := range group.DependsOn </span><span class="cov6" title="7">{
                         if _, ok := spec.Groups[dependency]; !ok </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" depends on non-existing group \"%s\"", name, dependency)
                         }</span>
                 }
 
-                <span class="cov9" title="20">if group.Labels == nil || (len(group.Labels.MatchExpressions) &lt; 1 &amp;&amp; len(group.Labels.MatchLabels) &lt; 1) </span><span class="cov1" title="1">{
+                <span class="cov9" title="18">if group.Labels == nil || (len(group.Labels.MatchExpressions) &lt; 1 &amp;&amp; len(group.Labels.MatchLabels) &lt; 1) </span><span class="cov1" title="1">{
                         return fmt.Errorf("group \"%s\" needs at least one label selector", name)
                 }</span>
-                <span class="cov9" title="19">_, err := metav1.LabelSelectorAsSelector(group.Labels)
+                <span class="cov9" title="17">_, err := metav1.LabelSelectorAsSelector(group.Labels)
                 if err != nil </span><span class="cov1" title="1">{
                         return fmt.Errorf("invalid label selector for group \"%s\": %v", name, err)
                 }</span>
 
-                <span class="cov9" title="18">if group.Upgraded != nil </span><span class="cov3" title="2">{
+                <span class="cov9" title="16">if group.Upgraded != nil </span><span class="cov3" title="2">{
                         err := ValidateObject_UpgradedConfig(*group.Upgraded)
                         if err != nil </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" has an invalid upgraded config: %v", name, err)
@@ -1501,7 +1501,9 @@ import (
         "sigs.k8s.io/yaml"
 )
 
-// Watch for node upgrades and preform them if necessary
+const kubernetesTMPDir = "/etc/kubernetes/tmp"
+
+// Watch for node upgrades and perform them if necessary
 func (d *daemon) watchForNodeUpgrade() <span class="cov0" title="0">{
         factory := informers.NewSharedInformerFactoryWithOptions(d.client, time.Minute, informers.WithTweakListOptions(func(opts *metav1.ListOptions) </span><span class="cov0" title="0">{
                 opts.FieldSelector = fields.SelectorFromSet(fields.Set{"metadata.name": d.node}).String()
@@ -1632,7 +1634,14 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov6" title
 
         <span class="cov0" title="0">slog.Info("Finished node upgrade, releasing lock")
         d.releaseLock()
-        return nil</span>
+
+        // Cleanup tmp directory created by kubeadm.
+        // If not deleted it may grow to large sizes over multiple upgrades.
+        err = deleteDir(kubernetesTMPDir)
+        if err != nil </span><span class="cov0" title="0">{
+                slog.Warn("Failed to delete temporary kubernetes directory", slog.String("path", kubernetesTMPDir), slog.Any("error", err))
+        }</span>
+        <span class="cov0" title="0">return nil</span>
 }
 
 // Update the kube-upgrade node status annotation with the given status
@@ -1762,6 +1771,7 @@ import (
         "context"
         "fmt"
         "log/slog"
+        "os"
         "strings"
 
         "github.com/heathcliff26/kube-upgrade/pkg/constants"
@@ -1836,6 +1846,14 @@ func nodeNeedsUpgrade(node *corev1.Node) bool <span class="cov10" title="4">{
                 return false
         }</span>
         <span class="cov1" title="1">return true</span>
+}
+
+// Delete the specified directory if it exists
+func deleteDir(path string) error <span class="cov5" title="2">{
+        if _, err := os.Stat(path); !os.IsNotExist(err) </span><span class="cov1" title="1">{
+                return os.RemoveAll(path)
+        }</span>
+        <span class="cov1" title="1">return nil</span>
 }
 </pre>
 		
