@@ -16,7 +16,9 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-// Watch for node upgrades and preform them if necessary
+const kubernetesTMPDir = "/etc/kubernetes/tmp"
+
+// Watch for node upgrades and perform them if necessary
 func (d *daemon) watchForNodeUpgrade() {
 	factory := informers.NewSharedInformerFactoryWithOptions(d.client, time.Minute, informers.WithTweakListOptions(func(opts *metav1.ListOptions) {
 		opts.FieldSelector = fields.SelectorFromSet(fields.Set{"metadata.name": d.node}).String()
@@ -147,6 +149,13 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 
 	slog.Info("Finished node upgrade, releasing lock")
 	d.releaseLock()
+
+	// Cleanup tmp directory created by kubeadm.
+	// If not deleted it may grow to large sizes over multiple upgrades.
+	err = deleteDir(kubernetesTMPDir)
+	if err != nil {
+		slog.Warn("Failed to delete temporary kubernetes directory", slog.String("path", kubernetesTMPDir), slog.Any("error", err))
+	}
 	return nil
 }
 

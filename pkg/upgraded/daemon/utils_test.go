@@ -1,10 +1,13 @@
 package daemon
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
@@ -85,4 +88,22 @@ func TestNodeNeedsUpgrade(t *testing.T) {
 			assert.Equal(t, tCase.Result, nodeNeedsUpgrade(tCase.Node), "Should return expected result")
 		})
 	}
+}
+
+func TestDeleteDir(t *testing.T) {
+	t.Run("NotExists", func(t *testing.T) {
+		assert.NoError(t, deleteDir("/not/an/existing/directory"), "Should do nothing if the directory does not exist")
+	})
+	t.Run("Exists", func(t *testing.T) {
+		require := require.New(t)
+		assert := assert.New(t)
+
+		path := t.TempDir()
+		err := os.WriteFile(filepath.Join(path, "testfile"), []byte("testdata"), 0644)
+		require.NoError(err, "Should create test file successfully")
+
+		assert.NoError(deleteDir(path), "Should delete existing directory without error")
+		_, err = os.Stat(path)
+		assert.True(os.IsNotExist(err), "Directory should be deleted")
+	})
 }
