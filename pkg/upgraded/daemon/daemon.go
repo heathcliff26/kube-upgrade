@@ -23,7 +23,7 @@ const (
 	defaultStream         = "ghcr.io/heathcliff26/fcos-k8s"
 	defaultFleetlockGroup = "default"
 	defaultCheckInterval  = 3 * time.Hour
-	defaultRetryInterval  = 5 * time.Minute
+	defaultRetryInterval  = 1 * time.Minute
 )
 
 type daemon struct {
