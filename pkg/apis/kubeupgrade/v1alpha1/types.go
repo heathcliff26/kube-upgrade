@@ -18,6 +18,7 @@ const (
 // +kubebuilder:resource:scope=Cluster,shortName=plan
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
+// +kubebuilder:deprecatedversion:warning="v1alpha1 is deprecated and will be removed in a future release. Please use v1alpha2 instead."
 type KubeUpgradePlan struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional

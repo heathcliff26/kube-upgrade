@@ -30,6 +30,9 @@ spec:
       jsonPath: .status.summary
       name: Status
       type: string
+    deprecated: true
+    deprecationWarning: v1alpha1 is deprecated and will be removed in a future release.
+      Please use v1alpha2 instead.
     name: v1alpha1
     schema:
       openAPIV3Schema:
