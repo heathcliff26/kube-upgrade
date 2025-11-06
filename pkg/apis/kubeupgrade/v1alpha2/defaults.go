@@ -7,7 +7,7 @@ const (
 	DefaultUpgradedStream         = "ghcr.io/heathcliff26/fcos-k8s"
 	DefaultUpgradedFleetlockGroup = "default"
 	DefaultUpgradedCheckInterval  = "3h"
-	DefaultUpgradedRetryInterval  = "5m"
+	DefaultUpgradedRetryInterval  = "1m"
 )
 
 func SetObjectDefaults_KubeUpgradeSpec(spec *KubeUpgradeSpec) {
@@ -25,15 +25,15 @@ func SetObjectDefaults_KubeUpgradeSpec(spec *KubeUpgradeSpec) {
 
 func SetObjectDefaults_UpgradedConfig(cfg *UpgradedConfig) {
 	if cfg.Stream == "" {
-		cfg.Stream = "ghcr.io/heathcliff26/fcos-k8s"
+		cfg.Stream = DefaultUpgradedStream
 	}
 	if cfg.FleetlockGroup == "" {
-		cfg.FleetlockGroup = "default"
+		cfg.FleetlockGroup = DefaultUpgradedFleetlockGroup
 	}
 	if cfg.CheckInterval == "" {
-		cfg.CheckInterval = "3h"
+		cfg.CheckInterval = DefaultUpgradedCheckInterval
 	}
 	if cfg.RetryInterval == "" {
-		cfg.RetryInterval = "5m"
+		cfg.RetryInterval = DefaultUpgradedRetryInterval
 	}
 }
