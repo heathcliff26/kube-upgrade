@@ -7,7 +7,7 @@ metadata:
 spec:
   kubernetesVersion: v1.34.1
   upgraded:
-    fleetlock-url: https://fleetlock.example.com
+    fleetlock-url: http://fleetlock.kube-upgrade.svc.cluster.local
   groups:
     control-plane:
       labels:

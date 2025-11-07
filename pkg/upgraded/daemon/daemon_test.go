@@ -16,6 +16,12 @@ import (
 )
 
 func TestNewDaemon(t *testing.T) {
+	oldHostPrefix := hostPrefix
+	hostPrefix = ""
+	t.Cleanup(func() {
+		hostPrefix = oldHostPrefix
+	})
+
 	tMatrix := []struct {
 		Name  string
 		CFG   config.Config

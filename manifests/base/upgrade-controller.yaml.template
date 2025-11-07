@@ -10,6 +10,8 @@ kind: ServiceAccount
 metadata:
   name: upgrade-controller
   namespace: ${KUBE_UPGRADE_NAMESPACE}
+  labels:
+    app: upgrade-controller
 ${kube_upgrade_rbac_cluster_role}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -17,6 +19,8 @@ kind: ClusterRoleBinding
 metadata:
   name: upgrade-controller
   namespace: ${KUBE_UPGRADE_NAMESPACE}
+  labels:
+    app: upgrade-controller
 subjects:
   - kind: ServiceAccount
     name: upgrade-controller
@@ -31,6 +35,8 @@ kind: Role
 metadata:
   name: upgrade-controller
   namespace: ${KUBE_UPGRADE_NAMESPACE}
+  labels:
+    app: upgrade-controller
 rules:
   - apiGroups: [""]
     resources: ["events"]
@@ -57,6 +63,8 @@ kind: Issuer
 metadata:
   name: selfsigned
   namespace: ${KUBE_UPGRADE_NAMESPACE}
+  labels:
+    app: upgrade-controller
 spec:
   selfSigned: {}
 ---
@@ -65,6 +73,8 @@ kind: Certificate
 metadata:
   name: webhook-server-cert
   namespace: ${KUBE_UPGRADE_NAMESPACE}
+  labels:
+    app: upgrade-controller
 spec:
   dnsNames:
   - upgrade-controller-webhooks.${KUBE_UPGRADE_NAMESPACE}.svc
@@ -81,16 +91,16 @@ metadata:
   name: upgrade-controller
   namespace: ${KUBE_UPGRADE_NAMESPACE}
   labels:
-    app: kube-upgrade
+    app: upgrade-controller
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: kube-upgrade
+      app: upgrade-controller
   template:
     metadata:
       labels:
-        app: kube-upgrade
+        app: upgrade-controller
     spec:
       serviceAccountName: upgrade-controller
       containers:
@@ -138,11 +148,11 @@ metadata:
   name: upgrade-controller-webhooks
   namespace: ${KUBE_UPGRADE_NAMESPACE}
   labels:
-    app: kube-upgrade
+    app: upgrade-controller
 spec:
   ports:
     - port: 443
       protocol: TCP
       targetPort: 9443
   selector:
-    app: kube-upgrade
+    app: upgrade-controller

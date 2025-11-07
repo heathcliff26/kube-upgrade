@@ -32,11 +32,11 @@ func init() {
 type Config struct {
 	// The log level used by slog, default "info"
 	LogLevel string `json:"logLevel,omitempty"`
-	// The path to the kubeconfig file, default is the kubelet config under "/etc/kubernetes/kubelet.conf"
+	// The path to the kubeconfig file on the node, default is the kubelet config under "/etc/kubernetes/kubelet.conf"
 	Kubeconfig string `json:"kubeconfig,omitempty"`
 	// The path to the rpm-ostree binary, default "/usr/bin/rpm-ostree"
 	RPMOStreePath string `json:"rpm-ostree-path,omitempty"`
-	// The path to the kubeadm binary, default "/usr/bin/kubeadm"
+	// The path to the kubeadm binary on the node, default "/usr/bin/kubeadm"
 	KubeadmPath string `json:"kubeadm-path,omitempty"`
 }
 

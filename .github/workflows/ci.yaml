@@ -90,25 +90,18 @@ jobs:
       cmd: "make e2e"
 
   build-daemon:
-    uses: heathcliff26/ci/.github/workflows/golang-build.yaml@main
+    uses: heathcliff26/ci/.github/workflows/build-container.yaml@main
+    needs:
+      - e2e
     permissions:
       contents: read
-    needs:
-      - lint
-      - unit-tests
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: amd64
-          - arch: arm64
+      packages: write
     with:
-      release: "${{ github.event_name == 'pull_request' && 'dev' || inputs.tag == '' && 'rolling' || inputs.tag }}"
-      goos: "linux"
-      goarch: "${{ matrix.arch }}"
-      artifact: "bin/upgraded-${{ matrix.arch }}"
-      artifact-name: "upgraded-${{ matrix.arch }}"
-      cmd: "hack/build.sh upgraded upgraded-${{ matrix.arch }}"
+      app: kube-upgraded
+      dockerfile: cmd/upgraded/Dockerfile
+      tag: "${{ inputs.tag == '' && 'rolling' || inputs.tag }}"
+      tags: "${{ inputs.latest == true && 'type=raw,value=latest' || '' }}"
+      dry-run: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' || inputs.dry-run == 'true' }}
     secrets: inherit
 
   build-controller:

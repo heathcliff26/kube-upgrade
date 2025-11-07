@@ -26,6 +26,10 @@ const (
 	defaultRetryInterval  = 1 * time.Minute
 )
 
+var (
+	hostPrefix = "/host"
+)
+
 type daemon struct {
 	fleetlock     *fleetlock.FleetlockClient
 	checkInterval time.Duration
@@ -60,7 +64,7 @@ func NewDaemon(cfg *config.Config) (*daemon, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create rpm-ostree cmd wrapper: %v", err)
 	}
-	kubeadmCMD, err := kubeadm.New(cfg.KubeadmPath)
+	kubeadmCMD, err := kubeadm.New(hostPrefix, cfg.KubeadmPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create kubeadm cmd wrapper: %v", err)
 	}
@@ -68,7 +72,7 @@ func NewDaemon(cfg *config.Config) (*daemon, error) {
 	if cfg.Kubeconfig == "" {
 		return nil, fmt.Errorf("no kubeconfig provided")
 	}
-	config, err := clientcmd.BuildConfigFromFlags("", cfg.Kubeconfig)
+	config, err := clientcmd.BuildConfigFromFlags("", hostPrefix+cfg.Kubeconfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read kubeconfig: %v", err)
 	}

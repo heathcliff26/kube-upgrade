@@ -86,7 +86,7 @@ func TestDoNodeUpgrade(t *testing.T) {
 				t.FailNow()
 			}
 
-			kubeadmCMD, err := kubeadm.New("testdata/fake-kubeadm.sh")
+			kubeadmCMD, err := kubeadm.New("", "testdata/fake-kubeadm.sh")
 			if !assert.NoError(err, "Failed to create kubeadm command") {
 				t.FailNow()
 			}

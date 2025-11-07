@@ -57,5 +57,5 @@ jobs:
       update: ${{ inputs.update }}
       tag: ${{ inputs.tag }}
       release-artifacts: "release/*"
-      artifacts: "{upgraded-*,manifests}"
+      artifacts: "manifests"
       prerelease: ${{ inputs.prerelease }}
