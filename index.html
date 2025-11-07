@@ -103,7 +103,7 @@
 				
 				<option value="file23">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/utils.go (100.0%)</option>
 				
-				<option value="file24">github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils/utils.go (93.3%)</option>
+				<option value="file24">github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils/utils.go (94.4%)</option>
 				
 				<option value="file25">github.com/heathcliff26/kube-upgrade/pkg/version/version.go (81.0%)</option>
 				
@@ -1120,11 +1120,11 @@ func init() <span class="cov4" title="3">{
 type Config struct {
         // The log level used by slog, default "info"
         LogLevel string `json:"logLevel,omitempty"`
-        // The path to the kubeconfig file, default is the kubelet config under "/etc/kubernetes/kubelet.conf"
+        // The path to the kubeconfig file on the node, default is the kubelet config under "/etc/kubernetes/kubelet.conf"
         Kubeconfig string `json:"kubeconfig,omitempty"`
         // The path to the rpm-ostree binary, default "/usr/bin/rpm-ostree"
         RPMOStreePath string `json:"rpm-ostree-path,omitempty"`
-        // The path to the kubeadm binary, default "/usr/bin/kubeadm"
+        // The path to the kubeadm binary on the node, default "/usr/bin/kubeadm"
         KubeadmPath string `json:"kubeadm-path,omitempty"`
 }
 
@@ -1320,6 +1320,10 @@ const (
         defaultRetryInterval  = 1 * time.Minute
 )
 
+var (
+        hostPrefix = "/host"
+)
+
 type daemon struct {
         fleetlock     *fleetlock.FleetlockClient
         checkInterval time.Duration
@@ -1354,7 +1358,7 @@ func NewDaemon(cfg *config.Config) (*daemon, error) <span class="cov7" title="5"
         if err != nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("failed to create rpm-ostree cmd wrapper: %v", err)
         }</span>
-        <span class="cov7" title="4">kubeadmCMD, err := kubeadm.New(cfg.KubeadmPath)
+        <span class="cov7" title="4">kubeadmCMD, err := kubeadm.New(hostPrefix, cfg.KubeadmPath)
         if err != nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("failed to create kubeadm cmd wrapper: %v", err)
         }</span>
@@ -1362,7 +1366,7 @@ func NewDaemon(cfg *config.Config) (*daemon, error) <span class="cov7" title="5"
         <span class="cov5" title="3">if cfg.Kubeconfig == "" </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("no kubeconfig provided")
         }</span>
-        <span class="cov4" title="2">config, err := clientcmd.BuildConfigFromFlags("", cfg.Kubeconfig)
+        <span class="cov4" title="2">config, err := clientcmd.BuildConfigFromFlags("", hostPrefix+cfg.Kubeconfig)
         if err != nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("failed to read kubeconfig: %v", err)
         }</span>
@@ -1870,19 +1874,22 @@ import (
 
 type KubeadmCMD struct {
         binary  string
+        chroot  string
         mutex   sync.Mutex
         version string
 }
 
-// Create a new wrapper for kubeadm
-func New(path string) (*KubeadmCMD, error) <span class="cov10" title="9">{
-        err := utils.CheckExistsAndIsExecutable(path)
+// Create a new wrapper for kubeadm.
+// The binary will run in the provided chroot.
+func New(chroot, path string) (*KubeadmCMD, error) <span class="cov10" title="9">{
+        err := utils.CheckExistsAndIsExecutable(chroot + path)
         if err != nil </span><span class="cov3" title="2">{
                 return nil, err
         }</span>
 
         <span class="cov8" title="7">k := &amp;KubeadmCMD{
                 binary: path,
+                chroot: chroot,
         }
 
         k.version, err = k.getVersion()
@@ -1899,7 +1906,7 @@ func (k *KubeadmCMD) Apply(version string) error <span class="cov1" title="1">{
         k.mutex.Lock()
         defer k.mutex.Unlock()
 
-        return utils.CreateCMDWithStdout(k.binary, "upgrade", "apply", "--yes", version).Run()
+        return utils.CreateChrootCMDWithStdout(k.chroot, k.binary, "upgrade", "apply", "--yes", version).Run()
 }</span>
 
 // Run kubeadm upgrade node
@@ -1907,7 +1914,7 @@ func (k *KubeadmCMD) Node() error <span class="cov0" title="0">{
         k.mutex.Lock()
         defer k.mutex.Unlock()
 
-        return utils.CreateCMDWithStdout(k.binary, "upgrade", "node").Run()
+        return utils.CreateChrootCMDWithStdout(k.chroot, k.binary, "upgrade", "node").Run()
 }</span>
 
 func (k *KubeadmCMD) Version() string <span class="cov6" title="4">{
@@ -1916,7 +1923,7 @@ func (k *KubeadmCMD) Version() string <span class="cov6" title="4">{
 
 func (k *KubeadmCMD) getVersion() (string, error) <span class="cov8" title="7">{
         // #nosec G204: Binary path is controlled by the user
-        out, err := exec.Command(k.binary, "version", "--output", "short").Output()
+        out, err := exec.Command(k.chroot+k.binary, "version", "--output", "short").Output()
         if err != nil </span><span class="cov0" title="0">{
                 return "", err
         }</span>
@@ -2115,6 +2122,7 @@ import (
         "os"
         "os/exec"
         "strings"
+        "syscall"
 )
 
 // Read the machine-id from /etc/machine-id
@@ -2132,6 +2140,15 @@ func CreateCMDWithStdout(name string, arg ...string) *exec.Cmd <span class="cov6
         cmd := exec.Command(name, arg...)
         cmd.Stderr = os.Stderr
         cmd.Stdout = os.Stdout
+        return cmd
+}</span>
+
+// Create a command that runs in a chroot and writes to stdout/stderr
+func CreateChrootCMDWithStdout(chrootPath string, name string, arg ...string) *exec.Cmd <span class="cov1" title="1">{
+        cmd := CreateCMDWithStdout(name, arg...)
+        cmd.SysProcAttr = &amp;syscall.SysProcAttr{
+                Chroot: chrootPath,
+        }
         return cmd
 }</span>
 
