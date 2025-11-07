@@ -26,9 +26,6 @@ export kube_upgrade_webhooks=$(envsubst <"${base_dir}/manifests/generated/manife
 echo "Creating upgrade-controller deployment"
 envsubst <"${base_dir}/manifests/base/upgrade-controller.yaml.template" >"${output_dir}/upgrade-controller.yaml"
 
-echo "Creating upgraded daemonset"
-envsubst <"${base_dir}/manifests/base/upgraded-daemonset.yaml.template" >"${output_dir}/upgraded-daemonset.yaml"
-
 echo "Fetching latest kubernetes version"
 # shellcheck disable=SC2155
 export kube_version_latest="$(curl -L -s https://dl.k8s.io/release/stable.txt)"

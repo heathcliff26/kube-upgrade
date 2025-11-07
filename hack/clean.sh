@@ -23,4 +23,4 @@ for file in "${files[@]}"; do
     rm "${base_dir:-.}/${file}"
 done
 
-rm -f "${base_dir:-.}"/tmp_controller_image_kube-upgrade-e2e-*.tar
+rm -f "${base_dir:-.}"/tmp_image_kube-upgrade-e2e-*.tar

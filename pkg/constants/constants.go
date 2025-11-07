@@ -27,3 +27,10 @@ const (
 	ConfigCheckInterval  = ConfigPrefix + "check-interval"
 	ConfigRetryInterval  = ConfigPrefix + "retry-interval"
 )
+
+const (
+	LabelPlanName  = BaseDomain + "plan"
+	LabelNodeGroup = BaseDomain + "group"
+)
+
+const Finalizer = BaseDomain + "finalizer"

@@ -28,7 +28,7 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	err = utils.RunCommandWithSeperatedOutput("make REPOSITORY=localhost TAG="+clusterName+" build-upgrade-controller", os.Stdout, os.Stderr)
+	err = utils.RunCommandWithSeperatedOutput("make REPOSITORY=localhost TAG="+clusterName+" build", os.Stdout, os.Stderr)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -40,9 +40,9 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	imageArchive := fmt.Sprintf("tmp_controller_image_%s.tar", clusterName)
+	imageArchive := fmt.Sprintf("tmp_image_%s.tar", clusterName)
 
-	err = utils.RunCommandWithSeperatedOutput(fmt.Sprintf("podman save -o %s localhost/kube-upgrade-controller:%s", imageArchive, clusterName), os.Stdout, os.Stderr)
+	err = utils.RunCommandWithSeperatedOutput(fmt.Sprintf("podman save -o %s localhost/kube-upgrade-controller:%s localhost/kube-upgraded:%s", imageArchive, clusterName, clusterName), os.Stdout, os.Stderr)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
