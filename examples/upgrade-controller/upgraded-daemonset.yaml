@@ -1,0 +1,57 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: upgraded
+  namespace: kube-upgrade
+  labels:
+    app: upgraded
+spec:
+  selector:
+    matchLabels:
+      app: upgraded
+  template:
+    metadata:
+      labels:
+        app: upgraded
+    spec:
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+          effect: NoSchedule
+      hostPID: true
+      volumes:
+        - name: host-run
+          hostPath:
+            path: /run
+        - name: rootfs
+          hostPath:
+            path: /
+        - name: kubelet-pki
+          hostPath:
+            path: /var/lib/kubelet/pki
+        - name: machine-id
+          hostPath:
+            path: /etc/machine-id
+      containers:
+        - name: upgraded
+          image: ghcr.io/heathcliff26/kube-upgraded:latest
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - name: host-run
+              mountPath: /run
+            - name: rootfs
+              mountPath: /host
+            - name: kubelet-pki
+              mountPath: /var/lib/kubelet/pki
+            - name: machine-id
+              mountPath: /etc/machine-id
+          securityContext:
+            privileged: true

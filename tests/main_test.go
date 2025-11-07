@@ -8,8 +8,8 @@ import (
 	"sigs.k8s.io/e2e-framework/pkg/env"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
 	"sigs.k8s.io/e2e-framework/pkg/envfuncs"
-	"sigs.k8s.io/e2e-framework/support/kind"
 	"sigs.k8s.io/e2e-framework/pkg/utils"
+	"sigs.k8s.io/e2e-framework/support/kind"
 )
 
 const namespace = "kube-upgrade"
@@ -28,7 +28,7 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	err = utils.RunCommandWithSeperatedOutput("make REPOSITORY=localhost TAG="+clusterName+" upgrade-controller", os.Stdout, os.Stderr)
+	err = utils.RunCommandWithSeperatedOutput("make REPOSITORY=localhost TAG="+clusterName+" build-upgrade-controller", os.Stdout, os.Stderr)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

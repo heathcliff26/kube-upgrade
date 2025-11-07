@@ -11,11 +11,11 @@ import (
 func TestNew(t *testing.T) {
 	assert := assert.New(t)
 
-	cmd, err := New("not-a-file")
+	cmd, err := New("", "not-a-file")
 	assert.Error(err, "Should not succeed")
 	assert.Nil(cmd, "Should not return a command")
 
-	cmd, err = New("testdata/print-args.sh")
+	cmd, err = New("", "testdata/print-args.sh")
 	assert.NoError(err, "Should succeed")
 	assert.NotNil(cmd, "Should return a command")
 	assert.Equal("version --output short", cmd.version, "Should have set the version without newline")
@@ -24,7 +24,7 @@ func TestNew(t *testing.T) {
 func TestApply(t *testing.T) {
 	assert := assert.New(t)
 
-	cmd, err := New("testdata/print-args.sh")
+	cmd, err := New("", "testdata/print-args.sh")
 	if !assert.NoError(err, "Should create a command") {
 		t.FailNow()
 	}

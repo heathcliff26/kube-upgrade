@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"syscall"
 )
 
 // Read the machine-id from /etc/machine-id
@@ -22,6 +23,15 @@ func CreateCMDWithStdout(name string, arg ...string) *exec.Cmd {
 	cmd := exec.Command(name, arg...)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
+	return cmd
+}
+
+// Create a command that runs in a chroot and writes to stdout/stderr
+func CreateChrootCMDWithStdout(chrootPath string, name string, arg ...string) *exec.Cmd {
+	cmd := CreateCMDWithStdout(name, arg...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Chroot: chrootPath,
+	}
 	return cmd
 }
 

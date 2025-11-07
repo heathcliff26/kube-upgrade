@@ -3,15 +3,27 @@ SHELL := bash
 REPOSITORY ?= ghcr.io/heathcliff26
 TAG ?= latest
 
-default: upgraded upgrade-controller
+# Build all images
+build: build-upgraded build-upgrade-controller
 
-# Build the upgraded binary
-upgraded:
-	hack/build.sh upgraded
+# Build the upgraded container image
+build-upgraded:
+	podman build -t $(REPOSITORY)/kube-upgraded:$(TAG) -f cmd/upgraded/Dockerfile .
 
 # Build the upgrade controller container image
-upgrade-controller:
+build-upgrade-controller:
 	podman build -t $(REPOSITORY)/kube-upgrade-controller:$(TAG) -f cmd/upgrade-controller/Dockerfile .
+
+# Build and push all images
+push: push-upgraded push-upgrade-controller
+
+# Build and push upgraded container image
+push-upgraded: build-upgraded
+	podman push $(REPOSITORY)/kube-upgraded:$(TAG)
+
+# Build and push upgrade controller container image
+push-upgrade-controller: build-upgrade-controller
+	podman push $(REPOSITORY)/kube-upgrade-controller:$(TAG)
 
 # Run unit-tests
 test:
@@ -80,9 +92,12 @@ help:
 	@echo "Run 'make <target>' to execute a specific target."
 
 .PHONY: \
-	default \
-	upgraded \
-	upgrade-controller \
+	build \
+	build-upgraded \
+	build-upgrade-controller \
+	push \
+	push-upgraded \
+	push-upgrade-controller \
 	test \
 	update-deps \
 	update-external-scripts \

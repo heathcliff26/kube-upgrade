@@ -11,19 +11,22 @@ import (
 
 type KubeadmCMD struct {
 	binary  string
+	chroot  string
 	mutex   sync.Mutex
 	version string
 }
 
-// Create a new wrapper for kubeadm
-func New(path string) (*KubeadmCMD, error) {
-	err := utils.CheckExistsAndIsExecutable(path)
+// Create a new wrapper for kubeadm.
+// The binary will run in the provided chroot.
+func New(chroot, path string) (*KubeadmCMD, error) {
+	err := utils.CheckExistsAndIsExecutable(chroot + path)
 	if err != nil {
 		return nil, err
 	}
 
 	k := &KubeadmCMD{
 		binary: path,
+		chroot: chroot,
 	}
 
 	k.version, err = k.getVersion()
@@ -40,7 +43,7 @@ func (k *KubeadmCMD) Apply(version string) error {
 	k.mutex.Lock()
 	defer k.mutex.Unlock()
 
-	return utils.CreateCMDWithStdout(k.binary, "upgrade", "apply", "--yes", version).Run()
+	return utils.CreateChrootCMDWithStdout(k.chroot, k.binary, "upgrade", "apply", "--yes", version).Run()
 }
 
 // Run kubeadm upgrade node
@@ -48,7 +51,7 @@ func (k *KubeadmCMD) Node() error {
 	k.mutex.Lock()
 	defer k.mutex.Unlock()
 
-	return utils.CreateCMDWithStdout(k.binary, "upgrade", "node").Run()
+	return utils.CreateChrootCMDWithStdout(k.chroot, k.binary, "upgrade", "node").Run()
 }
 
 func (k *KubeadmCMD) Version() string {
@@ -57,7 +60,7 @@ func (k *KubeadmCMD) Version() string {
 
 func (k *KubeadmCMD) getVersion() (string, error) {
 	// #nosec G204: Binary path is controlled by the user
-	out, err := exec.Command(k.binary, "version", "--output", "short").Output()
+	out, err := exec.Command(k.chroot+k.binary, "version", "--output", "short").Output()
 	if err != nil {
 		return "", err
 	}
