@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -10,14 +11,15 @@ import (
 	"github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/scheme"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 	"golang.org/x/mod/semver"
+	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	clientv1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
@@ -29,15 +31,16 @@ func init() {
 
 type controller struct {
 	client.Client
-	manager manager.Manager
-	nodes   clientv1.NodeInterface
+	manager       manager.Manager
+	client        kubernetes.Interface
+	namespace     string
+	upgradedImage string
 }
 
 // Run make generate when changing these comments
 // +kubebuilder:rbac:groups=kubeupgrade.heathcliff.eu,resources=kubeupgradeplans,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kubeupgrade.heathcliff.eu,resources=kubeupgradeplans/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups="",resources=nodes,verbs=list;update
-
 func NewController(name string) (*controller, error) {
 	config, err := rest.InClusterConfig()
 	if err != nil {
@@ -76,10 +79,17 @@ func NewController(name string) (*controller, error) {
 		return nil, err
 	}
 
+	upgradedImage := os.Getenv("UPGRADED_IMAGE")
+	if upgradedImage == "" {
+		return nil, fmt.Errorf("UPGRADED_IMAGE environment variable is not set")
+	}
+
 	return &controller{
-		manager: mgr,
-		nodes:   client.CoreV1().Nodes(),
-		Client:  mgr.GetClient(),
+		Client:        mgr.GetClient(),
+		manager:       mgr,
+		client:        client,
+		namespace:     ns,
+		upgradedImage: upgradedImage,
 	}, nil
 }
 
@@ -133,6 +143,54 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 		plan.Status.Groups = make(map[string]string, len(plan.Spec.Groups))
 	}
 
+	if controllerutil.AddFinalizer(plan, constants.Finalizer) {
+		err := c.Update(ctx, plan)
+		if err != nil {
+			return fmt.Errorf("failed to add finalizer to plan %s: %v", plan.Name, err)
+		}
+	}
+
+	daemonsList, err := c.client.AppsV1().DaemonSets(c.namespace).List(ctx, metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("%s=%s", constants.LabelPlanName, plan.Name),
+	})
+	if err != nil {
+		logger.WithValues("plan", plan.Name).Error(err, "Failed to fetch upgraded daemonsets")
+		return err
+	}
+
+	if !plan.DeletionTimestamp.IsZero() {
+		logger.WithValues("plan", plan.Name).Info("Plan is being deleted, cleaning up resources")
+		for _, daemon := range daemonsList.Items {
+			err := c.client.AppsV1().DaemonSets(c.namespace).Delete(ctx, daemon.Name, metav1.DeleteOptions{})
+			if err != nil {
+				return fmt.Errorf("failed to delete DaemonSet %s: %v", daemon.Name, err)
+			}
+			logger.WithValues("daemon", daemon.Name).Info("Deleted DaemonSet")
+		}
+		controllerutil.RemoveFinalizer(plan, constants.Finalizer)
+		err := c.Update(ctx, plan)
+		if err != nil {
+			return fmt.Errorf("failed to remove finalizer from plan %s: %v", plan.Name, err)
+		}
+		logger.WithValues("plan", plan.Name).Info("Finished cleanup of resources")
+		return nil
+	}
+
+	daemons := make(map[string]appv1.DaemonSet, len(plan.Spec.Groups))
+
+	for _, daemon := range daemonsList.Items {
+		group := daemon.Labels[constants.LabelNodeGroup]
+		if _, ok := plan.Spec.Groups[group]; ok {
+			daemons[group] = daemon
+		} else {
+			err := c.client.AppsV1().DaemonSets(c.namespace).Delete(ctx, daemon.Name, metav1.DeleteOptions{})
+			if err != nil {
+				return fmt.Errorf("failed to delete DaemonSet %s: %v", daemon.Name, err)
+			}
+			logger.WithValues("daemon", daemon.Name).Info("Deleted obsolete DaemonSet")
+		}
+	}
+
 	nodesToUpdate := make(map[string][]corev1.Node, len(plan.Spec.Groups))
 	newGroupStatus := make(map[string]string, len(plan.Spec.Groups))
 
@@ -145,7 +203,23 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 			return err
 		}
 
-		nodeList, err := c.nodes.List(ctx, metav1.ListOptions{
+		daemon, ok := daemons[name]
+		if !ok {
+			daemon = c.NewEmptyUpgradedDaemonSet(plan.Name, name)
+		}
+		daemon.Spec = c.NewUpgradedDaemonSetSpec(plan.Name, name)
+		daemon.Spec.Template.Spec.NodeSelector = cfg.Labels.MatchLabels
+		if ok {
+			_, err = c.client.AppsV1().DaemonSets(c.namespace).Update(ctx, &daemon, metav1.UpdateOptions{})
+		} else {
+			logger.WithValues("group", name, "daemon", daemon.Name).Info("Creating upgraded DaemonSet for group")
+			_, err = c.client.AppsV1().DaemonSets(c.namespace).Create(ctx, &daemon, metav1.CreateOptions{})
+		}
+		if err != nil {
+			return fmt.Errorf("failed to create/update DaemonSet %s: %v", daemon.Name, err)
+		}
+
+		nodeList, err := c.client.CoreV1().Nodes().List(ctx, metav1.ListOptions{
 			LabelSelector: selector.String(),
 		})
 		if err != nil {
@@ -178,7 +252,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 		}
 
 		for _, node := range nodes {
-			_, err := c.nodes.Update(ctx, &node, metav1.UpdateOptions{})
+			_, err := c.client.CoreV1().Nodes().Update(ctx, &node, metav1.UpdateOptions{})
 			if err != nil {
 				return fmt.Errorf("failed to update node %s: %v", node.GetName(), err)
 			}

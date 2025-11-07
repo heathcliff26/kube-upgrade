@@ -167,6 +167,22 @@ func TestE2E(t *testing.T) {
 
 			return ctx
 		}).
+		Assess("daemonsets", func(ctx context.Context, t *testing.T, c *envconf.Config) context.Context {
+			assert := assert.New(t)
+
+			daemons := &appsv1.DaemonSetList{}
+			err := c.Client().Resources().List(ctx, daemons, resources.WithLabelSelector(fmt.Sprintf("%s=%s", constants.LabelPlanName, "upgrade-plan")))
+			if err != nil || daemons.Items == nil {
+				t.Fatalf("Error while getting daemonsets: %v", err)
+			}
+
+			assert.Len(daemons.Items, 2, "Should have 2 daemonsets")
+
+			for _, ds := range daemons.Items {
+				assert.Contains(ds.Spec.Template.Spec.Containers[0].Image, "localhost/kube-upgraded:", "Daemonset should use upgraded image")
+			}
+			return ctx
+		}).
 		Teardown(func(ctx context.Context, t *testing.T, c *envconf.Config) context.Context {
 			r, err := resources.New(c.Client().RESTConfig())
 			if err != nil {
