@@ -44,11 +44,11 @@ coverprofile:
 	hack/coverprofile.sh
 
 # Run linter
-lint: golangci-lint
+lint:
 	golangci-lint run -v
 
 # Generate code and artifacts
-generate: controller-gen
+generate: tools
 	hack/generate.sh
 
 # Generate Kubernetes manifests
@@ -56,7 +56,7 @@ manifests:
 	hack/manifests.sh
 
 # Validate generated files and configurations
-validate: controller-gen
+validate:
 	hack/validate.sh
 
 # Format the codebase
@@ -75,13 +75,9 @@ gosec:
 clean:
 	hack/clean.sh
 
-# Install the golangci-lint tool
-golangci-lint:
-	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
-
-# Install the controller-gen tool
-controller-gen:
-	go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.18.0
+# Install the tools required for building the app
+tools:
+	GOBIN="$(shell pwd)/bin" go install tool
 
 # Show this help message
 help:
@@ -109,6 +105,6 @@ help:
 	fmt \
 	gosec \
 	clean \
-	controller-gen \
+	tools \
 	help \
 	$(NULL)

@@ -3,6 +3,9 @@
 set -e
 
 base_dir="$(dirname "${BASH_SOURCE[0]}" | xargs realpath)/.."
+bin_dir="${base_dir}/bin"
+
+export GOBIN="${bin_dir}"
 
 pushd "${base_dir}" >/dev/null
 
@@ -21,10 +24,8 @@ kube::codegen::gen_client \
     --boilerplate /dev/null \
     "pkg/apis"
 
-gobin="${GOBIN:-$(go env GOPATH)/bin}"
-
 echo "Generating manifests"
-"${gobin}/controller-gen" crd \
+"${bin_dir}/controller-gen" crd \
     rbac:roleName=upgrade-controller \
     webhook \
     paths="./..." \
