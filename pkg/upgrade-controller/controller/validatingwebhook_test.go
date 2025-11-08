@@ -3,10 +3,9 @@ package controller
 import (
 	"testing"
 
-	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestValidate(t *testing.T) {
@@ -15,14 +14,7 @@ func TestValidate(t *testing.T) {
 			KubernetesVersion: "v1.31.0",
 			Groups: map[string]api.KubeUpgradePlanGroup{
 				"control-plane": {
-					Labels: &metav1.LabelSelector{
-						MatchExpressions: []metav1.LabelSelectorRequirement{
-							{
-								Key:      "node-role.kubernetes.io/control-plane",
-								Operator: metav1.LabelSelectorOpExists,
-							},
-						},
-					},
+					Labels: map[string]string{labelControl: labelValue},
 				},
 			},
 			Upgraded: api.UpgradedConfig{
@@ -34,27 +26,13 @@ func TestValidate(t *testing.T) {
 	validMultipleGroups := minimumValidPlan.DeepCopy()
 	validMultipleGroups.Spec.Groups["compute"] = api.KubeUpgradePlanGroup{
 		DependsOn: []string{"control-plane"},
-		Labels: &metav1.LabelSelector{
-			MatchExpressions: []metav1.LabelSelectorRequirement{
-				{
-					Key:      "node-role.kubernetes.io/compute",
-					Operator: metav1.LabelSelectorOpExists,
-				},
-			},
-		},
+		Labels:    map[string]string{labelCompute: labelValue},
 	}
 
 	validGroupWithUpgradedConfig := minimumValidPlan.DeepCopy()
 	validGroupWithUpgradedConfig.Spec.Groups["compute"] = api.KubeUpgradePlanGroup{
 		DependsOn: []string{"control-plane"},
-		Labels: &metav1.LabelSelector{
-			MatchExpressions: []metav1.LabelSelectorRequirement{
-				{
-					Key:      "node-role.kubernetes.io/compute",
-					Operator: metav1.LabelSelectorOpExists,
-				},
-			},
-		},
+		Labels:    map[string]string{labelCompute: labelValue},
 		Upgraded: &api.UpgradedConfig{
 			FleetlockGroup: "compute",
 		},
@@ -78,14 +56,7 @@ func TestValidate(t *testing.T) {
 	invalidGroupDependsOn := minimumValidPlan.DeepCopy()
 	invalidGroupDependsOn.Spec.Groups["compute"] = api.KubeUpgradePlanGroup{
 		DependsOn: []string{"control-plane", "infra"},
-		Labels: &metav1.LabelSelector{
-			MatchExpressions: []metav1.LabelSelectorRequirement{
-				{
-					Key:      "node-role.kubernetes.io/compute",
-					Operator: metav1.LabelSelectorOpExists,
-				},
-			},
-		},
+		Labels:    map[string]string{labelCompute: labelValue},
 	}
 
 	invalidMissingGroupLabel := minimumValidPlan.DeepCopy()
@@ -93,30 +64,10 @@ func TestValidate(t *testing.T) {
 		DependsOn: []string{"control-plane"},
 	}
 
-	invalidGroupLabel := minimumValidPlan.DeepCopy()
-	invalidGroupLabel.Spec.Groups["compute"] = api.KubeUpgradePlanGroup{
-		DependsOn: []string{"control-plane"},
-		Labels: &metav1.LabelSelector{
-			MatchExpressions: []metav1.LabelSelectorRequirement{
-				{
-					Key:      "node-role.kubernetes.io/compute",
-					Operator: "InvalidOperator",
-				},
-			},
-		},
-	}
-
 	invalidGroupUpgradedConfig := minimumValidPlan.DeepCopy()
 	invalidGroupUpgradedConfig.Spec.Groups["compute"] = api.KubeUpgradePlanGroup{
 		DependsOn: []string{"control-plane"},
-		Labels: &metav1.LabelSelector{
-			MatchExpressions: []metav1.LabelSelectorRequirement{
-				{
-					Key:      "node-role.kubernetes.io/compute",
-					Operator: metav1.LabelSelectorOpExists,
-				},
-			},
-		},
+		Labels:    map[string]string{labelCompute: labelValue},
 		Upgraded: &api.UpgradedConfig{
 			FleetlockURL: "not-a-url",
 		},
@@ -191,11 +142,6 @@ func TestValidate(t *testing.T) {
 		{
 			Name:  "InvalidMissingGroupLabel",
 			Plan:  invalidMissingGroupLabel,
-			Error: true,
-		},
-		{
-			Name:  "InvalidGroupLabel",
-			Plan:  invalidGroupLabel,
 			Error: true,
 		},
 		{
@@ -274,14 +220,7 @@ func TestValidateCreate(t *testing.T) {
 			KubernetesVersion: "v1.31.0",
 			Groups: map[string]api.KubeUpgradePlanGroup{
 				"control-plane": {
-					Labels: &metav1.LabelSelector{
-						MatchExpressions: []metav1.LabelSelectorRequirement{
-							{
-								Key:      "node-role.kubernetes.io/control-plane",
-								Operator: metav1.LabelSelectorOpExists,
-							},
-						},
-					},
+					Labels: map[string]string{labelControl: labelValue},
 				},
 			},
 			Upgraded: api.UpgradedConfig{
@@ -311,14 +250,7 @@ func TestValidateUpdate(t *testing.T) {
 			KubernetesVersion: "v1.31.0",
 			Groups: map[string]api.KubeUpgradePlanGroup{
 				"control-plane": {
-					Labels: &metav1.LabelSelector{
-						MatchExpressions: []metav1.LabelSelectorRequirement{
-							{
-								Key:      "node-role.kubernetes.io/control-plane",
-								Operator: metav1.LabelSelectorOpExists,
-							},
-						},
-					},
+					Labels: map[string]string{labelControl: labelValue},
 				},
 			},
 			Upgraded: api.UpgradedConfig{

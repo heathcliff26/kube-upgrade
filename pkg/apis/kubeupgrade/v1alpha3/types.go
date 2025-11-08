@@ -1,4 +1,4 @@
-package v1alpha2
+package v1alpha3
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -19,7 +19,7 @@ const (
 // +kubebuilder:resource:scope=Cluster,shortName=plan
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-// +kubebuilder:deprecatedversion:warning="v1alpha2 is deprecated and will be removed in a future release. Please use v1alpha3 instead."
+// +kubebuilder:storageversion
 type KubeUpgradePlan struct {
 	metav1.TypeMeta `json:",inline"`
 	// +optional
@@ -64,10 +64,10 @@ type KubeUpgradePlanGroup struct {
 	// +kubebuilder:example=control-plane
 	DependsOn []string `json:"dependsOn,omitempty"`
 
-	// The label selector by which to filter for this group
+	// The labels by which to filter nodes for this group
 	// +required
 	// +kubebuilder:example="node-role.kubernetes.io/control-plane;node-role.kubernetes.io/compute"
-	Labels *metav1.LabelSelector `json:"labels"`
+	Labels map[string]string `json:"labels"`
 
 	// The configuration for all upgraded daemons in the group. Overwrites global parameters.
 	// +optional

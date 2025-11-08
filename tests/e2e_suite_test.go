@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
@@ -89,6 +89,24 @@ func TestE2E(t *testing.T) {
 				if err != nil {
 					t.Fatalf("Failed to wait for pod %s to be ready: %v", pod.GetName(), err)
 				}
+			}
+
+			return ctx
+		}).
+		Assess("node-label", func(ctx context.Context, t *testing.T, c *envconf.Config) context.Context {
+			assert := assert.New(t)
+
+			nodes := &corev1.NodeList{}
+			assert.NoError(c.Client().Resources().List(ctx, nodes), "Should list nodes without error")
+
+			for _, node := range nodes.Items {
+				if _, ok := node.GetLabels()["node-role.kubernetes.io/control-plane"]; ok {
+					node.Labels["node-role.kubernetes.io/control-plane"] = "true"
+				} else {
+					node.Labels["node-role.kubernetes.io/compute"] = "true"
+				}
+				err := c.Client().Resources().Update(ctx, &node)
+				assert.NoError(err, "Should label node %s without error", node.GetName())
 			}
 
 			return ctx

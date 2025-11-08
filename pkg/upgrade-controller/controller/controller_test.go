@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
@@ -59,27 +59,15 @@ func TestReconcile(t *testing.T) {
 					KubernetesVersion: "v1.31.0",
 					Groups: map[string]api.KubeUpgradePlanGroup{
 						groupControl: {
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelControl: labelValue,
-								},
-							},
+							Labels: map[string]string{labelControl: labelValue},
 						},
 						groupCompute: {
 							DependsOn: []string{groupControl, groupInfra},
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelCompute: labelValue,
-								},
-							},
+							Labels:    map[string]string{labelCompute: labelValue},
 						},
 						groupInfra: {
 							DependsOn: []string{groupControl},
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelInfra: labelValue,
-								},
-							},
+							Labels:    map[string]string{labelInfra: labelValue},
 						},
 					},
 				},
@@ -105,27 +93,15 @@ func TestReconcile(t *testing.T) {
 					KubernetesVersion: "v1.31.0",
 					Groups: map[string]api.KubeUpgradePlanGroup{
 						groupControl: {
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelControl: labelValue,
-								},
-							},
+							Labels: map[string]string{labelControl: labelValue},
 						},
 						groupCompute: {
 							DependsOn: []string{groupControl, groupInfra},
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelCompute: labelValue,
-								},
-							},
+							Labels:    map[string]string{labelCompute: labelValue},
 						},
 						groupInfra: {
 							DependsOn: []string{groupControl},
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelInfra: labelValue,
-								},
-							},
+							Labels:    map[string]string{labelInfra: labelValue},
 						},
 					},
 				},
@@ -167,27 +143,15 @@ func TestReconcile(t *testing.T) {
 					KubernetesVersion: "v1.31.0",
 					Groups: map[string]api.KubeUpgradePlanGroup{
 						groupControl: {
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelControl: labelValue,
-								},
-							},
+							Labels: map[string]string{labelControl: labelValue},
 						},
 						groupCompute: {
 							DependsOn: []string{groupControl, groupInfra},
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelCompute: labelValue,
-								},
-							},
+							Labels:    map[string]string{labelCompute: labelValue},
 						},
 						groupInfra: {
 							DependsOn: []string{groupControl},
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelInfra: labelValue,
-								},
-							},
+							Labels:    map[string]string{labelInfra: labelValue},
 						},
 					},
 				},
@@ -237,27 +201,15 @@ func TestReconcile(t *testing.T) {
 					KubernetesVersion: "v1.31.0",
 					Groups: map[string]api.KubeUpgradePlanGroup{
 						groupControl: {
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelControl: labelValue,
-								},
-							},
+							Labels: map[string]string{labelControl: labelValue},
 						},
 						groupCompute: {
 							DependsOn: []string{groupControl, groupInfra},
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelCompute: labelValue,
-								},
-							},
+							Labels:    map[string]string{labelCompute: labelValue},
 						},
 						groupInfra: {
 							DependsOn: []string{groupControl},
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelInfra: labelValue,
-								},
-							},
+							Labels:    map[string]string{labelInfra: labelValue},
 						},
 					},
 				},
@@ -311,19 +263,11 @@ func TestReconcile(t *testing.T) {
 					KubernetesVersion: "v1.31.0",
 					Groups: map[string]api.KubeUpgradePlanGroup{
 						groupControl: {
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelControl: labelValue,
-								},
-							},
+							Labels: map[string]string{labelControl: labelValue},
 						},
 						groupCompute: {
 							DependsOn: []string{groupControl},
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelCompute: labelValue,
-								},
-							},
+							Labels:    map[string]string{labelCompute: labelValue},
 						},
 					},
 				},
@@ -367,19 +311,11 @@ func TestReconcile(t *testing.T) {
 					KubernetesVersion: "v1.31.0",
 					Groups: map[string]api.KubeUpgradePlanGroup{
 						groupControl: {
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelControl: labelValue,
-								},
-							},
+							Labels: map[string]string{labelControl: labelValue},
 						},
 						groupCompute: {
 							DependsOn: []string{groupControl},
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelCompute: labelValue,
-								},
-							},
+							Labels:    map[string]string{labelCompute: labelValue},
 						},
 					},
 				},
@@ -423,19 +359,11 @@ func TestReconcile(t *testing.T) {
 					KubernetesVersion: "v1.31.0",
 					Groups: map[string]api.KubeUpgradePlanGroup{
 						groupControl: {
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelControl: labelValue,
-								},
-							},
+							Labels: map[string]string{labelControl: labelValue},
 						},
 						groupCompute: {
 							DependsOn: []string{groupControl},
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelCompute: labelValue,
-								},
-							},
+							Labels:    map[string]string{labelCompute: labelValue},
 						},
 					},
 				},
@@ -486,22 +414,14 @@ func TestReconcile(t *testing.T) {
 					},
 					Groups: map[string]api.KubeUpgradePlanGroup{
 						groupControl: {
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelControl: labelValue,
-								},
-							},
+							Labels: map[string]string{labelControl: labelValue},
 							Upgraded: &api.UpgradedConfig{
 								FleetlockGroup: "control-plane",
 							},
 						},
 						groupCompute: {
 							DependsOn: []string{groupControl},
-							Labels: &metav1.LabelSelector{
-								MatchLabels: map[string]string{
-									labelCompute: labelValue,
-								},
-							},
+							Labels:    map[string]string{labelCompute: labelValue},
 							Upgraded: &api.UpgradedConfig{
 								FleetlockGroup: groupCompute,
 							},
@@ -560,36 +480,15 @@ func TestReconcile(t *testing.T) {
 					KubernetesVersion: "v1.31.0",
 					Groups: map[string]api.KubeUpgradePlanGroup{
 						groupControl: {
-							Labels: &metav1.LabelSelector{
-								MatchExpressions: []metav1.LabelSelectorRequirement{
-									{
-										Key:      labelControl,
-										Operator: metav1.LabelSelectorOpExists,
-									},
-								},
-							},
+							Labels: map[string]string{labelControl: labelValue},
 						},
 						groupCompute: {
 							DependsOn: []string{groupControl, groupInfra},
-							Labels: &metav1.LabelSelector{
-								MatchExpressions: []metav1.LabelSelectorRequirement{
-									{
-										Key:      labelCompute,
-										Operator: metav1.LabelSelectorOpExists,
-									},
-								},
-							},
+							Labels:    map[string]string{labelCompute: labelValue},
 						},
 						groupInfra: {
 							DependsOn: []string{groupControl},
-							Labels: &metav1.LabelSelector{
-								MatchExpressions: []metav1.LabelSelectorRequirement{
-									{
-										Key:      labelInfra,
-										Operator: metav1.LabelSelectorOpExists,
-									},
-								},
-							},
+							Labels:    map[string]string{labelInfra: labelValue},
 						},
 					},
 				},
@@ -615,14 +514,7 @@ func TestReconcile(t *testing.T) {
 					KubernetesVersion: "v1.31.0",
 					Groups: map[string]api.KubeUpgradePlanGroup{
 						groupControl: {
-							Labels: &metav1.LabelSelector{
-								MatchExpressions: []metav1.LabelSelectorRequirement{
-									{
-										Key:      labelControl,
-										Operator: metav1.LabelSelectorOpExists,
-									},
-								},
-							},
+							Labels: map[string]string{labelControl: labelValue},
 						},
 					},
 				},
@@ -763,11 +655,7 @@ func TestReconcileUpgradedDaemonSet(t *testing.T) {
 			}
 			for _, group := range tCase.Groups {
 				plan.Spec.Groups[group] = api.KubeUpgradePlanGroup{
-					Labels: &metav1.LabelSelector{
-						MatchLabels: map[string]string{
-							"node-role.kubernetes.io/" + group: labelValue,
-						},
-					},
+					Labels: map[string]string{"node-role.kubernetes.io/" + group: labelValue},
 				}
 			}
 			c := createFakeController(t, nil, nil, nil, plan)
@@ -800,7 +688,7 @@ func TestReconcileUpgradedDaemonSet(t *testing.T) {
 				KubernetesVersion: "v1.31.0",
 				Groups: map[string]api.KubeUpgradePlanGroup{
 					groupControl: {
-						Labels: &metav1.LabelSelector{},
+						Labels: map[string]string{labelControl: labelValue},
 					},
 				},
 			},
@@ -832,7 +720,7 @@ func TestPlanFinalizer(t *testing.T) {
 			KubernetesVersion: "v1.31.0",
 			Groups: map[string]api.KubeUpgradePlanGroup{
 				groupControl: {
-					Labels: &metav1.LabelSelector{},
+					Labels: map[string]string{labelControl: labelValue},
 				},
 			},
 		},

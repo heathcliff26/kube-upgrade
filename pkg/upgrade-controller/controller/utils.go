@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 )
 
 var serviceAccountNamespaceFile = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"

@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"github.com/stretchr/testify/assert"
 )
 
