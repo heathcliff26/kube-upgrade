@@ -1,6 +1,6 @@
 ---
-# yaml-language-server: $schema=https://raw.githubusercontent.com/heathcliff26/kube-upgrade/main/manifests/generated/kubeupgradeplan_v1alpha2.json
-apiVersion: kubeupgrade.heathcliff.eu/v1alpha2
+# yaml-language-server: $schema=https://raw.githubusercontent.com/heathcliff26/kube-upgrade/main/manifests/generated/kubeupgradeplan_v1alpha3.json
+apiVersion: kubeupgrade.heathcliff.eu/v1alpha3
 kind: KubeUpgradePlan
 metadata:
   name: minimal-plan
@@ -11,8 +11,6 @@ spec:
   groups:
     control-plane:
       labels:
-        matchExpressions:
-          - key: node-role.kubernetes.io/control-plane
-            operator: Exists
+        node-role.kubernetes.io/control-plane: "true"
       upgraded:
         fleetlock-group: control-plane

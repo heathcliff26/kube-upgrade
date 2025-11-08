@@ -8,6 +8,7 @@ import (
 
 	kubeupgradev1alpha1 "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/typed/kubeupgrade/v1alpha1"
 	kubeupgradev1alpha2 "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/typed/kubeupgrade/v1alpha2"
+	kubeupgradev1alpha3 "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/typed/kubeupgrade/v1alpha3"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
@@ -17,6 +18,7 @@ type Interface interface {
 	Discovery() discovery.DiscoveryInterface
 	KubeupgradeV1alpha1() kubeupgradev1alpha1.KubeupgradeV1alpha1Interface
 	KubeupgradeV1alpha2() kubeupgradev1alpha2.KubeupgradeV1alpha2Interface
+	KubeupgradeV1alpha3() kubeupgradev1alpha3.KubeupgradeV1alpha3Interface
 }
 
 // Clientset contains the clients for groups.
@@ -24,6 +26,7 @@ type Clientset struct {
 	*discovery.DiscoveryClient
 	kubeupgradeV1alpha1 *kubeupgradev1alpha1.KubeupgradeV1alpha1Client
 	kubeupgradeV1alpha2 *kubeupgradev1alpha2.KubeupgradeV1alpha2Client
+	kubeupgradeV1alpha3 *kubeupgradev1alpha3.KubeupgradeV1alpha3Client
 }
 
 // KubeupgradeV1alpha1 retrieves the KubeupgradeV1alpha1Client
@@ -34,6 +37,11 @@ func (c *Clientset) KubeupgradeV1alpha1() kubeupgradev1alpha1.KubeupgradeV1alpha
 // KubeupgradeV1alpha2 retrieves the KubeupgradeV1alpha2Client
 func (c *Clientset) KubeupgradeV1alpha2() kubeupgradev1alpha2.KubeupgradeV1alpha2Interface {
 	return c.kubeupgradeV1alpha2
+}
+
+// KubeupgradeV1alpha3 retrieves the KubeupgradeV1alpha3Client
+func (c *Clientset) KubeupgradeV1alpha3() kubeupgradev1alpha3.KubeupgradeV1alpha3Interface {
+	return c.kubeupgradeV1alpha3
 }
 
 // Discovery retrieves the DiscoveryClient
@@ -88,6 +96,10 @@ func NewForConfigAndClient(c *rest.Config, httpClient *http.Client) (*Clientset,
 	if err != nil {
 		return nil, err
 	}
+	cs.kubeupgradeV1alpha3, err = kubeupgradev1alpha3.NewForConfigAndClient(&configShallowCopy, httpClient)
+	if err != nil {
+		return nil, err
+	}
 
 	cs.DiscoveryClient, err = discovery.NewDiscoveryClientForConfigAndClient(&configShallowCopy, httpClient)
 	if err != nil {
@@ -111,6 +123,7 @@ func New(c rest.Interface) *Clientset {
 	var cs Clientset
 	cs.kubeupgradeV1alpha1 = kubeupgradev1alpha1.New(c)
 	cs.kubeupgradeV1alpha2 = kubeupgradev1alpha2.New(c)
+	cs.kubeupgradeV1alpha3 = kubeupgradev1alpha3.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
 	return &cs

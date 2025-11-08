@@ -7,13 +7,14 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/scheme"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 	"golang.org/x/mod/semver"
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
@@ -197,18 +198,12 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 	for name, cfg := range plan.Spec.Groups {
 		upgradedCfg := combineConfig(plan.Spec.Upgraded, plan.Spec.Groups[name].Upgraded)
 
-		selector, err := metav1.LabelSelectorAsSelector(cfg.Labels)
-		if err != nil {
-			logger.WithValues("group", name).Error(err, "Failed to convert labelSelector to selector for listing nodes")
-			return err
-		}
-
 		daemon, ok := daemons[name]
 		if !ok {
 			daemon = c.NewEmptyUpgradedDaemonSet(plan.Name, name)
 		}
 		daemon.Spec = c.NewUpgradedDaemonSetSpec(plan.Name, name)
-		daemon.Spec.Template.Spec.NodeSelector = cfg.Labels.MatchLabels
+		daemon.Spec.Template.Spec.NodeSelector = cfg.Labels
 		if ok {
 			_, err = c.client.AppsV1().DaemonSets(c.namespace).Update(ctx, &daemon, metav1.UpdateOptions{})
 		} else {
@@ -220,7 +215,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 		}
 
 		nodeList, err := c.client.CoreV1().Nodes().List(ctx, metav1.ListOptions{
-			LabelSelector: selector.String(),
+			LabelSelector: labels.SelectorFromSet(cfg.Labels).String(),
 		})
 		if err != nil {
 			logger.WithValues("group", name).Error(err, "Failed to get nodes for group")

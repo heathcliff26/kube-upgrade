@@ -3,10 +3,9 @@ package controller
 import (
 	"testing"
 
-	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestDefault(t *testing.T) {
@@ -42,7 +41,7 @@ func TestDefault(t *testing.T) {
 				Spec: api.KubeUpgradeSpec{
 					Groups: map[string]api.KubeUpgradePlanGroup{
 						"control-plane": {
-							Labels: &metav1.LabelSelector{},
+							Labels: map[string]string{},
 						},
 					},
 					Upgraded: api.UpgradedConfig{
@@ -79,12 +78,12 @@ func TestDefault(t *testing.T) {
 				Spec: api.KubeUpgradeSpec{
 					Groups: map[string]api.KubeUpgradePlanGroup{
 						"control-plane": {
-							Labels:   &metav1.LabelSelector{},
+							Labels:   map[string]string{},
 							Upgraded: &api.UpgradedConfig{},
 						},
 						"compute": {
 							DependsOn: []string{"control-plane"},
-							Labels:    &metav1.LabelSelector{},
+							Labels:    map[string]string{},
 							Upgraded: &api.UpgradedConfig{
 								Stream:         "docker.io/heathcliff26/fcos-k8s",
 								FleetlockURL:   "https://fleetlock.example.com",

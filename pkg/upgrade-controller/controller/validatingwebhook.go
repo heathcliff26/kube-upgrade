@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
-// +kubebuilder:webhook:path=/validate-kubeupgrade-heathcliff-eu-v1alpha2-kubeupgradeplan,mutating=false,failurePolicy=fail,groups=kubeupgrade.heathcliff.eu,resources=kubeupgradeplans,verbs=create;update,versions=v1alpha2,name=kubeupgrade.heathcliff.eu,admissionReviewVersions=v1,sideEffects=None
+// +kubebuilder:webhook:path=/validate-kubeupgrade-heathcliff-eu-v1alpha3-kubeupgradeplan,mutating=false,failurePolicy=fail,groups=kubeupgrade.heathcliff.eu,resources=kubeupgradeplans,verbs=create;update,versions=v1alpha3,name=kubeupgrade.heathcliff.eu,admissionReviewVersions=v1,sideEffects=None
 
 // planValidatingHook validates the plan
 type planValidatingHook struct{}

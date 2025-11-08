@@ -27,7 +27,7 @@ spec:
       type: string
     deprecated: true
     deprecationWarning: v1alpha1 is deprecated and will be removed in a future release.
-      Please use v1alpha2 instead.
+      Please use v1alpha3 instead.
     name: v1alpha1
     schema:
       openAPIV3Schema:
@@ -179,6 +179,9 @@ spec:
       jsonPath: .status.summary
       name: Status
       type: string
+    deprecated: true
+    deprecationWarning: v1alpha2 is deprecated and will be removed in a future release.
+      Please use v1alpha3 instead.
     name: v1alpha2
     schema:
       openAPIV3Schema:
@@ -268,6 +271,157 @@ spec:
                           type: object
                       type: object
                       x-kubernetes-map-type: atomic
+                    upgraded:
+                      description: The configuration for all upgraded daemons in the
+                        group. Overwrites global parameters.
+                      nullable: true
+                      properties:
+                        check-interval:
+                          description: The interval between regular checks
+                          example: 3h;24h;30m
+                          format: go-duration
+                          type: string
+                        fleetlock-group:
+                          description: The group to use for fleetlock
+                          example: control-plane;compute
+                          type: string
+                        fleetlock-url:
+                          description: URL for the fleetlock server. Is required to
+                            be set globally.
+                          example: https://fleetlock.example.com
+                          type: string
+                        retry-interval:
+                          description: The interval between retries when an operation
+                            fails
+                          example: 5m;1m;30s
+                          format: go-duration
+                          type: string
+                        stream:
+                          description: The container image repository for os rebases
+                          example: ghcr.io/heathcliff26/fcos-k8s
+                          type: string
+                      type: object
+                  required:
+                  - labels
+                  type: object
+                description: |-
+                  The different groups in which the nodes will be upgraded.
+                  At minimum needs to separate control-plane from compute nodes, to ensure that control-plane nodes will be upgraded first.
+                minProperties: 1
+                type: object
+              kubernetesVersion:
+                description: |-
+                  The kubernetes version the cluster should be at.
+                  If the actual version differs, the cluster will be upgraded.
+                example: v1.31.0
+                type: string
+              upgraded:
+                description: The configuration for all upgraded daemons. Can be overwritten
+                  by group specific config.
+                properties:
+                  check-interval:
+                    description: The interval between regular checks
+                    example: 3h;24h;30m
+                    format: go-duration
+                    type: string
+                  fleetlock-group:
+                    description: The group to use for fleetlock
+                    example: control-plane;compute
+                    type: string
+                  fleetlock-url:
+                    description: URL for the fleetlock server. Is required to be set
+                      globally.
+                    example: https://fleetlock.example.com
+                    type: string
+                  retry-interval:
+                    description: The interval between retries when an operation fails
+                    example: 5m;1m;30s
+                    format: go-duration
+                    type: string
+                  stream:
+                    description: The container image repository for os rebases
+                    example: ghcr.io/heathcliff26/fcos-k8s
+                    type: string
+                type: object
+            required:
+            - groups
+            - kubernetesVersion
+            - upgraded
+            type: object
+          status:
+            properties:
+              groups:
+                additionalProperties:
+                  type: string
+                description: The current status of each group
+                type: object
+              summary:
+                description: A summary of the overall status of the cluster
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: false
+    subresources:
+      status: {}
+  - additionalPrinterColumns:
+    - description: The targeted kubernetes version
+      jsonPath: .spec.kubernetesVersion
+      name: Version
+      type: string
+    - description: A summary of the overall status of the cluster
+      jsonPath: .status.summary
+      name: Status
+      type: string
+    name: v1alpha3
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              allowDowngrade:
+                default: false
+                description: |-
+                  Allow downgrading to older kubernetes versions.
+                  Only enable if you know what you are doing.
+                type: boolean
+              groups:
+                additionalProperties:
+                  properties:
+                    dependsOn:
+                      description: |-
+                        Specify group(s) that should be upgraded first.
+                        Should be used to ensure control-plane nodes are upgraded first.
+                      example: control-plane
+                      items:
+                        type: string
+                      type: array
+                      x-kubernetes-list-type: atomic
+                    labels:
+                      additionalProperties:
+                        type: string
+                      description: The labels by which to filter nodes for this group
+                      example: node-role.kubernetes.io/control-plane;node-role.kubernetes.io/compute
+                      type: object
                     upgraded:
                       description: The configuration for all upgraded daemons in the
                         group. Overwrites global parameters.

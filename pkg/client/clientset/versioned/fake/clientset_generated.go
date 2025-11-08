@@ -9,6 +9,8 @@ import (
 	fakekubeupgradev1alpha1 "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/typed/kubeupgrade/v1alpha1/fake"
 	kubeupgradev1alpha2 "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/typed/kubeupgrade/v1alpha2"
 	fakekubeupgradev1alpha2 "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/typed/kubeupgrade/v1alpha2/fake"
+	kubeupgradev1alpha3 "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/typed/kubeupgrade/v1alpha3"
+	fakekubeupgradev1alpha3 "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/typed/kubeupgrade/v1alpha3/fake"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
@@ -119,4 +121,9 @@ func (c *Clientset) KubeupgradeV1alpha1() kubeupgradev1alpha1.KubeupgradeV1alpha
 // KubeupgradeV1alpha2 retrieves the KubeupgradeV1alpha2Client
 func (c *Clientset) KubeupgradeV1alpha2() kubeupgradev1alpha2.KubeupgradeV1alpha2Interface {
 	return &fakekubeupgradev1alpha2.FakeKubeupgradeV1alpha2{Fake: &c.Fake}
+}
+
+// KubeupgradeV1alpha3 retrieves the KubeupgradeV1alpha3Client
+func (c *Clientset) KubeupgradeV1alpha3() kubeupgradev1alpha3.KubeupgradeV1alpha3Interface {
+	return &fakekubeupgradev1alpha3.FakeKubeupgradeV1alpha3{Fake: &c.Fake}
 }

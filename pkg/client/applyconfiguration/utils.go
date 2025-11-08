@@ -5,9 +5,11 @@ package applyconfiguration
 import (
 	v1alpha1 "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
 	v1alpha2 "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
+	v1alpha3 "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	internal "github.com/heathcliff26/kube-upgrade/pkg/client/applyconfiguration/internal"
 	kubeupgradev1alpha1 "github.com/heathcliff26/kube-upgrade/pkg/client/applyconfiguration/kubeupgrade/v1alpha1"
 	kubeupgradev1alpha2 "github.com/heathcliff26/kube-upgrade/pkg/client/applyconfiguration/kubeupgrade/v1alpha2"
+	kubeupgradev1alpha3 "github.com/heathcliff26/kube-upgrade/pkg/client/applyconfiguration/kubeupgrade/v1alpha3"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	managedfields "k8s.io/apimachinery/pkg/util/managedfields"
@@ -40,6 +42,18 @@ func ForKind(kind schema.GroupVersionKind) interface{} {
 		return &kubeupgradev1alpha2.KubeUpgradeStatusApplyConfiguration{}
 	case v1alpha2.SchemeGroupVersion.WithKind("UpgradedConfig"):
 		return &kubeupgradev1alpha2.UpgradedConfigApplyConfiguration{}
+
+		// Group=kubeupgrade.heathcliff.eu, Version=v1alpha3
+	case v1alpha3.SchemeGroupVersion.WithKind("KubeUpgradePlan"):
+		return &kubeupgradev1alpha3.KubeUpgradePlanApplyConfiguration{}
+	case v1alpha3.SchemeGroupVersion.WithKind("KubeUpgradePlanGroup"):
+		return &kubeupgradev1alpha3.KubeUpgradePlanGroupApplyConfiguration{}
+	case v1alpha3.SchemeGroupVersion.WithKind("KubeUpgradeSpec"):
+		return &kubeupgradev1alpha3.KubeUpgradeSpecApplyConfiguration{}
+	case v1alpha3.SchemeGroupVersion.WithKind("KubeUpgradeStatus"):
+		return &kubeupgradev1alpha3.KubeUpgradeStatusApplyConfiguration{}
+	case v1alpha3.SchemeGroupVersion.WithKind("UpgradedConfig"):
+		return &kubeupgradev1alpha3.UpgradedConfigApplyConfiguration{}
 
 	}
 	return nil
