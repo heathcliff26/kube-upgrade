@@ -19,7 +19,7 @@ RUN GOOS=linux GOARCH="${TARGETARCH}" hack/build.sh upgraded
 ###############################################################################
 # BEGIN final-stage
 # Create final docker image
-FROM quay.io/fedora/fedora:43 AS final-stage
+FROM quay.io/fedora/fedora:44 AS final-stage
 
 # Force systemd to connect via the system dbus socket, instead of PID 1 socket
 ENV SYSTEMCTL_FORCE_BUS=1
