@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/user"
 
-	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/config"
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon"
 	"github.com/heathcliff26/kube-upgrade/pkg/version"
 
@@ -53,12 +52,6 @@ func NewUpgraded() *cobra.Command {
 }
 
 func run(cfgPath string) {
-	cfg, err := config.LoadConfig(cfgPath)
-	if err != nil {
-		slog.Error("Failed to load config file", "err", err, slog.String("path", cfgPath))
-		os.Exit(1)
-	}
-
 	u, err := user.Current()
 	if err != nil {
 		slog.Error("Failed to check if running as root", "err", err)
@@ -69,7 +62,7 @@ func run(cfgPath string) {
 		os.Exit(1)
 	}
 
-	d, err := daemon.NewDaemon(cfg)
+	d, err := daemon.NewDaemon(cfgPath)
 	if err != nil {
 		slog.Error("Failed to create a new daemon", "err", err)
 		os.Exit(1)

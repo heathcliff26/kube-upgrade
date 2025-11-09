@@ -38,5 +38,5 @@ echo "Wrote manifests to ${output_dir}"
 
 if [ "${TAG}" == "latest" ]; then
     echo "Tag is latest, syncing manifests with examples"
-    cp "${output_dir}"/*.yaml "${base_dir}/examples/upgrade-controller/"
+    cp "${output_dir}"/*.yaml "${base_dir}/examples/"
 fi

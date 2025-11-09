@@ -3,82 +3,104 @@ package daemon
 import (
 	"fmt"
 	"log/slog"
+	"path/filepath"
 	"time"
 
-	"github.com/heathcliff26/kube-upgrade/pkg/constants"
+	"github.com/fsnotify/fsnotify"
+	fleetlock "github.com/heathcliff26/fleetlock/pkg/client"
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
+	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/config"
 )
 
-// Update the daemon configuration based on the annotations of the node.
-// Returns on the first error, but will change all configs before that.
-func (d *daemon) UpdateConfigFromNode() error {
-	node, err := d.getNode()
+// Reload the daemon configuration from it's config file
+func (d *daemon) UpdateFromConfigFile() error {
+	slog.Info("Attempting to update daemon configuration from config file", slog.String("path", d.cfgPath))
+
+	cfg, err := config.LoadConfig(d.cfgPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load config from file: %v", err)
 	}
-	return d.UpdateConfigFromAnnotations(node.GetAnnotations())
+
+	return d.updateFromConfig(cfg)
 }
 
-// Update the daemon configuration from the given annotations.
-// Returns on the first error, but will change all configs before that.
-func (d *daemon) UpdateConfigFromAnnotations(annotations map[string]string) error {
-	for key, value := range annotations {
-		switch key {
-		case constants.ConfigStream:
-			if value == "" {
-				return fmt.Errorf("stream annotation %s is empty", constants.ConfigStream)
+// Update the daemon configuration from the provided config object.
+// Ensures that no changes will be made if there are errors in the config.
+func (d *daemon) updateFromConfig(cfg *api.UpgradedConfig) error {
+	checkInterval, err := time.ParseDuration(cfg.CheckInterval)
+	if err != nil {
+		return fmt.Errorf("failed to parse check interval \"%s\": %v", cfg.CheckInterval, err)
+	}
+	retryInterval, err := time.ParseDuration(cfg.RetryInterval)
+	if err != nil {
+		return fmt.Errorf("failed to parse retry interval \"%s\": %v", cfg.RetryInterval, err)
+	}
+
+	fleetlockClient, err := fleetlock.NewClient(cfg.FleetlockURL, cfg.FleetlockGroup)
+	if err != nil {
+		return fmt.Errorf("failed to create fleetlock client with url '%s' and group '%s': %v", cfg.FleetlockURL, cfg.FleetlockGroup, err)
+	}
+
+	d.Lock()
+	defer d.Unlock()
+
+	d.stream = cfg.Stream
+	d.fleetlock = fleetlockClient
+	d.checkInterval = checkInterval
+	d.retryInterval = retryInterval
+
+	slog.Info("Finished updating configuration")
+	return nil
+}
+
+// Create a new config file watcher that needs to be closed when done
+func (d *daemon) NewConfigFileWatcher() error {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return fmt.Errorf("failed to create config file watcher: %v", err)
+	}
+
+	// Need to watch the directory instead of the file, as kubernetes uses symbolic links
+	err = watcher.Add(filepath.Dir(d.cfgPath))
+	if err != nil {
+		return fmt.Errorf("failed to add config file to watcher: %v", err)
+	}
+
+	d.configWatcher = watcher
+	return nil
+}
+
+func (d *daemon) WatchConfigFile() {
+	slog.Info("Started watching the config file for changes", slog.String("path", d.cfgPath))
+
+	for {
+		select {
+		case event, ok := <-d.configWatcher.Events:
+			if !ok {
+				slog.Info("Config file watcher events channel closed")
+				return
 			}
-			if d.stream != value {
-				slog.Info("Updated stream configuration from node annotation", slog.String("annotation", constants.ConfigStream), slog.String("value", value))
-				d.stream = value
-			}
-		case constants.ConfigFleetlockURL:
-			if d.fleetlock.GetURL() != value {
-				slog.Info("Updating fleetlock url from node annotation", slog.String("annotation", constants.ConfigFleetlockURL), slog.String("value", value))
-			} else {
+			// Ignore chmod, rename and remove events, they are not relevant
+			if event.Has(fsnotify.Chmod | fsnotify.Rename | fsnotify.Remove) {
 				continue
 			}
-
-			err := d.fleetlock.SetURL(value)
-			if err != nil {
-				return fmt.Errorf("failed to update fleetlock url to \"%s\": %v", value, err)
+			slog.Debug("Received event on config file directory", slog.String("Op", event.Op.String()), slog.String("name", event.Name))
+			// Check if the event is for our config file or the ..data symlink
+			if event.Name == d.cfgPath || event.Name == filepath.Join(filepath.Dir(d.cfgPath), "..data") {
+				err := d.UpdateFromConfigFile()
+				if err != nil {
+					slog.Error("Failed to update configuration from config file", slog.String("path", d.cfgPath), slog.String("error", err.Error()))
+				}
 			}
-		case constants.ConfigFleetlockGroup:
-			if d.fleetlock.GetGroup() != value {
-				slog.Info("Updating fleetlock group from node annotation", slog.String("annotation", constants.ConfigFleetlockGroup), slog.String("value", value))
-			} else {
-				continue
+		case err, ok := <-d.configWatcher.Errors:
+			if !ok {
+				slog.Info("Config file watcher errors channel closed")
+				return
 			}
-
-			err := d.fleetlock.SetGroup(value)
-			if err != nil {
-				return fmt.Errorf("failed to update fleetlock group to \"%s\": %v", value, err)
-			}
-		case constants.ConfigCheckInterval:
-			interval, err := time.ParseDuration(value)
-			if err != nil {
-				return fmt.Errorf("failed to parse \"%s\" as duration: %v", value, err)
-			}
-			if d.checkInterval != interval {
-				slog.Info("Updated check interval from node annotation", slog.String("annotation", constants.ConfigStream), slog.String("value", value))
-				d.checkInterval = interval
-			}
-		case constants.ConfigRetryInterval:
-			interval, err := time.ParseDuration(value)
-			if err != nil {
-				return fmt.Errorf("failed to parse \"%s\" as duration: %v", value, err)
-			}
-			if d.retryInterval != interval {
-				slog.Info("Updated retry interval from node annotation", slog.String("annotation", constants.ConfigStream), slog.String("value", value))
-				d.retryInterval = interval
-			}
-		default:
-			continue
+			slog.Error("Error watching config file", slog.String("path", d.cfgPath), slog.String("error", err.Error()))
+		case <-d.ctx.Done():
+			// Daemon is stopping
+			return
 		}
 	}
-
-	if d.fleetlock.GetURL() == "" {
-		return fmt.Errorf("missing fleetlock server url")
-	}
-
-	return nil
 }

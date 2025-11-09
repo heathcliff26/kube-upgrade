@@ -10,6 +10,9 @@ type UpgradedConfigApplyConfiguration struct {
 	FleetlockGroup *string `json:"fleetlock-group,omitempty"`
 	CheckInterval  *string `json:"check-interval,omitempty"`
 	RetryInterval  *string `json:"retry-interval,omitempty"`
+	LogLevel       *string `json:"logLevel,omitempty"`
+	KubeletConfig  *string `json:"kubelet-config,omitempty"`
+	KubeadmPath    *string `json:"kubeadm-path,omitempty"`
 }
 
 // UpgradedConfigApplyConfiguration constructs a declarative configuration of the UpgradedConfig type for use with
@@ -55,5 +58,29 @@ func (b *UpgradedConfigApplyConfiguration) WithCheckInterval(value string) *Upgr
 // If called multiple times, the RetryInterval field is set to the value of the last call.
 func (b *UpgradedConfigApplyConfiguration) WithRetryInterval(value string) *UpgradedConfigApplyConfiguration {
 	b.RetryInterval = &value
+	return b
+}
+
+// WithLogLevel sets the LogLevel field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the LogLevel field is set to the value of the last call.
+func (b *UpgradedConfigApplyConfiguration) WithLogLevel(value string) *UpgradedConfigApplyConfiguration {
+	b.LogLevel = &value
+	return b
+}
+
+// WithKubeletConfig sets the KubeletConfig field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the KubeletConfig field is set to the value of the last call.
+func (b *UpgradedConfigApplyConfiguration) WithKubeletConfig(value string) *UpgradedConfigApplyConfiguration {
+	b.KubeletConfig = &value
+	return b
+}
+
+// WithKubeadmPath sets the KubeadmPath field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the KubeadmPath field is set to the value of the last call.
+func (b *UpgradedConfigApplyConfiguration) WithKubeadmPath(value string) *UpgradedConfigApplyConfiguration {
+	b.KubeadmPath = &value
 	return b
 }

@@ -6,6 +6,9 @@ const (
 	DefaultUpgradedFleetlockGroup = "default"
 	DefaultUpgradedCheckInterval  = "3h"
 	DefaultUpgradedRetryInterval  = "1m"
+	DefaultUpgradedLogLevel       = "info"
+	DefaultUpgradedKubeletConfig  = "/etc/kubernetes/kubelet.conf"
+	DefaultUpgradedKubeadmPath    = "/usr/bin/kubeadm"
 )
 
 func SetObjectDefaults_KubeUpgradeSpec(spec *KubeUpgradeSpec) {
@@ -33,5 +36,14 @@ func SetObjectDefaults_UpgradedConfig(cfg *UpgradedConfig) {
 	}
 	if cfg.RetryInterval == "" {
 		cfg.RetryInterval = DefaultUpgradedRetryInterval
+	}
+	if cfg.LogLevel == "" {
+		cfg.LogLevel = DefaultUpgradedLogLevel
+	}
+	if cfg.KubeletConfig == "" {
+		cfg.KubeletConfig = DefaultUpgradedKubeletConfig
+	}
+	if cfg.KubeadmPath == "" {
+		cfg.KubeadmPath = DefaultUpgradedKubeadmPath
 	}
 }

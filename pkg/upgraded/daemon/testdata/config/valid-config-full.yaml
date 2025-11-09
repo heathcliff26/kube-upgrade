@@ -1,0 +1,8 @@
+---
+stream: "registry.example.com/fcos-k8s"
+fleetlock-url: "https://fleetlock.example.com"
+fleetlock-group: "compute"
+check-interval: "10m"
+retry-interval: "2m"
+kubelet-config: "testdata/kubeconfig"
+kubeadm-path: "testdata/exit-0.sh"

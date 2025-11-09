@@ -58,6 +58,27 @@
                     "example": "https://fleetlock.example.com",
                     "type": "string"
                   },
+                  "kubeadm-path": {
+                    "description": "The path to the kubeadm binary on the node",
+                    "example": "/usr/bin/kubeadm",
+                    "type": "string"
+                  },
+                  "kubelet-config": {
+                    "description": "The path to the kubelet config file on the node",
+                    "example": "/etc/kubernetes/kubelet.conf",
+                    "type": "string"
+                  },
+                  "logLevel": {
+                    "description": "The log level used by slog, default \"info\"",
+                    "enum": [
+                      "debug",
+                      "info",
+                      "warn",
+                      "error"
+                    ],
+                    "example": "debug;info;warn;error",
+                    "type": "string"
+                  },
                   "retry-interval": {
                     "description": "The interval between retries when an operation fails",
                     "example": "5m;1m;30s",
@@ -106,6 +127,27 @@
             "fleetlock-url": {
               "description": "URL for the fleetlock server. Is required to be set globally.",
               "example": "https://fleetlock.example.com",
+              "type": "string"
+            },
+            "kubeadm-path": {
+              "description": "The path to the kubeadm binary on the node",
+              "example": "/usr/bin/kubeadm",
+              "type": "string"
+            },
+            "kubelet-config": {
+              "description": "The path to the kubelet config file on the node",
+              "example": "/etc/kubernetes/kubelet.conf",
+              "type": "string"
+            },
+            "logLevel": {
+              "description": "The log level used by slog, default \"info\"",
+              "enum": [
+                "debug",
+                "info",
+                "warn",
+                "error"
+              ],
+              "example": "debug;info;warn;error",
               "type": "string"
             },
             "retry-interval": {

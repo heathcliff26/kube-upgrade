@@ -1,0 +1,6 @@
+---
+stream: "ghcr.io/heathcliff26/fcos-k8s"
+fleetlock-url: "https://fleetlock.example.com"
+fleetlock-group: "default"
+kubelet-config: "not-a-file"
+kubeadm-path: "testdata/exit-0.sh"

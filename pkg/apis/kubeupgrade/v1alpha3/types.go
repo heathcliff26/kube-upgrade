@@ -109,6 +109,22 @@ type UpgradedConfig struct {
 	// +kubebuilder:validation:Format=go-duration
 	// +kubebuilder:example="5m;1m;30s"
 	RetryInterval string `json:"retry-interval,omitempty"`
+
+	// The log level used by slog, default "info"
+	// +optional
+	// +kubebuilder:validation:Enum=debug;info;warn;error
+	// +kubebuilder:example="debug;info;warn;error"
+	LogLevel string `json:"logLevel,omitempty"`
+
+	// The path to the kubelet config file on the node
+	// +optional
+	// +kubebuilder:example="/etc/kubernetes/kubelet.conf"
+	KubeletConfig string `json:"kubelet-config,omitempty"`
+
+	// The path to the kubeadm binary on the node
+	// +optional
+	// +kubebuilder:example="/usr/bin/kubeadm"
+	KubeadmPath string `json:"kubeadm-path,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

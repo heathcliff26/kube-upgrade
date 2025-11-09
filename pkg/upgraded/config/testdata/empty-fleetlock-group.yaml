@@ -1,3 +1,4 @@
 ---
 fleetlock-url: "https://fleetlock.example.com"
-logLevel: not-a-log-level
+logLevel: debug
+fleetlock-group: ""

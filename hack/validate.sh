@@ -42,7 +42,7 @@ export TAG="latest"
 export RELEASE_VERSION=""
 "${script_dir}/manifests.sh"
 
-git update-index --refresh || echo "examples/upgrade-controller/upgrade-cr.yaml might only have a kubernetes version update, which will be ignored"
+git update-index --refresh || echo "examples/upgrade-cr.yaml might only have a kubernetes version update, which will be ignored"
 rc=0
 git diff-index -I "kubernetesVersion: v1.*" --quiet HEAD -- || rc=1
 if [ $rc -ne 0 ]; then
@@ -51,7 +51,7 @@ if [ $rc -ne 0 ]; then
 fi
 
 # Ensure an updated kubernetes version is not detected as a problem further down.
-git checkout examples/upgrade-controller/upgrade-cr.yaml
+git checkout examples/upgrade-cr.yaml
 
 echo "Check if the generated example plan is conform"
-"${bin_dir}/kubeconform" -schema-location manifests/generated/kubeupgradeplan_v1alpha3.json -verbose -strict examples/upgrade-controller/upgrade-cr.yaml
+"${bin_dir}/kubeconform" -schema-location manifests/generated/kubeupgradeplan_v1alpha3.json -verbose -strict examples/upgrade-cr.yaml

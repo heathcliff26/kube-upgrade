@@ -69,8 +69,8 @@ func (d *daemon) doNodeUpgradeWithRetry(node *corev1.Node) {
 
 // Update the node by first rebasing to a new version and then upgrading kubernetes
 func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
-	d.upgrade.Lock()
-	defer d.upgrade.Unlock()
+	d.Lock()
+	defer d.Unlock()
 
 	var err error
 	if node == nil {
@@ -82,11 +82,6 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 		if !nodeNeedsUpgrade(node) {
 			return nil
 		}
-	}
-
-	err = d.UpdateConfigFromAnnotations(node.GetAnnotations())
-	if err != nil {
-		return d.returnNodeUpgradeError(fmt.Errorf("failed to update daemon config from node annotations: %v", err))
 	}
 
 	version := node.Annotations[constants.NodeKubernetesVersion]
@@ -147,15 +142,15 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 		return fmt.Errorf("failed to update node status: %v", err)
 	}
 
-	slog.Info("Finished node upgrade, releasing lock")
-	d.releaseLock()
-
 	// Cleanup tmp directory created by kubeadm.
 	// If not deleted it may grow to large sizes over multiple upgrades.
 	err = deleteDir(kubernetesTMPDir)
 	if err != nil {
 		slog.Warn("Failed to delete temporary kubernetes directory", slog.String("path", kubernetesTMPDir), slog.Any("error", err))
 	}
+
+	slog.Info("Finished node upgrade, releasing lock")
+	d.releaseLock()
 	return nil
 }
 

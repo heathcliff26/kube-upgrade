@@ -4,12 +4,14 @@ import (
 	"log/slog"
 	"testing"
 
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestValidConfig(t *testing.T) {
 	c := DefaultConfig()
 	c.LogLevel = "debug"
+	c.FleetlockURL = "https://fleetlock.example.com"
 
 	res, err := LoadConfig("testdata/valid-config.yaml")
 
@@ -39,7 +41,7 @@ func TestSetLogLevel(t *testing.T) {
 		{"Unknown", 0, &ErrUnknownLogLevel{"Unknown"}},
 	}
 	t.Cleanup(func() {
-		err := setLogLevel(DEFAULT_LOG_LEVEL)
+		err := setLogLevel(api.DefaultUpgradedLogLevel)
 		if err != nil {
 			t.Fatalf("Failed to cleanup after test: %v", err)
 		}
@@ -66,44 +68,43 @@ func TestDefaultConfig(t *testing.T) {
 
 	assert := assert.New(t)
 
-	assert.Equal(DEFAULT_LOG_LEVEL, c.LogLevel)
-	assert.Equal(DEFAULT_KUBECONFIG, c.Kubeconfig)
-	assert.Equal(DEFAULT_RPM_OSTREE_PATH, c.RPMOStreePath)
-	assert.Equal(DEFAULT_KUBEADM_PATH, c.KubeadmPath)
+	assert.Equal(api.DefaultUpgradedStream, c.Stream)
+	assert.Equal(api.DefaultUpgradedFleetlockGroup, c.FleetlockGroup)
+	assert.Equal(api.DefaultUpgradedCheckInterval, c.CheckInterval)
+	assert.Equal(api.DefaultUpgradedRetryInterval, c.RetryInterval)
+	assert.Equal(api.DefaultUpgradedLogLevel, c.LogLevel)
+	assert.Equal(api.DefaultUpgradedKubeletConfig, c.KubeletConfig)
+	assert.Equal(api.DefaultUpgradedKubeadmPath, c.KubeadmPath)
 }
 
-func TestInvalidConfigs(t *testing.T) {
-	cfg, err := LoadConfig("testdata/invalid-log-level.yaml")
+func TestLoadConfigError(t *testing.T) {
+	tMatrix := map[string]string{
+		"WrongFile":              "testdata/not-yaml.txt",
+		"EmptyConfigFile":        "testdata/empty-file.yaml",
+		"ConfigFileDoesNotExist": "not-a-file",
+		"EmptyStream":            "testdata/empty-stream.yaml",
+		"MissingFleetlockURL":    "testdata/missing-fleetlock-url.yaml",
+		"EmptyFleetlockGroup":    "testdata/empty-fleetlock-group.yaml",
+		"EmptyKubeadmPath":       "testdata/empty-kubeadm-path.yaml",
+		"EmptyKubeletConfig":     "testdata/empty-kubelet-config.yaml",
+	}
 
-	assert := assert.New(t)
+	for name, path := range tMatrix {
+		t.Run(name, func(t *testing.T) {
+			c, err := LoadConfig(path)
 
-	assert.Nil(cfg)
-	assert.Equal(NewErrUnknownLogLevel("not-a-log-level"), err)
-}
+			assert := assert.New(t)
 
-func TestWrongFile(t *testing.T) {
-	cfg, err := LoadConfig("testdata/not-yaml.txt")
+			assert.Error(err)
+			assert.Nil(c)
+		})
+	}
+	t.Run("InvalidLogLevel", func(t *testing.T) {
+		cfg, err := LoadConfig("testdata/invalid-log-level.yaml")
 
-	assert := assert.New(t)
+		assert := assert.New(t)
 
-	assert.Nil(cfg)
-	assert.Error(err)
-}
-
-func TestDefaultConfigPath(t *testing.T) {
-	c, err := LoadConfig("")
-
-	assert := assert.New(t)
-
-	assert.NoError(err)
-	assert.Equal(DefaultConfig(), c)
-}
-
-func TestConfigFileDoesNotExist(t *testing.T) {
-	c, err := LoadConfig("not-a-file")
-
-	assert := assert.New(t)
-
-	assert.Error(err)
-	assert.Nil(c)
+		assert.Nil(cfg)
+		assert.Equal(NewErrUnknownLogLevel("not-a-log-level"), err)
+	})
 }

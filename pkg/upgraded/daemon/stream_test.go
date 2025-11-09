@@ -47,7 +47,7 @@ func TestDoUpgrade(t *testing.T) {
 
 		err = d.doUpgrade()
 
-		assert.ErrorContains(err, "failed to aquire lock:")
+		assert.ErrorContains(err, "failed to acquire lock:")
 	})
 	t.Run("FailedOstreeUpgrade", func(t *testing.T) {
 		assert := assert.New(t)
