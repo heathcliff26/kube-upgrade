@@ -7,17 +7,17 @@ metadata:
 spec:
   kubernetesVersion: ${kube_version_latest}
   upgraded:
-    fleetlock-url: http://fleetlock.kube-upgrade.svc.cluster.local
+    fleetlockUrl: http://fleetlock.kube-upgrade.svc.cluster.local
   groups:
     control-plane:
       labels:
         node-role.kubernetes.io/control-plane: "true"
       upgraded:
-        fleetlock-group: control-plane
+        fleetlockGroup: control-plane
     compute:
       dependsOn:
         - control-plane
       labels:
         node-role.kubernetes.io/compute: "true"
       upgraded:
-        fleetlock-group: compute
+        fleetlockGroup: compute

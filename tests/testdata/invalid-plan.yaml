@@ -7,10 +7,10 @@ metadata:
 spec:
   kubernetesVersion: "v1.30.0"
   upgraded:
-    fleetlock-url: ""
+    fleetlockUrl: ""
   groups:
     control-plane:
       labels:
         node-role.kubernetes.io/control-plane: "true"
       upgraded:
-        fleetlock-group: control-plane
+        fleetlockGroup: control-plane

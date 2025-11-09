@@ -6,13 +6,13 @@ package v1alpha3
 // with apply.
 type UpgradedConfigApplyConfiguration struct {
 	Stream         *string `json:"stream,omitempty"`
-	FleetlockURL   *string `json:"fleetlock-url,omitempty"`
-	FleetlockGroup *string `json:"fleetlock-group,omitempty"`
-	CheckInterval  *string `json:"check-interval,omitempty"`
-	RetryInterval  *string `json:"retry-interval,omitempty"`
+	FleetlockURL   *string `json:"fleetlockUrl,omitempty"`
+	FleetlockGroup *string `json:"fleetlockGroup,omitempty"`
+	CheckInterval  *string `json:"checkInterval,omitempty"`
+	RetryInterval  *string `json:"retryInterval,omitempty"`
 	LogLevel       *string `json:"logLevel,omitempty"`
-	KubeletConfig  *string `json:"kubelet-config,omitempty"`
-	KubeadmPath    *string `json:"kubeadm-path,omitempty"`
+	KubeletConfig  *string `json:"kubeletConfig,omitempty"`
+	KubeadmPath    *string `json:"kubeadmPath,omitempty"`
 }
 
 // UpgradedConfigApplyConfiguration constructs a declarative configuration of the UpgradedConfig type for use with

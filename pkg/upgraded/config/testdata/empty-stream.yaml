@@ -1,4 +1,4 @@
 ---
-fleetlock-url: "https://fleetlock.example.com"
+fleetlockUrl: "https://fleetlock.example.com"
 logLevel: debug
 stream: ""

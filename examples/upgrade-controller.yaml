@@ -432,25 +432,25 @@ spec:
                         group. Overwrites global parameters.
                       nullable: true
                       properties:
-                        check-interval:
+                        checkInterval:
                           description: The interval between regular checks
                           example: 3h;24h;30m
                           format: go-duration
                           type: string
-                        fleetlock-group:
+                        fleetlockGroup:
                           description: The group to use for fleetlock
                           example: control-plane;compute
                           type: string
-                        fleetlock-url:
+                        fleetlockUrl:
                           description: URL for the fleetlock server. Is required to
                             be set globally.
                           example: https://fleetlock.example.com
                           type: string
-                        kubeadm-path:
+                        kubeadmPath:
                           description: The path to the kubeadm binary on the node
                           example: /usr/bin/kubeadm
                           type: string
-                        kubelet-config:
+                        kubeletConfig:
                           description: The path to the kubelet config file on the
                             node
                           example: /etc/kubernetes/kubelet.conf
@@ -464,7 +464,7 @@ spec:
                           - error
                           example: debug;info;warn;error
                           type: string
-                        retry-interval:
+                        retryInterval:
                           description: The interval between retries when an operation
                             fails
                           example: 5m;1m;30s
@@ -493,25 +493,25 @@ spec:
                 description: The configuration for all upgraded daemons. Can be overwritten
                   by group specific config.
                 properties:
-                  check-interval:
+                  checkInterval:
                     description: The interval between regular checks
                     example: 3h;24h;30m
                     format: go-duration
                     type: string
-                  fleetlock-group:
+                  fleetlockGroup:
                     description: The group to use for fleetlock
                     example: control-plane;compute
                     type: string
-                  fleetlock-url:
+                  fleetlockUrl:
                     description: URL for the fleetlock server. Is required to be set
                       globally.
                     example: https://fleetlock.example.com
                     type: string
-                  kubeadm-path:
+                  kubeadmPath:
                     description: The path to the kubeadm binary on the node
                     example: /usr/bin/kubeadm
                     type: string
-                  kubelet-config:
+                  kubeletConfig:
                     description: The path to the kubelet config file on the node
                     example: /etc/kubernetes/kubelet.conf
                     type: string
@@ -524,7 +524,7 @@ spec:
                     - error
                     example: debug;info;warn;error
                     type: string
-                  retry-interval:
+                  retryInterval:
                     description: The interval between retries when an operation fails
                     example: 5m;1m;30s
                     format: go-duration

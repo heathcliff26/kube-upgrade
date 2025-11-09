@@ -20,6 +20,7 @@ const (
 	NodeUpgradeStatusError     = "error"
 )
 
+// TODO: Remove when removing migration code in v0.7.0
 const (
 	ConfigStream         = ConfigPrefix + "stream"
 	ConfigFleetlockURL   = ConfigPrefix + "fleetlock-url"

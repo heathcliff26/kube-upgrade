@@ -1,6 +1,6 @@
 ---
 stream: "ghcr.io/heathcliff26/fcos-k8s"
-fleetlock-url: "https://fleetlock.example.com"
-fleetlock-group: "default"
-kubelet-config: "testdata/kubeconfig"
-kubeadm-path: "not-a-file"
+fleetlockUrl: "https://fleetlock.example.com"
+fleetlockGroup: "default"
+kubeletConfig: "testdata/kubeconfig"
+kubeadmPath: "not-a-file"

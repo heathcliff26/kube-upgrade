@@ -40,7 +40,7 @@ func TestNewDaemon(t *testing.T) {
 		},
 		{
 			Name:  "KubeconfigFileNotFound",
-			Path:  "testdata/config/invalid-kubelet-config.yaml",
+			Path:  "testdata/config/invalid-kubeletConfig.yaml",
 			Error: "failed to read kubeconfig:",
 		},
 	}

@@ -275,14 +275,14 @@ func TestE2E(t *testing.T) {
 			assert := assert.New(t)
 
 			assert.Equal(api.DefaultUpgradedStream, plan.Spec.Upgraded.Stream, "Should set default upgraded stream")
-			assert.Equal(api.DefaultUpgradedFleetlockGroup, plan.Spec.Upgraded.FleetlockGroup, "Should set default upgraded fleetlock-group")
-			assert.Equal(api.DefaultUpgradedCheckInterval, plan.Spec.Upgraded.CheckInterval, "Should set default upgraded check-interval")
-			assert.Equal(api.DefaultUpgradedRetryInterval, plan.Spec.Upgraded.RetryInterval, "Should set default upgraded retry-interval")
+			assert.Equal(api.DefaultUpgradedFleetlockGroup, plan.Spec.Upgraded.FleetlockGroup, "Should set default upgraded fleetlockGroup")
+			assert.Equal(api.DefaultUpgradedCheckInterval, plan.Spec.Upgraded.CheckInterval, "Should set default upgraded checkInterval")
+			assert.Equal(api.DefaultUpgradedRetryInterval, plan.Spec.Upgraded.RetryInterval, "Should set default upgraded retryInterval")
 
 			assert.Empty(plan.Spec.Groups["control-plane"].Upgraded.Stream, "Should leave group upgraded stream empty")
 			assert.Equal("control-plane", plan.Spec.Groups["control-plane"].Upgraded.FleetlockGroup, "Should set fleetlock group for control-plane")
-			assert.Empty(plan.Spec.Groups["control-plane"].Upgraded.CheckInterval, "Should leave group upgraded check-interval empty")
-			assert.Empty(plan.Spec.Groups["control-plane"].Upgraded.RetryInterval, "Should leave group upgraded retry-interval empty")
+			assert.Empty(plan.Spec.Groups["control-plane"].Upgraded.CheckInterval, "Should leave group upgraded checkInterval empty")
+			assert.Empty(plan.Spec.Groups["control-plane"].Upgraded.RetryInterval, "Should leave group upgraded retryInterval empty")
 
 			return ctx
 		}).
