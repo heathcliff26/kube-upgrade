@@ -655,6 +655,13 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 			for _, group := range tCase.Groups {
 				plan.Spec.Groups[group] = api.KubeUpgradePlanGroup{
 					Labels: map[string]string{"node-role.kubernetes.io/" + group: labelValue},
+					Tolerations: []corev1.Toleration{
+						{
+							Key:      "node-role.kubernetes.io/" + group,
+							Operator: corev1.TolerationOpExists,
+							Effect:   corev1.TaintEffectNoSchedule,
+						},
+					},
 				}
 			}
 			c := createFakeController(t, nil, nil, nil, plan)
@@ -673,6 +680,7 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 				assert.Equalf(plan.Name, daemon.Labels[constants.LabelPlanName], "Daemonset %s should have plan name as label", daemon.Name)
 				assert.Containsf(tCase.Groups, daemon.Labels[constants.LabelNodeGroup], "Daemonset %s should belong to a valid group", daemon.Name)
 				assert.Len(daemon.Spec.Template.Spec.NodeSelector, 1, "Should have exactly 1 label")
+				assert.Len(daemon.Spec.Template.Spec.Tolerations, 1, "Should have exactly 1 toleration")
 				assert.Equal("registry.example.com/kube-upgrade:latest", daemon.Spec.Template.Spec.Containers[0].Image, "Daemonset should have correct upgraded image")
 			}
 

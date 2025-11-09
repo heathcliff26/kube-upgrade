@@ -2,12 +2,17 @@
 
 package v1alpha3
 
+import (
+	v1 "k8s.io/api/core/v1"
+)
+
 // KubeUpgradePlanGroupApplyConfiguration represents a declarative configuration of the KubeUpgradePlanGroup type for use
 // with apply.
 type KubeUpgradePlanGroupApplyConfiguration struct {
-	DependsOn []string                          `json:"dependsOn,omitempty"`
-	Labels    map[string]string                 `json:"labels,omitempty"`
-	Upgraded  *UpgradedConfigApplyConfiguration `json:"upgraded,omitempty"`
+	DependsOn   []string                          `json:"dependsOn,omitempty"`
+	Labels      map[string]string                 `json:"labels,omitempty"`
+	Tolerations []v1.Toleration                   `json:"tolerations,omitempty"`
+	Upgraded    *UpgradedConfigApplyConfiguration `json:"upgraded,omitempty"`
 }
 
 // KubeUpgradePlanGroupApplyConfiguration constructs a declarative configuration of the KubeUpgradePlanGroup type for use with
@@ -36,6 +41,16 @@ func (b *KubeUpgradePlanGroupApplyConfiguration) WithLabels(entries map[string]s
 	}
 	for k, v := range entries {
 		b.Labels[k] = v
+	}
+	return b
+}
+
+// WithTolerations adds the given value to the Tolerations field in the declarative configuration
+// and returns the receiver, so that objects can be build by chaining "With" function invocations.
+// If called multiple times, values provided by each call will be appended to the Tolerations field.
+func (b *KubeUpgradePlanGroupApplyConfiguration) WithTolerations(values ...v1.Toleration) *KubeUpgradePlanGroupApplyConfiguration {
+	for i := range values {
+		b.Tolerations = append(b.Tolerations, values[i])
 	}
 	return b
 }

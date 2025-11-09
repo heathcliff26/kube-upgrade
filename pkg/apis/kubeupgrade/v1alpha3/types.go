@@ -1,6 +1,7 @@
 package v1alpha3
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -68,6 +69,11 @@ type KubeUpgradePlanGroup struct {
 	// +required
 	// +kubebuilder:example="node-role.kubernetes.io/control-plane;node-role.kubernetes.io/compute"
 	Labels map[string]string `json:"labels"`
+
+	// Enable the upgraded pods to be scheduled on tainted nodes like control-planes.
+	// +optional
+	// +listType=atomic
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 
 	// The configuration for all upgraded daemons in the group. Overwrites global parameters.
 	// +optional

@@ -12,6 +12,10 @@ spec:
     control-plane:
       labels:
         node-role.kubernetes.io/control-plane: "true"
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
       upgraded:
         fleetlockGroup: control-plane
     compute:

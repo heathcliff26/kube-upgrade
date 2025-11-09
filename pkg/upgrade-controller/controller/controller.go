@@ -250,6 +250,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 		}
 		daemon.Spec = c.NewUpgradedDaemonSetSpec(plan.Name, name)
 		daemon.Spec.Template.Spec.NodeSelector = cfg.Labels
+		daemon.Spec.Template.Spec.Tolerations = cfg.Tolerations
 		if ok {
 			_, err = c.client.AppsV1().DaemonSets(c.namespace).Update(ctx, &daemon, metav1.UpdateOptions{})
 		} else {
