@@ -151,11 +151,19 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 		}
 	}
 
+	cmList, err := c.client.CoreV1().ConfigMaps(c.namespace).List(ctx, metav1.ListOptions{
+		LabelSelector: fmt.Sprintf("%s=%s", constants.LabelPlanName, plan.Name),
+	})
+	if err != nil {
+		logger.WithValues("plan", plan.Name).Error(err, "Failed to fetch upgraded ConfigMaps")
+		return err
+	}
+
 	daemonsList, err := c.client.AppsV1().DaemonSets(c.namespace).List(ctx, metav1.ListOptions{
 		LabelSelector: fmt.Sprintf("%s=%s", constants.LabelPlanName, plan.Name),
 	})
 	if err != nil {
-		logger.WithValues("plan", plan.Name).Error(err, "Failed to fetch upgraded daemonsets")
+		logger.WithValues("plan", plan.Name).Error(err, "Failed to fetch upgraded DaemonSets")
 		return err
 	}
 
@@ -166,7 +174,14 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 			if err != nil {
 				return fmt.Errorf("failed to delete DaemonSet %s: %v", daemon.Name, err)
 			}
-			logger.WithValues("daemon", daemon.Name).Info("Deleted DaemonSet")
+			logger.WithValues("name", daemon.Name).Info("Deleted DaemonSet")
+		}
+		for _, cm := range cmList.Items {
+			err := c.client.CoreV1().ConfigMaps(c.namespace).Delete(ctx, cm.Name, metav1.DeleteOptions{})
+			if err != nil {
+				return fmt.Errorf("failed to delete ConfigMap %s: %v", cm.Name, err)
+			}
+			logger.WithValues("name", cm.Name).Info("Deleted ConfigMap")
 		}
 		controllerutil.RemoveFinalizer(plan, constants.Finalizer)
 		err := c.Update(ctx, plan)
@@ -178,7 +193,6 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 	}
 
 	daemons := make(map[string]appv1.DaemonSet, len(plan.Spec.Groups))
-
 	for _, daemon := range daemonsList.Items {
 		group := daemon.Labels[constants.LabelNodeGroup]
 		if _, ok := plan.Spec.Groups[group]; ok {
@@ -188,7 +202,21 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 			if err != nil {
 				return fmt.Errorf("failed to delete DaemonSet %s: %v", daemon.Name, err)
 			}
-			logger.WithValues("daemon", daemon.Name).Info("Deleted obsolete DaemonSet")
+			logger.WithValues("name", daemon.Name).Info("Deleted obsolete DaemonSet")
+		}
+	}
+
+	cms := make(map[string]corev1.ConfigMap, len(plan.Spec.Groups))
+	for _, cm := range cmList.Items {
+		group := cm.Labels[constants.LabelNodeGroup]
+		if _, ok := plan.Spec.Groups[group]; ok {
+			cms[group] = cm
+		} else {
+			err := c.client.CoreV1().ConfigMaps(c.namespace).Delete(ctx, cm.Name, metav1.DeleteOptions{})
+			if err != nil {
+				return fmt.Errorf("failed to delete ConfigMap %s: %v", cm.Name, err)
+			}
+			logger.WithValues("name", cm.Name).Info("Deleted obsolete ConfigMap")
 		}
 	}
 
@@ -197,6 +225,24 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 
 	for name, cfg := range plan.Spec.Groups {
 		upgradedCfg := combineConfig(plan.Spec.Upgraded, plan.Spec.Groups[name].Upgraded)
+
+		cm, ok := cms[name]
+		if !ok {
+			cm = c.NewEmptyUpgradedConfigMap(plan.Name, name)
+		}
+		err = c.AttachUpgradedConfigMapData(&cm, upgradedCfg)
+		if err != nil {
+			return fmt.Errorf("failed to attach data to ConfigMap %s: %v", cm.Name, err)
+		}
+		if ok {
+			_, err = c.client.CoreV1().ConfigMaps(c.namespace).Update(ctx, &cm, metav1.UpdateOptions{})
+		} else {
+			logger.WithValues("group", name, "config", cm.Name).Info("Creating upgraded ConfigMap for group")
+			_, err = c.client.CoreV1().ConfigMaps(c.namespace).Create(ctx, &cm, metav1.CreateOptions{})
+		}
+		if err != nil {
+			return fmt.Errorf("failed to create/update ConfigMap %s: %v", cm.Name, err)
+		}
 
 		daemon, ok := daemons[name]
 		if !ok {
@@ -222,7 +268,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 			return err
 		}
 
-		status, update, nodes, err := c.reconcileNodes(plan.Spec.KubernetesVersion, plan.Spec.AllowDowngrade, nodeList.Items, upgradedCfg)
+		status, update, nodes, err := c.reconcileNodes(plan.Spec.KubernetesVersion, plan.Spec.AllowDowngrade, nodeList.Items)
 		if err != nil {
 			logger.WithValues("group", name).Error(err, "Failed to reconcile nodes for group")
 			return err
@@ -260,7 +306,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 	return nil
 }
 
-func (c *controller) reconcileNodes(kubeVersion string, downgrade bool, nodes []corev1.Node, cfgAnnotations map[string]string) (string, bool, []corev1.Node, error) {
+func (c *controller) reconcileNodes(kubeVersion string, downgrade bool, nodes []corev1.Node) (string, bool, []corev1.Node, error) {
 	if len(nodes) == 0 {
 		return api.PlanStatusUnknown, false, nil, nil
 	}
@@ -274,7 +320,9 @@ func (c *controller) reconcileNodes(kubeVersion string, downgrade bool, nodes []
 			nodes[i].Annotations = make(map[string]string)
 		}
 
-		if applyConfigAnnotations(nodes[i].Annotations, cfgAnnotations) {
+		// Step to cleanup after migration to v0.6.0
+		// TODO: Remove in v0.7.0
+		if deleteConfigAnnotations(nodes[i].Annotations) {
 			needUpdate = true
 		}
 

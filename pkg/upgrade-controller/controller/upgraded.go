@@ -3,12 +3,16 @@ package controller
 import (
 	"fmt"
 
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
+	upgradedconfig "github.com/heathcliff26/kube-upgrade/pkg/upgraded/config"
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/yaml"
 )
 
+// Creates a new DaemonSet with the required metadata and no spec.
 func (c *controller) NewEmptyUpgradedDaemonSet(plan, group string) appv1.DaemonSet {
 	labels := upgradedLabels(plan, group)
 
@@ -68,6 +72,24 @@ func (c *controller) NewUpgradedDaemonSetSpec(plan, group string) appv1.DaemonSe
 						SecurityContext: &corev1.SecurityContext{
 							Privileged: Pointer(true),
 						},
+						VolumeMounts: []corev1.VolumeMount{
+							{
+								Name:      "config",
+								MountPath: upgradedconfig.DefaultConfigDir,
+							},
+						},
+					},
+				},
+				Volumes: []corev1.Volume{
+					{
+						Name: "config",
+						VolumeSource: corev1.VolumeSource{
+							ConfigMap: &corev1.ConfigMapVolumeSource{
+								LocalObjectReference: corev1.LocalObjectReference{
+									Name: fmt.Sprintf("upgraded-%s", group),
+								},
+							},
+						},
 					},
 				},
 			},
@@ -82,6 +104,30 @@ func (c *controller) NewUpgradedDaemonSetSpec(plan, group string) appv1.DaemonSe
 	attachVolumeMountHostPath(&spec, "machine-id", "/etc/machine-id", "/etc/machine-id")
 
 	return spec
+}
+
+// Creates a new ConfigMap with the required metadata and no spec.
+func (c *controller) NewEmptyUpgradedConfigMap(plan, group string) corev1.ConfigMap {
+	labels := upgradedLabels(plan, group)
+
+	return corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("upgraded-%s", group),
+			Namespace: c.namespace,
+			Labels:    labels,
+		},
+	}
+}
+
+// Converts the given config to a string and attaches it to the given ConfigMap data.
+func (c *controller) AttachUpgradedConfigMapData(cm *corev1.ConfigMap, cfg *api.UpgradedConfig) error {
+	data, err := yaml.Marshal(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to convert upgraded config to yaml: %v", err)
+	}
+
+	cm.Data = map[string]string{upgradedconfig.DefaultConfigFile: string(data)}
+	return nil
 }
 
 func attachVolumeMountHostPath(spec *appv1.DaemonSetSpec, name, hostPath, mountPath string) {

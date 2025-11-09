@@ -46,17 +46,12 @@ func (d *daemon) watchForUpgrade() {
 
 // Perform rpm-ostree upgrade
 func (d *daemon) doUpgrade() error {
-	d.upgrade.Lock()
-	defer d.upgrade.Unlock()
+	d.Lock()
+	defer d.Unlock()
 
-	err := d.UpdateConfigFromNode()
+	err := d.fleetlock.Lock()
 	if err != nil {
-		return fmt.Errorf("failed to update daemon config from node annotations: %v", err)
-	}
-
-	err = d.fleetlock.Lock()
-	if err != nil {
-		return fmt.Errorf("failed to aquire lock: %v", err)
+		return fmt.Errorf("failed to acquire lock: %v", err)
 	}
 
 	err = d.rpmostree.Upgrade()

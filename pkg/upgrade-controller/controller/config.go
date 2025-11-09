@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"maps"
-	"reflect"
 	"strings"
 
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
@@ -10,12 +8,12 @@ import (
 )
 
 // Combine 2 configs, where group overrides the values used by global.
-// Return the result as ready to use annotations.
-func combineConfig(global api.UpgradedConfig, group *api.UpgradedConfig) map[string]string {
-	if group == nil {
-		return createConfigAnnotations(global)
-	}
+// Returns the combined configuration.
+func combineConfig(global api.UpgradedConfig, group *api.UpgradedConfig) *api.UpgradedConfig {
 	cfg := global
+	if group == nil {
+		return &cfg
+	}
 
 	if group.Stream != "" {
 		cfg.Stream = group.Stream
@@ -32,46 +30,29 @@ func combineConfig(global api.UpgradedConfig, group *api.UpgradedConfig) map[str
 	if group.RetryInterval != "" {
 		cfg.RetryInterval = group.RetryInterval
 	}
+	if group.LogLevel != "" {
+		cfg.LogLevel = group.LogLevel
+	}
+	if group.KubeletConfig != "" {
+		cfg.KubeletConfig = group.KubeletConfig
+	}
+	if group.KubeadmPath != "" {
+		cfg.KubeadmPath = group.KubeadmPath
+	}
 
-	return createConfigAnnotations(cfg)
+	return &cfg
 }
 
-// Convert the provided config to node annotations
-func createConfigAnnotations(cfg api.UpgradedConfig) map[string]string {
-	res := make(map[string]string, 5)
-
-	if cfg.Stream != "" {
-		res[constants.ConfigStream] = cfg.Stream
-	}
-	if cfg.FleetlockURL != "" {
-		res[constants.ConfigFleetlockURL] = cfg.FleetlockURL
-	}
-	if cfg.FleetlockGroup != "" {
-		res[constants.ConfigFleetlockGroup] = cfg.FleetlockGroup
-	}
-	if cfg.CheckInterval != "" {
-		res[constants.ConfigCheckInterval] = cfg.CheckInterval
-	}
-	if cfg.RetryInterval != "" {
-		res[constants.ConfigRetryInterval] = cfg.RetryInterval
-	}
-
-	return res
-}
-
-// Apply the provided configuration annotations to the node.
-// Will delete unspecified config options from node Annotations.
+// Delete all config annotations from the node.
 // Returns if the config changed.
-func applyConfigAnnotations(annotations map[string]string, cfg map[string]string) bool {
-	original := make(map[string]string, len(annotations))
-	maps.Copy(original, annotations)
+func deleteConfigAnnotations(annotations map[string]string) bool {
+	changed := false
 
 	for k := range annotations {
 		if strings.HasPrefix(k, constants.ConfigPrefix) {
 			delete(annotations, k)
+			changed = true
 		}
 	}
-
-	maps.Copy(annotations, cfg)
-	return !reflect.DeepEqual(original, annotations)
+	return changed
 }

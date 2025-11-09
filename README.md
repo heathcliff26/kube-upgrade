@@ -15,7 +15,6 @@ Kubernetes controller and daemon for managing cluster updates.
   - [Usage](#usage)
     - [Prerequisite](#prerequisite)
     - [Installation](#installation)
-    - [Manual installation of upgraded](#manual-installation-of-upgraded)
   - [Container Images](#container-images)
     - [Image location](#image-location)
     - [Tags](#tags)
@@ -38,27 +37,13 @@ Kubernetes controller and daemon for managing cluster updates.
 ### Installation
 
 To install kube-upgrade, follow these steps:
-1. Create a configuration file for **upgraded** on each node under `/etc/kube-upgraded/config.yaml`. An example config can be found [here](examples/upgraded-config.yaml).
-2. Deploy **upgrade-controller**
+1. Deploy **upgrade-controller**
 ```
-kubectl apply -f https://raw.githubusercontent.com/heathcliff26/kube-upgrade/main/examples/upgrade-controller/upgrade-controller.yaml
+kubectl apply -f https://raw.githubusercontent.com/heathcliff26/kube-upgrade/main/examples/upgrade-controller.yaml
 ```
-3. Create the upgrade-plan
+2. Create the upgrade-plan
 ```
-https://raw.githubusercontent.com/heathcliff26/kube-upgrade/main/examples/upgrade-controller/upgrade-cr.yaml
-```
-
-### Manual installation of upgraded
-
-To install upgraded manually on you nodes:
-1. Download the binary for your architecture from the latest release
-2. Install the binary into the path of your choice
-3. Create a systemd service file for upgraded in `/etc/systemd/system/upgraded.service`. An example service can be found [here](examples/upgraded.service).
-4. Create a configuration file for upgraded under `/etc/kube-upgraded/config.yaml`. An example config can be found [here](examples/upgraded-config.yaml).
-5. Enable the service
-```
-sudo systemctl daemon-reload
-sudo systemctl enable --now upgraded.service
+https://raw.githubusercontent.com/heathcliff26/kube-upgrade/main/examples/upgrade-cr.yaml
 ```
 
 ## Container Images

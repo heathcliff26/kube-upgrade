@@ -7,7 +7,6 @@ import (
 
 	fleetlock "github.com/heathcliff26/fleetlock/pkg/client"
 	"github.com/heathcliff26/fleetlock/pkg/fake"
-	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/config"
 	rpmostree "github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,58 +17,30 @@ import (
 func TestNewDaemon(t *testing.T) {
 	oldHostPrefix := hostPrefix
 	hostPrefix = ""
+	oldRPMOStreeCMDPath := rpmOstreeCMDPath
+	rpmOstreeCMDPath = "testdata/exit-0.sh"
 	t.Cleanup(func() {
 		hostPrefix = oldHostPrefix
+		rpmOstreeCMDPath = oldRPMOStreeCMDPath
 	})
 
 	tMatrix := []struct {
-		Name  string
-		CFG   config.Config
-		Error string
+		Name, Path string
+		Error      string
 	}{
 		{
-			Name: "NoNodeFound",
-			CFG: config.Config{
-				Kubeconfig:    "testdata/kubeconfig",
-				RPMOStreePath: "testdata/exit-0.sh",
-				KubeadmPath:   "testdata/exit-0.sh",
-			},
+			Name:  "NoNodeFound",
+			Path:  "testdata/config/valid-config.yaml",
 			Error: "failed to get kubernetes node name for host",
 		},
 		{
-			Name: "NoRPMOstree",
-			CFG: config.Config{
-				Kubeconfig:    "testdata/kubeconfig",
-				RPMOStreePath: "",
-				KubeadmPath:   "testdata/exit-0.sh",
-			},
-			Error: "failed to create rpm-ostree cmd wrapper:",
-		},
-		{
-			Name: "NoKubeadm",
-			CFG: config.Config{
-				Kubeconfig:    "testdata/kubeconfig",
-				RPMOStreePath: "testdata/exit-0.sh",
-				KubeadmPath:   "",
-			},
+			Name:  "NoKubeadm",
+			Path:  "testdata/config/invalid-kubeadm.yaml",
 			Error: "failed to create kubeadm cmd wrapper:",
 		},
 		{
-			Name: "EmptyKubeconfig",
-			CFG: config.Config{
-				Kubeconfig:    "",
-				RPMOStreePath: "testdata/exit-0.sh",
-				KubeadmPath:   "testdata/exit-0.sh",
-			},
-			Error: "no kubeconfig provided",
-		},
-		{
-			Name: "KubeconfigFileNotFound",
-			CFG: config.Config{
-				Kubeconfig:    "not-a-file",
-				RPMOStreePath: "testdata/exit-0.sh",
-				KubeadmPath:   "testdata/exit-0.sh",
-			},
+			Name:  "KubeconfigFileNotFound",
+			Path:  "testdata/config/invalid-kubelet-config.yaml",
 			Error: "failed to read kubeconfig:",
 		},
 	}
@@ -78,7 +49,7 @@ func TestNewDaemon(t *testing.T) {
 		t.Run(tCase.Name, func(t *testing.T) {
 			assert := assert.New(t)
 
-			d, err := NewDaemon(&tCase.CFG)
+			d, err := NewDaemon(tCase.Path)
 
 			assert.ErrorContains(err, tCase.Error, "Should return the given error")
 			assert.Nil(d, "Should not return a daemon")
@@ -107,25 +78,18 @@ func TestRetry(t *testing.T) {
 
 func TestRun(t *testing.T) {
 	tMatrix := []struct {
-		Name  string
-		CFG   config.Config
-		Error string
+		Name, RPMOStreePath string
+		Error               string
 	}{
 		{
-			Name: "FailedToRegisterAsDriver",
-			CFG: config.Config{
-				Kubeconfig:    "testdata/kubeconfig",
-				RPMOStreePath: "testdata/exit-1.sh",
-			},
-			Error: "failed to register upgraded as driver for rpm-ostree:",
+			Name:          "FailedToRegisterAsDriver",
+			RPMOStreePath: "testdata/exit-1.sh",
+			Error:         "failed to register upgraded as driver for rpm-ostree:",
 		},
 		{
-			Name: "FailedToGetNode",
-			CFG: config.Config{
-				Kubeconfig:    "testdata/kubeconfig",
-				RPMOStreePath: "testdata/exit-0.sh",
-			},
-			Error: "failed to get node status:",
+			Name:          "FailedToGetNode",
+			RPMOStreePath: "testdata/exit-0.sh",
+			Error:         "failed to get node status:",
 		},
 	}
 
@@ -134,9 +98,14 @@ func TestRun(t *testing.T) {
 			assert := assert.New(t)
 			require := require.New(t)
 
-			rpmOstreeCMD, err := rpmostree.New(tCase.CFG.RPMOStreePath)
+			oldRPMOstreeCMDPath := rpmOstreeCMDPath
+			t.Cleanup(func() {
+				rpmOstreeCMDPath = oldRPMOstreeCMDPath
+			})
+
+			rpmOstreeCMD, err := rpmostree.New(tCase.RPMOStreePath)
 			require.NoError(err, "Should create rpm-ostree cmd wrapper")
-			config, err := clientcmd.BuildConfigFromFlags("", tCase.CFG.Kubeconfig)
+			config, err := clientcmd.BuildConfigFromFlags("", "testdata/kubeconfig")
 			require.NoError(err, "Should read kubeconfig")
 			kubeClient, err := kubernetes.NewForConfig(config)
 			require.NoError(err, "Should create kubernetes client")

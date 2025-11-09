@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/fsnotify/fsnotify"
 	fleetlock "github.com/heathcliff26/fleetlock/pkg/client"
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/config"
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm"
@@ -19,18 +20,15 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-const (
-	defaultStream         = "ghcr.io/heathcliff26/fcos-k8s"
-	defaultFleetlockGroup = "default"
-	defaultCheckInterval  = 3 * time.Hour
-	defaultRetryInterval  = 1 * time.Minute
-)
-
 var (
-	hostPrefix = "/host"
+	hostPrefix       = "/host"
+	rpmOstreeCMDPath = "/usr/bin/rpm-ostree"
 )
 
 type daemon struct {
+	cfgPath string
+
+	stream        string
 	fleetlock     *fleetlock.FleetlockClient
 	checkInterval time.Duration
 	retryInterval time.Duration
@@ -38,29 +36,29 @@ type daemon struct {
 	rpmostree *rpmostree.RPMOStreeCMD
 	kubeadm   *kubeadm.KubeadmCMD
 
-	stream string
-	node   string
+	node string
 
 	client kubernetes.Interface
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	upgrade sync.Mutex
+	configWatcher *fsnotify.Watcher
+
+	sync.Mutex
 }
 
 // Create a new daemon
-func NewDaemon(cfg *config.Config) (*daemon, error) {
-	fleetlockClient, err := fleetlock.NewEmptyClient()
+func NewDaemon(cfgPath string) (*daemon, error) {
+	cfg, err := config.LoadConfig(cfgPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create fleetlock client: %v", err)
-
+		return nil, fmt.Errorf("failed to load config: %v", err)
 	}
-	err = fleetlockClient.SetGroup(defaultFleetlockGroup)
-	if err != nil {
-		return nil, fmt.Errorf("failed to set fleetlock group: %v", err)
+	if cfgPath == "" {
+		cfgPath = config.DefaultConfigPath
 	}
 
-	rpmOstreeCMD, err := rpmostree.New(cfg.RPMOStreePath)
+	// Hardcoded path, as it will be executed in a container
+	rpmOstreeCMD, err := rpmostree.New(rpmOstreeCMDPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create rpm-ostree cmd wrapper: %v", err)
 	}
@@ -69,10 +67,7 @@ func NewDaemon(cfg *config.Config) (*daemon, error) {
 		return nil, fmt.Errorf("failed to create kubeadm cmd wrapper: %v", err)
 	}
 
-	if cfg.Kubeconfig == "" {
-		return nil, fmt.Errorf("no kubeconfig provided")
-	}
-	config, err := clientcmd.BuildConfigFromFlags("", hostPrefix+cfg.Kubeconfig)
+	config, err := clientcmd.BuildConfigFromFlags("", hostPrefix+cfg.KubeletConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read kubeconfig: %v", err)
 	}
@@ -91,18 +86,21 @@ func NewDaemon(cfg *config.Config) (*daemon, error) {
 	}
 	slog.Info("Found node name for this host", slog.String("node", node))
 
-	return &daemon{
-		fleetlock:     fleetlockClient,
-		checkInterval: defaultCheckInterval,
-		retryInterval: defaultRetryInterval,
+	d := &daemon{
+		cfgPath: cfgPath,
 
 		rpmostree: rpmOstreeCMD,
 		kubeadm:   kubeadmCMD,
 
-		stream: defaultStream,
 		node:   node,
 		client: kubeClient,
-	}, nil
+	}
+
+	err = d.updateFromConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
 }
 
 // Retries the given function until it succeeds
@@ -151,11 +149,6 @@ func (d *daemon) Run() error {
 		return fmt.Errorf("failed to get node status: %v", err)
 	}
 
-	err = d.UpdateConfigFromAnnotations(node.GetAnnotations())
-	if err != nil {
-		return fmt.Errorf("failed to update daemon config from node annotations: %v", err)
-	}
-
 	node, err = d.annotateNodeWithUpgradedVersion(node)
 	if err != nil {
 		return fmt.Errorf("failed to annotate node with upgraded version: %v", err)
@@ -172,10 +165,16 @@ func (d *daemon) Run() error {
 		d.doNodeUpgradeWithRetry(node)
 	}
 
+	err = d.NewConfigFileWatcher()
+	if err != nil {
+		return fmt.Errorf("failed to create config file watcher: %v", err)
+	}
+	defer d.configWatcher.Close()
+
 	slog.Info("Starting daemon")
 
 	var wg sync.WaitGroup
-	wg.Add(2)
+	wg.Add(3)
 
 	go func() {
 		defer wg.Done()
@@ -186,6 +185,11 @@ func (d *daemon) Run() error {
 		defer wg.Done()
 		d.watchForNodeUpgrade()
 		slog.Info("Stopped watching for kubernetes upgrades")
+	}()
+	go func() {
+		defer wg.Done()
+		d.WatchConfigFile()
+		slog.Info("Stopped watching config file")
 	}()
 
 	wg.Wait()

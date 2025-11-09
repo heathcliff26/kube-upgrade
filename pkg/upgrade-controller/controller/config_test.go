@@ -13,7 +13,7 @@ func TestCombineConfig(t *testing.T) {
 		Name   string
 		Global api.UpgradedConfig
 		Group  *api.UpgradedConfig
-		Result map[string]string
+		Result *api.UpgradedConfig
 	}{
 		{
 			Name: "OverrideAll",
@@ -23,6 +23,9 @@ func TestCombineConfig(t *testing.T) {
 				FleetlockGroup: "not-default",
 				CheckInterval:  "10m",
 				RetryInterval:  "15m",
+				LogLevel:       "error",
+				KubeletConfig:  "/foo/kubelet.conf",
+				KubeadmPath:    "/foo/kubeadm",
 			},
 			Group: &api.UpgradedConfig{
 				Stream:         "registry.example.com/test-stream",
@@ -30,13 +33,19 @@ func TestCombineConfig(t *testing.T) {
 				FleetlockGroup: "default",
 				CheckInterval:  "2m",
 				RetryInterval:  "3m",
+				LogLevel:       "debug",
+				KubeletConfig:  "/foo/bar/kubelet.conf",
+				KubeadmPath:    "/foo/bar/kubeadm",
 			},
-			Result: map[string]string{
-				constants.ConfigStream:         "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
-				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m",
-				constants.ConfigRetryInterval:  "3m",
+			Result: &api.UpgradedConfig{
+				Stream:         "registry.example.com/test-stream",
+				FleetlockURL:   "https://fleetlock.example.com",
+				FleetlockGroup: "default",
+				CheckInterval:  "2m",
+				RetryInterval:  "3m",
+				LogLevel:       "debug",
+				KubeletConfig:  "/foo/bar/kubelet.conf",
+				KubeadmPath:    "/foo/bar/kubeadm",
 			},
 		},
 		{
@@ -47,18 +56,25 @@ func TestCombineConfig(t *testing.T) {
 				FleetlockGroup: "not-default",
 				CheckInterval:  "10m",
 				RetryInterval:  "15m",
+				LogLevel:       "error",
+				KubeletConfig:  "/foo/kubelet.conf",
+				KubeadmPath:    "/foo/kubeadm",
 			},
 			Group: &api.UpgradedConfig{
 				FleetlockGroup: "default",
 				CheckInterval:  "2m",
 				RetryInterval:  "3m",
+				LogLevel:       "info",
 			},
-			Result: map[string]string{
-				constants.ConfigStream:         "registry.example.org/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.org",
-				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m",
-				constants.ConfigRetryInterval:  "3m",
+			Result: &api.UpgradedConfig{
+				Stream:         "registry.example.org/test-stream",
+				FleetlockURL:   "https://fleetlock.example.org",
+				FleetlockGroup: "default",
+				CheckInterval:  "2m",
+				RetryInterval:  "3m",
+				LogLevel:       "info",
+				KubeletConfig:  "/foo/kubelet.conf",
+				KubeadmPath:    "/foo/kubeadm",
 			},
 		},
 		{
@@ -69,17 +85,26 @@ func TestCombineConfig(t *testing.T) {
 				FleetlockGroup: "not-default",
 				CheckInterval:  "10m",
 				RetryInterval:  "15m",
+				LogLevel:       "error",
+				KubeletConfig:  "/foo/kubelet.conf",
+				KubeadmPath:    "/foo/kubeadm",
 			},
 			Group: &api.UpgradedConfig{
-				Stream:       "registry.example.com/test-stream",
-				FleetlockURL: "https://fleetlock.example.com",
+				Stream:        "registry.example.com/test-stream",
+				FleetlockURL:  "https://fleetlock.example.com",
+				LogLevel:      "warn",
+				KubeletConfig: "/foo/bar/kubelet.conf",
+				KubeadmPath:   "/foo/bar/kubeadm",
 			},
-			Result: map[string]string{
-				constants.ConfigStream:         "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
-				constants.ConfigFleetlockGroup: "not-default",
-				constants.ConfigCheckInterval:  "10m",
-				constants.ConfigRetryInterval:  "15m",
+			Result: &api.UpgradedConfig{
+				Stream:         "registry.example.com/test-stream",
+				FleetlockURL:   "https://fleetlock.example.com",
+				FleetlockGroup: "not-default",
+				CheckInterval:  "10m",
+				RetryInterval:  "15m",
+				LogLevel:       "warn",
+				KubeletConfig:  "/foo/bar/kubelet.conf",
+				KubeadmPath:    "/foo/bar/kubeadm",
 			},
 		},
 		{
@@ -90,13 +115,19 @@ func TestCombineConfig(t *testing.T) {
 				FleetlockGroup: "default",
 				CheckInterval:  "2m",
 				RetryInterval:  "3m",
+				LogLevel:       "error",
+				KubeletConfig:  "/foo/kubelet.conf",
+				KubeadmPath:    "/foo/kubeadm",
 			},
-			Result: map[string]string{
-				constants.ConfigStream:         "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
-				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m",
-				constants.ConfigRetryInterval:  "3m",
+			Result: &api.UpgradedConfig{
+				Stream:         "registry.example.com/test-stream",
+				FleetlockURL:   "https://fleetlock.example.com",
+				FleetlockGroup: "default",
+				CheckInterval:  "2m",
+				RetryInterval:  "3m",
+				LogLevel:       "error",
+				KubeletConfig:  "/foo/kubelet.conf",
+				KubeadmPath:    "/foo/kubeadm",
 			},
 		},
 		{
@@ -107,18 +138,24 @@ func TestCombineConfig(t *testing.T) {
 				FleetlockGroup: "default",
 				CheckInterval:  "2m",
 				RetryInterval:  "3m",
+				LogLevel:       "error",
+				KubeletConfig:  "/foo/kubelet.conf",
+				KubeadmPath:    "/foo/kubeadm",
 			},
-			Result: map[string]string{
-				constants.ConfigStream:         "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
-				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m",
-				constants.ConfigRetryInterval:  "3m",
+			Result: &api.UpgradedConfig{
+				Stream:         "registry.example.com/test-stream",
+				FleetlockURL:   "https://fleetlock.example.com",
+				FleetlockGroup: "default",
+				CheckInterval:  "2m",
+				RetryInterval:  "3m",
+				LogLevel:       "error",
+				KubeletConfig:  "/foo/kubelet.conf",
+				KubeadmPath:    "/foo/kubeadm",
 			},
 		},
 		{
 			Name:   "AllNil",
-			Result: map[string]string{},
+			Result: &api.UpgradedConfig{},
 		},
 	}
 	for _, tCase := range tMatrix {
@@ -128,33 +165,14 @@ func TestCombineConfig(t *testing.T) {
 	}
 }
 
-func TestApplyConfigAnnotations(t *testing.T) {
+func TestDeleteConfigAnnotations(t *testing.T) {
 	tMatrix := []struct {
-		Name                     string
-		Original, Config, Result map[string]string
-		Changed                  bool
+		Name             string
+		Original, Result map[string]string
+		Changed          bool
 	}{
 		{
-			Name:     "ApplyNewConfig",
-			Original: map[string]string{},
-			Config: map[string]string{
-				constants.ConfigStream:         "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
-				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m0s",
-				constants.ConfigRetryInterval:  "3m0s",
-			},
-			Result: map[string]string{
-				constants.ConfigStream:         "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
-				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m0s",
-				constants.ConfigRetryInterval:  "3m0s",
-			},
-			Changed: true,
-		},
-		{
-			Name: "OverrideOldConfig",
+			Name: "DeleteConfigAnnotations",
 			Original: map[string]string{
 				constants.ConfigStream:         "registry.example.org/test-stream",
 				constants.ConfigFleetlockURL:   "https://fleetlock.example.org",
@@ -162,43 +180,7 @@ func TestApplyConfigAnnotations(t *testing.T) {
 				constants.ConfigCheckInterval:  "3h0m0s",
 				constants.ConfigRetryInterval:  "5m0s",
 			},
-			Config: map[string]string{
-				constants.ConfigStream:         "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
-				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m0s",
-				constants.ConfigRetryInterval:  "3m0s",
-			},
-			Result: map[string]string{
-				constants.ConfigStream:         "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
-				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m0s",
-				constants.ConfigRetryInterval:  "3m0s",
-			},
-			Changed: true,
-		},
-		{
-			Name: "DeleteOldAnnotations",
-			Original: map[string]string{
-				constants.ConfigStream:         "registry.example.org/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.org",
-				constants.ConfigFleetlockGroup: "not-default",
-				constants.ConfigCheckInterval:  "3h0m0s",
-				constants.ConfigRetryInterval:  "5m0s",
-			},
-			Config: map[string]string{
-				constants.ConfigStream:         "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
-				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m0s",
-			},
-			Result: map[string]string{
-				constants.ConfigStream:         "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
-				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m0s",
-			},
+			Result:  map[string]string{},
 			Changed: true,
 		},
 		{
@@ -211,79 +193,32 @@ func TestApplyConfigAnnotations(t *testing.T) {
 				constants.ConfigRetryInterval:  "5m0s",
 				"example.com/test":             "true",
 			},
-			Config: map[string]string{
-				constants.ConfigStream:         "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
-				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m0s",
-				constants.ConfigRetryInterval:  "3m0s",
-			},
 			Result: map[string]string{
-				constants.ConfigStream:         "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
-				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m0s",
-				constants.ConfigRetryInterval:  "3m0s",
-				"example.com/test":             "true",
+				"example.com/test": "true",
 			},
 			Changed: true,
 		},
 		{
 			Name: "Unchanged",
 			Original: map[string]string{
-				constants.ConfigStream:         "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
-				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m0s",
-				constants.ConfigRetryInterval:  "3m0s",
-			},
-			Config: map[string]string{
-				constants.ConfigStream:         "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
-				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m0s",
-				constants.ConfigRetryInterval:  "3m0s",
+				"example.com/test": "true",
 			},
 			Result: map[string]string{
-				constants.ConfigStream:         "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
-				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m0s",
-				constants.ConfigRetryInterval:  "3m0s",
+				"example.com/test": "true",
 			},
 			Changed: false,
 		},
 		{
-			Name: "DeleteAll",
-			Original: map[string]string{
-				constants.ConfigStream:         "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
-				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m0s",
-				constants.ConfigRetryInterval:  "3m0s",
-			},
-			Config:  map[string]string{},
-			Result:  map[string]string{},
-			Changed: true,
-		},
-		{
-			Name: "ConfigNil",
-			Original: map[string]string{
-				constants.ConfigStream:         "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
-				constants.ConfigFleetlockGroup: "default",
-				constants.ConfigCheckInterval:  "2m0s",
-				constants.ConfigRetryInterval:  "3m0s",
-			},
-			Config:  nil,
-			Result:  map[string]string{},
-			Changed: true,
+			Name:     "AnnotationsNil",
+			Original: nil,
+			Result:   nil,
+			Changed:  false,
 		},
 	}
 	for _, tCase := range tMatrix {
 		t.Run(tCase.Name, func(t *testing.T) {
 			assert := assert.New(t)
-			assert.Equal(tCase.Changed, applyConfigAnnotations(tCase.Original, tCase.Config), "Should indicate if annotations changed")
+			assert.Equal(tCase.Changed, deleteConfigAnnotations(tCase.Original), "Should indicate if annotations changed")
 			assert.Equal(tCase.Result, tCase.Original, "Should have applied the annotations")
 		})
 	}

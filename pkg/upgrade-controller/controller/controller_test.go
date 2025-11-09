@@ -6,6 +6,7 @@ import (
 
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
+	upgradedconfig "github.com/heathcliff26/kube-upgrade/pkg/upgraded/config"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -398,7 +399,7 @@ func TestReconcile(t *testing.T) {
 			},
 		},
 		{
-			Name: "ApplyConfiguration",
+			Name: "DeleteConfigurationNotations",
 			Plan: api.KubeUpgradePlan{
 				ObjectMeta: metav1.ObjectMeta{
 					Name: "upgrade-plan",
@@ -439,12 +440,20 @@ func TestReconcile(t *testing.T) {
 			AnnotationsControl: map[string]string{
 				constants.NodeKubernetesVersion: "v1.30.4",
 				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
-				constants.ConfigFleetlockGroup:  "not-the-group",
+				constants.ConfigStream:          "registry.example.com/test-stream",
+				constants.ConfigFleetlockURL:    "https://fleetlock.example.org",
+				constants.ConfigFleetlockGroup:  "control-plane",
+				constants.ConfigCheckInterval:   "2m",
+				constants.ConfigRetryInterval:   "3m",
 			},
 			AnnotationsCompute: map[string]string{
 				constants.NodeKubernetesVersion: "v1.30.4",
 				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
-				constants.ConfigFleetlockGroup:  "not-the-group-either",
+				constants.ConfigStream:          "registry.example.com/test-stream",
+				constants.ConfigFleetlockURL:    "https://fleetlock.example.org",
+				constants.ConfigFleetlockGroup:  groupCompute,
+				constants.ConfigCheckInterval:   "2m",
+				constants.ConfigRetryInterval:   "3m",
 			},
 			ExpectedSummary: api.PlanStatusComplete,
 			ExpectedGroupStatus: map[string]string{
@@ -454,20 +463,10 @@ func TestReconcile(t *testing.T) {
 			ExpectedAnnotationsControl: map[string]string{
 				constants.NodeKubernetesVersion: "v1.30.4",
 				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
-				constants.ConfigStream:          "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:    "https://fleetlock.example.org",
-				constants.ConfigFleetlockGroup:  "control-plane",
-				constants.ConfigCheckInterval:   "2m",
-				constants.ConfigRetryInterval:   "3m",
 			},
 			ExpectedAnnotationsCompute: map[string]string{
 				constants.NodeKubernetesVersion: "v1.30.4",
 				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
-				constants.ConfigStream:          "registry.example.com/test-stream",
-				constants.ConfigFleetlockURL:    "https://fleetlock.example.org",
-				constants.ConfigFleetlockGroup:  groupCompute,
-				constants.ConfigCheckInterval:   "2m",
-				constants.ConfigRetryInterval:   "3m",
 			},
 		},
 		{
@@ -589,14 +588,14 @@ func TestReconcileNodes(t *testing.T) {
 
 	assert := assert.New(t)
 
-	status, needUpdate, nodes, err := c.reconcileNodes("v1.31.0", false, []corev1.Node{*nodeControl}, map[string]string{})
+	status, needUpdate, nodes, err := c.reconcileNodes("v1.31.0", false, []corev1.Node{*nodeControl})
 
 	assert.Equal(api.PlanStatusError, status, "Should return error status")
 	assert.False(needUpdate, "Should not request update")
 	assert.Nil(nodes, "Should not return nodes")
 	assert.Error(err, "Should return an error")
 
-	status, needUpdate, nodes, err = c.reconcileNodes("v1.31.0", true, []corev1.Node{*nodeControl}, map[string]string{})
+	status, needUpdate, nodes, err = c.reconcileNodes("v1.31.0", true, []corev1.Node{*nodeControl})
 
 	assert.NotEqual(api.PlanStatusError, status, "Should not return error status")
 	assert.True(needUpdate, "Should request update")
@@ -604,7 +603,7 @@ func TestReconcileNodes(t *testing.T) {
 	assert.NoError(err, "Should not return an error")
 }
 
-func TestReconcileUpgradedDaemonSet(t *testing.T) {
+func TestReconcileUpgradedDaemons(t *testing.T) {
 	tMatrix := []struct {
 		Name                   string
 		InitialDaemons, Groups []string
@@ -661,6 +660,7 @@ func TestReconcileUpgradedDaemonSet(t *testing.T) {
 			c := createFakeController(t, nil, nil, nil, plan)
 			c.upgradedImage = "registry.example.com/kube-upgrade:latest"
 			for _, group := range tCase.InitialDaemons {
+				addFakeUpgradedConfigMap(t, c, plan.Name, group)
 				addFakeUpgradedDaemonset(t, c, plan.Name, group)
 			}
 
@@ -675,9 +675,18 @@ func TestReconcileUpgradedDaemonSet(t *testing.T) {
 				assert.Len(daemon.Spec.Template.Spec.NodeSelector, 1, "Should have exactly 1 label")
 				assert.Equal("registry.example.com/kube-upgrade:latest", daemon.Spec.Template.Spec.Containers[0].Image, "Daemonset should have correct upgraded image")
 			}
+
+			cmList, err := c.client.CoreV1().ConfigMaps(c.namespace).List(t.Context(), metav1.ListOptions{})
+			assert.NoError(err, "Should list configmaps without error")
+
+			for _, cm := range cmList.Items {
+				assert.Equalf(plan.Name, cm.Labels[constants.LabelPlanName], "ConfigMap %s should have plan name as label", cm.Name)
+				assert.Containsf(tCase.Groups, cm.Labels[constants.LabelNodeGroup], "ConfigMap %s should belong to a valid group", cm.Name)
+				assert.Len(cm.Data, 1, "ConfigMap should have exactly 1 data entry")
+			}
 		})
 	}
-	t.Run("UpdateDaemons", func(t *testing.T) {
+	t.Run("UpdateDaemonSet", func(t *testing.T) {
 		assert := assert.New(t)
 
 		plan := &api.KubeUpgradePlan{
@@ -706,6 +715,38 @@ func TestReconcileUpgradedDaemonSet(t *testing.T) {
 		assert.NoError(err, "Should get daemonset without error")
 		assert.False(result.Spec.Template.Spec.HostNetwork, "Daemonset HostNetwork should be updated to false")
 		assert.True(result.Spec.Template.Spec.HostPID, "Daemonset HostPID should be updated to true")
+	})
+	t.Run("UpdateConfigMap", func(t *testing.T) {
+		assert := assert.New(t)
+
+		cfg := &api.UpgradedConfig{}
+		api.SetObjectDefaults_UpgradedConfig(cfg)
+
+		plan := &api.KubeUpgradePlan{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "upgrade-plan",
+			},
+			Spec: api.KubeUpgradeSpec{
+				KubernetesVersion: "v1.31.0",
+				Groups: map[string]api.KubeUpgradePlanGroup{
+					groupControl: {
+						Labels:   map[string]string{labelControl: labelValue},
+						Upgraded: cfg.DeepCopy(),
+					},
+				},
+			},
+		}
+		c := createFakeController(t, nil, nil, nil, plan)
+		cm := c.NewEmptyUpgradedConfigMap(plan.Name, groupControl)
+		cfg.Stream = "registry.example.com/updated-stream"
+		_ = c.AttachUpgradedConfigMapData(&cm, cfg)
+		_, _ = c.client.CoreV1().ConfigMaps(c.namespace).Create(t.Context(), &cm, metav1.CreateOptions{})
+
+		assert.NoError(c.reconcile(t.Context(), plan, klog.NewKlogr()), "Reconcile should succeed")
+
+		result, err := c.client.CoreV1().ConfigMaps(c.namespace).Get(t.Context(), cm.Name, metav1.GetOptions{})
+		assert.NoError(err, "Should get daemonset without error")
+		assert.Contains(result.Data[upgradedconfig.DefaultConfigFile], api.DefaultUpgradedStream, "ConfigMap data should be updated")
 	})
 }
 
@@ -790,6 +831,15 @@ func createFakeController(t *testing.T, annotationsControl, annotationsCompute, 
 	_, _ = c.client.CoreV1().Nodes().Create(ctx, nodeInfra, metav1.CreateOptions{})
 
 	return c
+}
+
+func addFakeUpgradedConfigMap(t *testing.T, c *controller, plan, group string) {
+	cfg := &api.UpgradedConfig{}
+	api.SetObjectDefaults_UpgradedConfig(cfg)
+	cm := c.NewEmptyUpgradedConfigMap(plan, group)
+	_ = c.AttachUpgradedConfigMapData(&cm, cfg)
+
+	_, _ = c.client.CoreV1().ConfigMaps(c.namespace).Create(t.Context(), &cm, metav1.CreateOptions{})
 }
 
 func addFakeUpgradedDaemonset(t *testing.T, c *controller, plan, group string) {

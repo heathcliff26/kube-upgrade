@@ -1,164 +1,207 @@
 package daemon
 
 import (
-	"context"
+	"os"
 	"testing"
 	"time"
 
-	fleetlock "github.com/heathcliff26/fleetlock/pkg/client"
-	"github.com/heathcliff26/kube-upgrade/pkg/constants"
+	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
+	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/config"
 	"github.com/stretchr/testify/assert"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes/fake"
+	"github.com/stretchr/testify/require"
+	"sigs.k8s.io/yaml"
 )
 
-func TestUpdateConfigFromNode(t *testing.T) {
-	assert := assert.New(t)
+func TestUpdateFromConfigFile(t *testing.T) {
+	t.Run("FailedToLoadConfig", func(t *testing.T) {
+		d := &daemon{
+			cfgPath: "not-a-file",
+		}
 
-	client, err := fleetlock.NewClient("https://fleetlock.example.com", "default")
-	if !assert.NoError(err, "Should create a fleetlock client") {
-		t.FailNow()
-	}
+		assert.Error(t, d.UpdateFromConfigFile(), "Should fail to load config from file")
+	})
+	t.Run("UpdateSuccess", func(t *testing.T) {
+		assert := assert.New(t)
 
-	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
-	t.Cleanup(cancel)
+		d := &daemon{
+			cfgPath: "testdata/config/valid-config-full.yaml",
+		}
 
-	d := &daemon{
-		ctx:       ctx,
-		client:    fake.NewSimpleClientset(),
-		node:      "testnode",
-		fleetlock: client,
-	}
+		assert.NoError(d.UpdateFromConfigFile(), "Should update config from file")
 
-	node := &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: d.node,
-			Annotations: map[string]string{
-				constants.ConfigStream: "registry.example.com/fcos-k8s",
-			},
-		},
-	}
-	_, _ = d.client.CoreV1().Nodes().Create(ctx, node, metav1.CreateOptions{})
-
-	assert.NoError(d.UpdateConfigFromNode(), "Should succeed")
-	assert.Equal("registry.example.com/fcos-k8s", d.stream, "Should have updated stream")
-
-	d.node = "not-a-node"
-	assert.Error(d.UpdateConfigFromNode(), "Should fail to update from non-existent node")
+		assert.Equal("registry.example.com/fcos-k8s", d.stream, "Stream should match")
+		assert.Equal("https://fleetlock.example.com", d.fleetlock.GetURL(), "Fleetlock URL should match")
+		assert.Equal("compute", d.fleetlock.GetGroup(), "Fleetlock group should match")
+		assert.Equal(10*time.Minute, d.checkInterval, "Check interval should match")
+		assert.Equal(2*time.Minute, d.retryInterval, "Retry interval should match")
+	})
 }
 
-func TestUpdateConfigFromAnnotations(t *testing.T) {
-	tMatrix := []struct {
-		Name        string
-		Annotations map[string]string
-		Result      struct {
-			Stream         string
-			FleetlockURL   string
-			FleetlockGroup string
-			CheckInterval  time.Duration
-			RetryInterval  time.Duration
+func TestUpdateFromConfig(t *testing.T) {
+	t.Run("ValidConfig", func(t *testing.T) {
+		assert := assert.New(t)
+
+		d := &daemon{}
+		cfg := &api.UpgradedConfig{
+			Stream:       "registry.example.com/fcos-k8s",
+			FleetlockURL: "https://fleetlock.example.com",
 		}
-		Success bool
+		api.SetObjectDefaults_UpgradedConfig(cfg)
+
+		assert.NoError(d.updateFromConfig(cfg), "Should update from config")
+
+		assert.Equal(cfg.Stream, d.stream, "Stream should match")
+		assert.Equal(cfg.FleetlockURL, d.fleetlock.GetURL(), "Fleetlock URL should match")
+		assert.Equal(cfg.FleetlockGroup, d.fleetlock.GetGroup(), "Fleetlock group should match")
+		checkInterval, _ := time.ParseDuration(cfg.CheckInterval)
+		retryInterval, _ := time.ParseDuration(cfg.RetryInterval)
+		assert.Equal(checkInterval, d.checkInterval, "Check interval should match")
+		assert.Equal(retryInterval, d.retryInterval, "Retry interval should match")
+	})
+	tMatrix := []struct {
+		Name string
+		Cfg  *api.UpgradedConfig
 	}{
 		{
-			Name: "AllValues",
-			Annotations: map[string]string{
-				constants.ConfigStream:         "registry.example.com/fcos-k8s",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.com",
-				constants.ConfigFleetlockGroup: "compute",
-				constants.ConfigCheckInterval:  "5m",
-				constants.ConfigRetryInterval:  "2h",
-			},
-			Result: struct {
-				Stream         string
-				FleetlockURL   string
-				FleetlockGroup string
-				CheckInterval  time.Duration
-				RetryInterval  time.Duration
-			}{
-				Stream:         "registry.example.com/fcos-k8s",
-				FleetlockURL:   "https://fleetlock.example.com",
-				FleetlockGroup: "compute",
-				CheckInterval:  5 * time.Minute,
-				RetryInterval:  2 * time.Hour,
-			},
-			Success: true,
-		},
-		{
-			Name: "FleetlockURLOnly",
-			Annotations: map[string]string{
-				constants.ConfigFleetlockURL: "https://fleetlock.example.com",
-			},
-			Result: struct {
-				Stream         string
-				FleetlockURL   string
-				FleetlockGroup string
-				CheckInterval  time.Duration
-				RetryInterval  time.Duration
-			}{
-				FleetlockURL: "https://fleetlock.example.com",
-			},
-			Success: true,
-		},
-		{
-			Name:        "MissingFleetlockURL",
-			Annotations: map[string]string{},
-		},
-		{
-			Name: "EmptyStream",
-			Annotations: map[string]string{
-				constants.ConfigStream: "",
-			},
-		},
-		{
-			Name: "EmptyFleetlockURL",
-			Annotations: map[string]string{
-				constants.ConfigFleetlockURL: "",
-			},
-		},
-		{
-			Name: "EmptyFleetlockGroup",
-			Annotations: map[string]string{
-				constants.ConfigFleetlockGroup: "",
-			},
+			Name: "MissingFleetlockURL",
+			Cfg:  &api.UpgradedConfig{},
 		},
 		{
 			Name: "MisformedCheckInterval",
-			Annotations: map[string]string{
-				constants.ConfigCheckInterval: "not-a-duration",
+			Cfg: &api.UpgradedConfig{
+				FleetlockURL:  "https://fleetlock.example.com",
+				CheckInterval: "not-a-duration",
 			},
 		},
 		{
 			Name: "MisformedRetryInterval",
-			Annotations: map[string]string{
-				constants.ConfigRetryInterval: "not-a-duration",
+			Cfg: &api.UpgradedConfig{
+				FleetlockURL:  "https://fleetlock.example.com",
+				RetryInterval: "not-a-duration",
 			},
 		},
 	}
+
 	for _, tCase := range tMatrix {
 		t.Run(tCase.Name, func(t *testing.T) {
 			assert := assert.New(t)
 
-			client, err := fleetlock.NewEmptyClient()
-			if !assert.NoError(err, "Should create fleetlock client") {
-				t.FailNow()
-			}
-			d := &daemon{
-				fleetlock: client,
-			}
+			d := &daemon{}
 
-			if tCase.Success {
-				assert.NoError(d.UpdateConfigFromAnnotations(tCase.Annotations), "Should update config from annotations")
+			api.SetObjectDefaults_UpgradedConfig(tCase.Cfg)
 
-				assert.Equal(tCase.Result.Stream, d.stream, "Stream should match")
-				assert.Equal(tCase.Result.FleetlockURL, d.fleetlock.GetURL(), "Fleetlock URL should match")
-				assert.Equal(tCase.Result.FleetlockGroup, d.fleetlock.GetGroup(), "Fleetlock group should match")
-				assert.Equal(tCase.Result.CheckInterval, d.checkInterval, "Check interval should match")
-				assert.Equal(tCase.Result.RetryInterval, d.retryInterval, "Check interval should match")
-			} else {
-				assert.Error(d.UpdateConfigFromAnnotations(tCase.Annotations), "Should fail to update config from annotations")
-			}
+			assert.Error(d.updateFromConfig(tCase.Cfg), "Should fail to update config")
+
+			assert.Empty(d.stream, "Should not update stream")
+			assert.Nil(d.fleetlock, "Should not update fleetlock client")
+			assert.Zero(d.checkInterval, "Should not update check interval")
+			assert.Zero(d.retryInterval, "Should not update retry interval")
 		})
 	}
+
+	t.Run("ShouldLockDemonOnUpdate", func(t *testing.T) {
+		assert := assert.New(t)
+
+		d := &daemon{}
+		cfg := &api.UpgradedConfig{
+			Stream:       "registry.example.com/fcos-k8s",
+			FleetlockURL: "https://fleetlock.example.com",
+		}
+		api.SetObjectDefaults_UpgradedConfig(cfg)
+
+		done := make(chan error, 1)
+
+		d.Lock()
+		go func() {
+			done <- d.updateFromConfig(cfg)
+		}()
+
+		select {
+		case <-done:
+			t.Fatal("UpdateFromConfig should be blocked by lock")
+		case <-time.After(500 * time.Millisecond):
+			// Expected case
+		}
+
+		d.Unlock()
+
+		select {
+		case err := <-done:
+			assert.NoError(err, "Should update from config after unlock")
+		case <-time.After(100 * time.Millisecond):
+			t.Fatal("UpdateFromConfig should have finished after unlock")
+		}
+	})
+}
+
+func TestNewConfigFileWatcher(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		assert := assert.New(t)
+		require := require.New(t)
+
+		d := &daemon{
+			cfgPath: "testdata/config/valid-config-full.yaml",
+		}
+
+		require.NoError(d.NewConfigFileWatcher(), "Should create new config file watcher")
+		t.Cleanup(func() {
+			_ = d.configWatcher.Close()
+		})
+		assert.NotNil(d.configWatcher, "Config watcher should not be nil")
+	})
+	t.Run("Failure", func(t *testing.T) {
+		assert := assert.New(t)
+
+		d := &daemon{
+			cfgPath: "/foo/bar/not-a-file",
+		}
+
+		assert.Error(d.NewConfigFileWatcher(), "Should fail to create config file watcher")
+		if d.configWatcher != nil {
+			_ = d.configWatcher.Close()
+		}
+	})
+}
+
+func TestWatchConfigFile(t *testing.T) {
+	require := require.New(t)
+
+	tmpDir := t.TempDir()
+	cfgPath := tmpDir + "/config.yaml"
+
+	cfg, err := config.LoadConfig("testdata/config/valid-config-full.yaml")
+	require.NoError(err, "Should load initial config")
+	require.NoError(saveConfigToFile(cfg, cfgPath), "Should save initial config to temp file")
+
+	d := &daemon{
+		cfgPath: cfgPath,
+		ctx:     t.Context(),
+	}
+	require.NoError(d.UpdateFromConfigFile(), "Should load initial config from file")
+	require.Equal(cfg.Stream, d.stream, "Initial stream should match")
+
+	require.NoError(d.NewConfigFileWatcher(), "Should create config file watcher")
+	t.Cleanup(func() {
+		_ = d.configWatcher.Close()
+	})
+	go d.WatchConfigFile()
+
+	cfg.Stream = "registry.example.com/updated-stream"
+	require.NoError(saveConfigToFile(cfg, cfgPath), "Should save updated config to file")
+
+	require.Eventually(func() bool {
+		d.Lock()
+		defer d.Unlock()
+
+		return cfg.Stream == d.stream
+	}, 5*time.Second, 100*time.Millisecond, "Daemon should update stream from config file")
+}
+
+func saveConfigToFile(cfg *api.UpgradedConfig, path string) error {
+	data, err := yaml.Marshal(cfg)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(path, data, 0644)
 }

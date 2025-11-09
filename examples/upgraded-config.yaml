@@ -1,9 +1,0 @@
----
-# Used to control the log level
-logLevel: info
-# The path to the kubeconfig file on the node
-kubeconfig: /etc/kubernetes/kubelet.conf
-# The path to the rpm-ostree binary
-rpm-ostree-path: /usr/bin/rpm-ostree
-# The path to the kubeadm binary on the node
-kubeadm-path: /usr/bin/kubeadm
