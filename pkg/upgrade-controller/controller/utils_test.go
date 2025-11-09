@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
+	"github.com/heathcliff26/kube-upgrade/pkg/version"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -183,6 +184,50 @@ func TestCreateStatusSummary(t *testing.T) {
 		}
 		t.Run(tCase.Name, func(t *testing.T) {
 			assert.Equal(t, tCase.Result, createStatusSummary(tCase.Status))
+		})
+	}
+}
+
+func TestGetUpgradedImage(t *testing.T) {
+	tMatrix := []struct {
+		Name, ImageEnv, TagEnv, Expected string
+	}{
+		{
+			Name:     "BothEnvSet",
+			ImageEnv: "registry.example.com/upgraded-custom",
+			TagEnv:   "v1.2.3",
+			Expected: "registry.example.com/upgraded-custom:v1.2.3",
+		},
+		{
+			Name:     "OnlyImageEnvSet",
+			ImageEnv: "registry.example.com/upgraded-custom",
+			TagEnv:   "",
+			Expected: "registry.example.com/upgraded-custom:" + version.Version(),
+		},
+		{
+			Name:     "OnlyTagEnvSet",
+			ImageEnv: "",
+			TagEnv:   "v1.2.3",
+			Expected: defaultUpgradedImage + ":v1.2.3",
+		},
+		{
+			Name:     "NoEnvSet",
+			ImageEnv: "",
+			TagEnv:   "",
+			Expected: defaultUpgradedImage + ":" + version.Version(),
+		},
+	}
+
+	for _, tCase := range tMatrix {
+		t.Run(tCase.Name, func(t *testing.T) {
+			if tCase.ImageEnv != "" {
+				t.Setenv(upgradedImageEnv, tCase.ImageEnv)
+			}
+			if tCase.TagEnv != "" {
+				t.Setenv(upgradedTagEnv, tCase.TagEnv)
+			}
+
+			assert.Equal(t, tCase.Expected, GetUpgradedImage(), "Upgraded image should match expected value")
 		})
 	}
 }

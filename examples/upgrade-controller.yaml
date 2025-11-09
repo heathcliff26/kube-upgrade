@@ -799,7 +799,9 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: UPGRADED_IMAGE
-              value: ghcr.io/heathcliff26/kube-upgraded:latest
+              value: ghcr.io/heathcliff26/kube-upgraded
+            - name: UPGRADED_TAG
+              value: latest
           ports:
             - name: probe
               containerPort: 9090
