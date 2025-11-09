@@ -89,7 +89,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 
 	err = d.fleetlock.Lock()
 	if err != nil {
-		return fmt.Errorf("failed to aquire lock: %v", err)
+		return fmt.Errorf("failed to acquire lock: %v", err)
 	}
 
 	if version != d.kubeadm.Version() {
@@ -102,7 +102,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 		if err != nil {
 			return d.returnNodeUpgradeError(fmt.Errorf("failed to rebase node: %v", err))
 		}
-		// This return is here purely for testing, as a successfull rebase does not return, but instead reboots the system
+		// This return is here purely for testing, as a successful rebase does not return, but instead reboots the system
 		return nil
 	}
 

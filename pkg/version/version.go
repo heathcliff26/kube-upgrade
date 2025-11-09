@@ -28,7 +28,7 @@ func Version() string {
 	return buildinfo.Main.Version
 }
 
-// Return a formated string containing the version, git commit and go version the app was compiled with.
+// Return a formatted string containing the version, git commit and go version the app was compiled with.
 func VersionInfoString(name string) string {
 	var commit string
 	buildinfo, _ := debug.ReadBuildInfo()

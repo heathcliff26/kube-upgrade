@@ -67,7 +67,7 @@ func TestDoUpgrade(t *testing.T) {
 
 		assert.Error(err, "Should exit with error")
 	})
-	// This case is kinda scetchy, as in reality the system would reboot on success, thus the method should never return
+	// This case is kinda sketchy, as in reality the system would reboot on success, thus the method should never return
 	t.Run("Success", func(t *testing.T) {
 		assert := assert.New(t)
 
