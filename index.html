@@ -75,7 +75,7 @@
 				
 				<option value="file9">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/config.go (100.0%)</option>
 				
-				<option value="file10">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (66.9%)</option>
+				<option value="file10">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (67.0%)</option>
 				
 				<option value="file11">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/errors.go (50.0%)</option>
 				
@@ -1034,6 +1034,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
                 }</span>
                 <span class="cov9" title="37">daemon.Spec = c.NewUpgradedDaemonSetSpec(plan.Name, name)
                 daemon.Spec.Template.Spec.NodeSelector = cfg.Labels
+                daemon.Spec.Template.Spec.Tolerations = cfg.Tolerations
                 if ok </span><span class="cov5" title="6">{
                         _, err = c.client.AppsV1().DaemonSets(c.namespace).Update(ctx, &amp;daemon, metav1.UpdateOptions{})
                 }</span> else<span class="cov9" title="31"> {
@@ -1233,18 +1234,6 @@ func (c *controller) NewUpgradedDaemonSetSpec(plan, group string) appv1.DaemonSe
                                 Labels: labels,
                         },
                         Spec: corev1.PodSpec{
-                                Tolerations: []corev1.Toleration{
-                                        {
-                                                Key:      "node-role.kubernetes.io/control-plane",
-                                                Operator: corev1.TolerationOpExists,
-                                                Effect:   corev1.TaintEffectNoSchedule,
-                                        },
-                                        {
-                                                Key:      "node-role.kubernetes.io/master",
-                                                Operator: corev1.TolerationOpExists,
-                                                Effect:   corev1.TaintEffectNoSchedule,
-                                        },
-                                },
                                 // Need to run with host PIDs for rpm-ostree to work.
                                 // Otherwise it won't see the caller process PID.
                                 HostPID: true,
