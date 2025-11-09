@@ -92,23 +92,23 @@ type UpgradedConfig struct {
 	// URL for the fleetlock server. Is required to be set globally.
 	// +optional
 	// +kubebuilder:example="https://fleetlock.example.com"
-	FleetlockURL string `json:"fleetlock-url"`
+	FleetlockURL string `json:"fleetlockUrl"`
 
 	// The group to use for fleetlock
 	// +kubebuilder:example="control-plane;compute"
-	FleetlockGroup string `json:"fleetlock-group,omitempty"`
+	FleetlockGroup string `json:"fleetlockGroup,omitempty"`
 
 	// The interval between regular checks
 	// +optional
 	// +kubebuilder:validation:Format=go-duration
 	// +kubebuilder:example="3h;24h;30m"
-	CheckInterval string `json:"check-interval,omitempty"`
+	CheckInterval string `json:"checkInterval,omitempty"`
 
 	// The interval between retries when an operation fails
 	// +optional
 	// +kubebuilder:validation:Format=go-duration
 	// +kubebuilder:example="5m;1m;30s"
-	RetryInterval string `json:"retry-interval,omitempty"`
+	RetryInterval string `json:"retryInterval,omitempty"`
 
 	// The log level used by slog, default "info"
 	// +optional
@@ -119,12 +119,12 @@ type UpgradedConfig struct {
 	// The path to the kubelet config file on the node
 	// +optional
 	// +kubebuilder:example="/etc/kubernetes/kubelet.conf"
-	KubeletConfig string `json:"kubelet-config,omitempty"`
+	KubeletConfig string `json:"kubeletConfig,omitempty"`
 
 	// The path to the kubeadm binary on the node
 	// +optional
 	// +kubebuilder:example="/usr/bin/kubeadm"
-	KubeadmPath string `json:"kubeadm-path,omitempty"`
+	KubeadmPath string `json:"kubeadmPath,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

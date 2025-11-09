@@ -2,5 +2,5 @@
 stream: "ghcr.io/heathcliff26/fcos-k8s"
 fleetlockUrl: "https://fleetlock.example.com"
 fleetlockGroup: "default"
-kubeletConfig: "testdata/kubeconfig"
+kubeletConfig: "not-a-file"
 kubeadmPath: "testdata/exit-0.sh"

@@ -47,7 +47,7 @@ func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error {
 		return err
 	}
 	if spec.Upgraded.FleetlockURL == "" {
-		return fmt.Errorf("missing parameter spec.upgraded.fleetlock-url")
+		return fmt.Errorf("missing parameter spec.upgraded.fleetlockUrl")
 	}
 
 	return nil
@@ -64,21 +64,21 @@ func ValidateObject_UpgradedConfig(cfg UpgradedConfig) error {
 	if cfg.FleetlockURL != "" {
 		_, err := url.ParseRequestURI(cfg.FleetlockURL)
 		if err != nil {
-			return fmt.Errorf("invalid input \"%s\" for fleetlock-url: %v", cfg.FleetlockURL, err)
+			return fmt.Errorf("invalid input \"%s\" for fleetlockUrl: %v", cfg.FleetlockURL, err)
 		}
 	}
 
 	if cfg.CheckInterval != "" {
 		_, err := time.ParseDuration(cfg.CheckInterval)
 		if err != nil {
-			return fmt.Errorf("invalid input \"%s\" for check-interval: %v", cfg.CheckInterval, err)
+			return fmt.Errorf("invalid input \"%s\" for checkInterval: %v", cfg.CheckInterval, err)
 		}
 	}
 
 	if cfg.RetryInterval != "" {
 		_, err := time.ParseDuration(cfg.RetryInterval)
 		if err != nil {
-			return fmt.Errorf("invalid input \"%s\" for retry-interval: %v", cfg.RetryInterval, err)
+			return fmt.Errorf("invalid input \"%s\" for retryInterval: %v", cfg.RetryInterval, err)
 		}
 	}
 

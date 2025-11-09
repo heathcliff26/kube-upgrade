@@ -83,10 +83,10 @@ func TestLoadConfigError(t *testing.T) {
 		"EmptyConfigFile":        "testdata/empty-file.yaml",
 		"ConfigFileDoesNotExist": "not-a-file",
 		"EmptyStream":            "testdata/empty-stream.yaml",
-		"MissingFleetlockURL":    "testdata/missing-fleetlock-url.yaml",
-		"EmptyFleetlockGroup":    "testdata/empty-fleetlock-group.yaml",
-		"EmptyKubeadmPath":       "testdata/empty-kubeadm-path.yaml",
-		"EmptyKubeletConfig":     "testdata/empty-kubelet-config.yaml",
+		"EmptyFleetlockURL":      "testdata/empty-fleetlockUrl.yaml",
+		"EmptyFleetlockGroup":    "testdata/empty-fleetlockGroup.yaml",
+		"EmptyKubeadmPath":       "testdata/empty-kubeadmPath.yaml",
+		"EmptyKubeletConfig":     "testdata/empty-kubeletConfig.yaml",
 	}
 
 	for name, path := range tMatrix {

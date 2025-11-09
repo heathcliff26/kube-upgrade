@@ -95,16 +95,16 @@ func ValidateConfig(cfg *api.UpgradedConfig) error {
 		return fmt.Errorf("invalid config, missing stream")
 	}
 	if cfg.FleetlockURL == "" {
-		return fmt.Errorf("invalid config, missing fleetlock-url")
+		return fmt.Errorf("invalid config, missing fleetlockUrl")
 	}
 	if cfg.FleetlockGroup == "" {
-		return fmt.Errorf("invalid config, missing fleetlock-group")
+		return fmt.Errorf("invalid config, missing fleetlockGroup")
 	}
 	if cfg.KubeletConfig == "" {
-		return fmt.Errorf("invalid config, missing kubelet-config")
+		return fmt.Errorf("invalid config, missing kubeletConfig")
 	}
 	if cfg.KubeadmPath == "" {
-		return fmt.Errorf("invalid config, missing kubeadm-path")
+		return fmt.Errorf("invalid config, missing kubeadmPath")
 	}
 	return nil
 }
