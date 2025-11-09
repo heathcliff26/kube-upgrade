@@ -118,7 +118,9 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: UPGRADED_IMAGE
-              value: ${REPOSITORY}/kube-upgraded:${TAG}
+              value: ${REPOSITORY}/kube-upgraded
+            - name: UPGRADED_TAG
+              value: ${TAG}
           ports:
             - name: probe
               containerPort: 9090

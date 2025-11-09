@@ -3,10 +3,12 @@ package controller
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
+	"github.com/heathcliff26/kube-upgrade/pkg/version"
 )
 
 var serviceAccountNamespaceFile = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
@@ -81,4 +83,19 @@ func createStatusSummary(status map[string]string) string {
 	} else {
 		return api.PlanStatusComplete
 	}
+}
+
+// Return the upgraded image to use based on environment variables
+func GetUpgradedImage() string {
+	image := os.Getenv(upgradedImageEnv)
+	tag := os.Getenv(upgradedTagEnv)
+	if image == "" {
+		slog.Info("Upgraded image is not set, falling back to default", slog.String("env", upgradedImageEnv), slog.String("image", defaultUpgradedImage))
+		image = defaultUpgradedImage
+	}
+	if tag == "" {
+		slog.Info("Upgraded image tag is not set, falling back to default", slog.String("env", upgradedTagEnv), slog.String("tag", version.Version()))
+		tag = version.Version()
+	}
+	return fmt.Sprintf("%s:%s", image, tag)
 }

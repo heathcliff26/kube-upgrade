@@ -3,7 +3,6 @@ package controller
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -24,6 +23,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+)
+
+const (
+	defaultUpgradedImage = "ghcr.io/heathcliff26/kube-upgraded"
+	upgradedImageEnv     = "UPGRADED_IMAGE"
+	upgradedTagEnv       = "UPGRADED_TAG"
 )
 
 func init() {
@@ -80,17 +85,12 @@ func NewController(name string) (*controller, error) {
 		return nil, err
 	}
 
-	upgradedImage := os.Getenv("UPGRADED_IMAGE")
-	if upgradedImage == "" {
-		return nil, fmt.Errorf("UPGRADED_IMAGE environment variable is not set")
-	}
-
 	return &controller{
 		Client:        mgr.GetClient(),
 		manager:       mgr,
 		client:        client,
 		namespace:     ns,
-		upgradedImage: upgradedImage,
+		upgradedImage: GetUpgradedImage(),
 	}, nil
 }
 
