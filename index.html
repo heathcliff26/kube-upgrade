@@ -659,18 +659,18 @@ func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error <span class="cov
         <span class="cov9" title="15">if len(spec.Groups) &lt; 1 </span><span class="cov1" title="1">{
                 return fmt.Errorf("need at least one node group for upgrades")
         }</span>
-        <span class="cov8" title="14">for name, group := range spec.Groups </span><span class="cov9" title="18">{
+        <span class="cov8" title="14">for name, group := range spec.Groups </span><span class="cov9" title="17">{
                 for _, dependency := range group.DependsOn </span><span class="cov6" title="6">{
                         if _, ok := spec.Groups[dependency]; !ok </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" depends on non-existing group \"%s\"", name, dependency)
                         }</span>
                 }
 
-                <span class="cov9" title="17">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
+                <span class="cov9" title="16">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
                         return fmt.Errorf("group \"%s\" needs at least one label selector", name)
                 }</span>
 
-                <span class="cov9" title="16">if group.Upgraded != nil </span><span class="cov3" title="2">{
+                <span class="cov9" title="15">if group.Upgraded != nil </span><span class="cov3" title="2">{
                         err := ValidateObject_UpgradedConfig(*group.Upgraded)
                         if err != nil </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" has an invalid upgraded config: %v", name, err)
@@ -1893,7 +1893,7 @@ func (d *daemon) retry(f func() bool) <span class="cov5" title="3">{
         }
 }
 
-// Will try to release the lock until successfull
+// Will try to release the lock until successful
 func (d *daemon) releaseLock() <span class="cov1" title="1">{
         d.retry(func() bool </span><span class="cov1" title="1">{
                 err := d.fleetlock.Release()
@@ -2067,7 +2067,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
 
         err = d.fleetlock.Lock()
         if err != nil </span><span class="cov1" title="1">{
-                return fmt.Errorf("failed to aquire lock: %v", err)
+                return fmt.Errorf("failed to acquire lock: %v", err)
         }</span>
 
         <span class="cov3" title="2">if version != d.kubeadm.Version() </span><span class="cov3" title="2">{
@@ -2080,7 +2080,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
                 if err != nil </span><span class="cov1" title="1">{
                         return d.returnNodeUpgradeError(fmt.Errorf("failed to rebase node: %v", err))
                 }</span>
-                // This return is here purely for testing, as a successfull rebase does not return, but instead reboots the system
+                // This return is here purely for testing, as a successful rebase does not return, but instead reboots the system
                 <span class="cov1" title="1">return nil</span>
         }
 
@@ -2241,7 +2241,7 @@ func (d *daemon) doUpgrade() error <span class="cov10" title="3">{
         }</span>
 
         // This should not be reached, as rpmostree.Upgrade() reboots the node on success.
-        // I included it here mainly for completness sake.
+        // I included it here mainly for completeness sake.
 
         <span class="cov1" title="1">d.releaseLock()
         return nil</span>
@@ -2544,7 +2544,7 @@ func (r *RPMOStreeCMD) CheckForUpgrade() (bool, error) <span class="cov4" title=
 
 // Upgrade the system using rpm-ostree. Writes command output to stdout/stderr.
 //
-// WARNING: Will reboot the system when successfull.
+// WARNING: Will reboot the system when successful.
 func (r *RPMOStreeCMD) Upgrade() error <span class="cov3" title="2">{
         r.mutex.Lock()
         defer r.mutex.Unlock()
@@ -2554,7 +2554,7 @@ func (r *RPMOStreeCMD) Upgrade() error <span class="cov3" title="2">{
 
 // Rebases the system to the given container image
 //
-// WARNING: Will reboot the system when successfull.
+// WARNING: Will reboot the system when successful.
 func (r *RPMOStreeCMD) Rebase(image string) error <span class="cov4" title="3">{
         r.mutex.Lock()
         defer r.mutex.Unlock()
@@ -2667,7 +2667,7 @@ func Version() string <span class="cov9" title="10">{
         return buildinfo.Main.Version
 }</span>
 
-// Return a formated string containing the version, git commit and go version the app was compiled with.
+// Return a formatted string containing the version, git commit and go version the app was compiled with.
 func VersionInfoString(name string) string <span class="cov1" title="1">{
         var commit string
         buildinfo, _ := debug.ReadBuildInfo()
