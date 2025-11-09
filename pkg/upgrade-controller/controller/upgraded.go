@@ -40,18 +40,6 @@ func (c *controller) NewUpgradedDaemonSetSpec(plan, group string) appv1.DaemonSe
 				Labels: labels,
 			},
 			Spec: corev1.PodSpec{
-				Tolerations: []corev1.Toleration{
-					{
-						Key:      "node-role.kubernetes.io/control-plane",
-						Operator: corev1.TolerationOpExists,
-						Effect:   corev1.TaintEffectNoSchedule,
-					},
-					{
-						Key:      "node-role.kubernetes.io/master",
-						Operator: corev1.TolerationOpExists,
-						Effect:   corev1.TaintEffectNoSchedule,
-					},
-				},
 				// Need to run with host PIDs for rpm-ostree to work.
 				// Otherwise it won't see the caller process PID.
 				HostPID: true,
