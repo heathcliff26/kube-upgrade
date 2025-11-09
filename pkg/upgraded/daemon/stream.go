@@ -60,7 +60,7 @@ func (d *daemon) doUpgrade() error {
 	}
 
 	// This should not be reached, as rpmostree.Upgrade() reboots the node on success.
-	// I included it here mainly for completness sake.
+	// I included it here mainly for completeness sake.
 
 	d.releaseLock()
 	return nil

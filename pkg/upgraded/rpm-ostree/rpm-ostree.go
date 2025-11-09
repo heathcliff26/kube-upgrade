@@ -54,7 +54,7 @@ func (r *RPMOStreeCMD) CheckForUpgrade() (bool, error) {
 
 // Upgrade the system using rpm-ostree. Writes command output to stdout/stderr.
 //
-// WARNING: Will reboot the system when successfull.
+// WARNING: Will reboot the system when successful.
 func (r *RPMOStreeCMD) Upgrade() error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
@@ -64,7 +64,7 @@ func (r *RPMOStreeCMD) Upgrade() error {
 
 // Rebases the system to the given container image
 //
-// WARNING: Will reboot the system when successfull.
+// WARNING: Will reboot the system when successful.
 func (r *RPMOStreeCMD) Rebase(image string) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()

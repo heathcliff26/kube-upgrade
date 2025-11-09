@@ -84,7 +84,7 @@ func TestCheckExistsAndIsExecutable(t *testing.T) {
 			if tCase.Success {
 				assert.NoError(err, "Should succeed")
 			} else {
-				assert.Error(err, "Should not suceed")
+				assert.Error(err, "Should not succeed")
 			}
 		})
 	}

@@ -599,7 +599,7 @@ func TestReconcileNodes(t *testing.T) {
 
 	assert.NotEqual(api.PlanStatusError, status, "Should not return error status")
 	assert.True(needUpdate, "Should request update")
-	assert.Equal("v1.31.0", nodes[0].GetAnnotations()[constants.NodeKubernetesVersion], "Should set kubernets wanted version on node")
+	assert.Equal("v1.31.0", nodes[0].GetAnnotations()[constants.NodeKubernetesVersion], "Should set kubernetes wanted version on node")
 	assert.NoError(err, "Should not return an error")
 }
 

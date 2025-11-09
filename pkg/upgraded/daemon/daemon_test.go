@@ -135,7 +135,7 @@ func cancelOnTimeout(t *testing.T, ctx context.Context, cancel context.CancelFun
 		select {
 		case <-time.After(time.Second * 5):
 			t.Fail()
-			t.Log("Timeout waiting for retry to succeeed")
+			t.Log("Timeout waiting for retry to succeed")
 			cancel()
 		case <-ctx.Done():
 		}

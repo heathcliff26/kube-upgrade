@@ -24,7 +24,6 @@ Kubernetes controller and daemon for managing cluster updates.
   - [Possible problems when upgrading](#possible-problems-when-upgrading)
   - [Links](#links)
 
-
 ## Introduction
 
 ## Usage

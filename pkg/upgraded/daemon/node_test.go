@@ -63,7 +63,7 @@ func TestDoNodeUpgrade(t *testing.T) {
 
 		err := d.doNodeUpgrade(node)
 
-		assert.ErrorContains(err, "failed to aquire lock:")
+		assert.ErrorContains(err, "failed to acquire lock:")
 	})
 	for name, succeed := range map[string]bool{
 		"FailedOstreeRebase":    false,

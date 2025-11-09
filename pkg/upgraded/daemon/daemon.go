@@ -114,7 +114,7 @@ func (d *daemon) retry(f func() bool) {
 	}
 }
 
-// Will try to release the lock until successfull
+// Will try to release the lock until successful
 func (d *daemon) releaseLock() {
 	d.retry(func() bool {
 		err := d.fleetlock.Release()
