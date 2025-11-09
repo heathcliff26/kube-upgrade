@@ -659,18 +659,18 @@ func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error <span class="cov
         <span class="cov9" title="15">if len(spec.Groups) &lt; 1 </span><span class="cov1" title="1">{
                 return fmt.Errorf("need at least one node group for upgrades")
         }</span>
-        <span class="cov8" title="14">for name, group := range spec.Groups </span><span class="cov9" title="17">{
+        <span class="cov8" title="14">for name, group := range spec.Groups </span><span class="cov9" title="19">{
                 for _, dependency := range group.DependsOn </span><span class="cov6" title="6">{
                         if _, ok := spec.Groups[dependency]; !ok </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" depends on non-existing group \"%s\"", name, dependency)
                         }</span>
                 }
 
-                <span class="cov9" title="16">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
+                <span class="cov9" title="18">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
                         return fmt.Errorf("group \"%s\" needs at least one label selector", name)
                 }</span>
 
-                <span class="cov9" title="15">if group.Upgraded != nil </span><span class="cov3" title="2">{
+                <span class="cov9" title="17">if group.Upgraded != nil </span><span class="cov3" title="2">{
                         err := ValidateObject_UpgradedConfig(*group.Upgraded)
                         if err != nil </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" has an invalid upgraded config: %v", name, err)
@@ -683,7 +683,7 @@ func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error <span class="cov
                 return err
         }</span>
         <span class="cov6" title="7">if spec.Upgraded.FleetlockURL == "" </span><span class="cov1" title="1">{
-                return fmt.Errorf("missing parameter spec.upgraded.fleetlock-url")
+                return fmt.Errorf("missing parameter spec.upgraded.fleetlockUrl")
         }</span>
 
         <span class="cov6" title="6">return nil</span>
@@ -700,21 +700,21 @@ func ValidateObject_UpgradedConfig(cfg UpgradedConfig) error <span class="cov8" 
         <span class="cov8" title="12">if cfg.FleetlockURL != "" </span><span class="cov7" title="10">{
                 _, err := url.ParseRequestURI(cfg.FleetlockURL)
                 if err != nil </span><span class="cov3" title="2">{
-                        return fmt.Errorf("invalid input \"%s\" for fleetlock-url: %v", cfg.FleetlockURL, err)
+                        return fmt.Errorf("invalid input \"%s\" for fleetlockUrl: %v", cfg.FleetlockURL, err)
                 }</span>
         }
 
         <span class="cov7" title="10">if cfg.CheckInterval != "" </span><span class="cov6" title="7">{
                 _, err := time.ParseDuration(cfg.CheckInterval)
                 if err != nil </span><span class="cov1" title="1">{
-                        return fmt.Errorf("invalid input \"%s\" for check-interval: %v", cfg.CheckInterval, err)
+                        return fmt.Errorf("invalid input \"%s\" for checkInterval: %v", cfg.CheckInterval, err)
                 }</span>
         }
 
         <span class="cov7" title="9">if cfg.RetryInterval != "" </span><span class="cov6" title="6">{
                 _, err := time.ParseDuration(cfg.RetryInterval)
                 if err != nil </span><span class="cov1" title="1">{
-                        return fmt.Errorf("invalid input \"%s\" for retry-interval: %v", cfg.RetryInterval, err)
+                        return fmt.Errorf("invalid input \"%s\" for retryInterval: %v", cfg.RetryInterval, err)
                 }</span>
         }
 
@@ -1637,16 +1637,16 @@ func ValidateConfig(cfg *api.UpgradedConfig) error <span class="cov9" title="16"
                 return fmt.Errorf("invalid config, missing stream")
         }</span>
         <span class="cov8" title="14">if cfg.FleetlockURL == "" </span><span class="cov1" title="1">{
-                return fmt.Errorf("invalid config, missing fleetlock-url")
+                return fmt.Errorf("invalid config, missing fleetlockUrl")
         }</span>
         <span class="cov8" title="13">if cfg.FleetlockGroup == "" </span><span class="cov1" title="1">{
-                return fmt.Errorf("invalid config, missing fleetlock-group")
+                return fmt.Errorf("invalid config, missing fleetlockGroup")
         }</span>
         <span class="cov8" title="12">if cfg.KubeletConfig == "" </span><span class="cov1" title="1">{
-                return fmt.Errorf("invalid config, missing kubelet-config")
+                return fmt.Errorf("invalid config, missing kubeletConfig")
         }</span>
         <span class="cov8" title="11">if cfg.KubeadmPath == "" </span><span class="cov1" title="1">{
-                return fmt.Errorf("invalid config, missing kubeadm-path")
+                return fmt.Errorf("invalid config, missing kubeadmPath")
         }</span>
         <span class="cov7" title="10">return nil</span>
 }
