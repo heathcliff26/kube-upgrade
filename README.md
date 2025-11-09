@@ -49,10 +49,11 @@ https://raw.githubusercontent.com/heathcliff26/kube-upgrade/main/examples/upgrad
 
 ### Image location
 
-| Container Registry                                                                             | Image                              |
-| ---------------------------------------------------------------------------------------------- | ---------------------------------- |
+| Container Registry                                                                                           | Image                                            |
+| ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
 | [Github Container](https://github.com/users/heathcliff26/packages/container/package/kube-upgrade-controller) | `ghcr.io/heathcliff26/kube-upgrade-controller`   |
-| [Docker Hub](https://hub.docker.com/r/heathcliff26/kube-upgrade-controller)                  | `docker.io/heathcliff26/kube-upgrade-controller` |
+| [Docker Hub](https://hub.docker.com/r/heathcliff26/kube-upgrade-controller)                                  | `docker.io/heathcliff26/kube-upgrade-controller` |
+| [Quay.io](https://quay.io/repository/heathcliff26/kube-upgrade-controller)                                   | `quay.io/heathcliff26/kube-upgrade-controller`   |
 
 ### Tags
 
