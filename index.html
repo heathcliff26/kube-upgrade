@@ -101,7 +101,7 @@
 				
 				<option value="file22">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/stream.go (32.3%)</option>
 				
-				<option value="file23">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/utils.go (71.4%)</option>
+				<option value="file23">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/utils.go (100.0%)</option>
 				
 				<option value="file24">github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm/kubeadm.go (75.0%)</option>
 				
@@ -659,18 +659,18 @@ func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error <span class="cov
         <span class="cov9" title="15">if len(spec.Groups) &lt; 1 </span><span class="cov1" title="1">{
                 return fmt.Errorf("need at least one node group for upgrades")
         }</span>
-        <span class="cov8" title="14">for name, group := range spec.Groups </span><span class="cov9" title="18">{
+        <span class="cov8" title="14">for name, group := range spec.Groups </span><span class="cov9" title="19">{
                 for _, dependency := range group.DependsOn </span><span class="cov6" title="6">{
                         if _, ok := spec.Groups[dependency]; !ok </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" depends on non-existing group \"%s\"", name, dependency)
                         }</span>
                 }
 
-                <span class="cov9" title="17">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
+                <span class="cov9" title="18">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
                         return fmt.Errorf("group \"%s\" needs at least one label selector", name)
                 }</span>
 
-                <span class="cov9" title="16">if group.Upgraded != nil </span><span class="cov3" title="2">{
+                <span class="cov9" title="17">if group.Upgraded != nil </span><span class="cov3" title="2">{
                         err := ValidateObject_UpgradedConfig(*group.Upgraded)
                         if err != nil </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" has an invalid upgraded config: %v", name, err)
@@ -1243,7 +1243,7 @@ func (c *controller) NewUpgradedDaemonSetSpec(plan, group string) appv1.DaemonSe
                                                 Image: c.upgradedImage,
                                                 Env: []corev1.EnvVar{
                                                         {
-                                                                Name: "HOSTNAME",
+                                                                Name: "NODE_NAME",
                                                                 ValueFrom: &amp;corev1.EnvVarSource{
                                                                         FieldRef: &amp;corev1.ObjectFieldSelector{
                                                                                 FieldPath: "spec.nodeName",
@@ -1865,7 +1865,7 @@ func NewDaemon(cfgPath string) (*daemon, error) <span class="cov5" title="3">{
         if err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("failed to get machine-id: %v", err)
         }</span>
-        <span class="cov1" title="1">node, err := findNode(kubeClient, machineID)
+        <span class="cov1" title="1">node, err := nodeName(kubeClient, machineID)
         if err != nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("failed to get kubernetes node name for host: %v", err)
         }</span>
@@ -2261,76 +2261,45 @@ import (
         "fmt"
         "log/slog"
         "os"
-        "strings"
 
         "github.com/heathcliff26/kube-upgrade/pkg/constants"
-        authenticationv1 "k8s.io/api/authentication/v1"
         corev1 "k8s.io/api/core/v1"
         metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
         "k8s.io/client-go/kubernetes"
 )
 
-// Find the node. It will try various methods and confirm them via the machine id.
-// The methods are in order:
-//   - whoami api call
-//   - listing all nodes and iterating over them. (This does not work anymore with k8s 1.32+)
-func findNode(client kubernetes.Interface, machineID string) (string, error) <span class="cov1" title="1">{
-        node, err := findNodeViaWhoami(client, machineID)
-        if err == nil </span><span class="cov0" title="0">{
-                return node, nil
+const NodeNameEnv = "NODE_NAME"
+
+// Return the node name by reading NODE_NAME environment variable.
+// Return an error if it doesn't match the given machineID.
+func nodeName(client kubernetes.Interface, machineID string) (string, error) <span class="cov10" title="5">{
+        name := os.Getenv(NodeNameEnv)
+        if name == "" </span><span class="cov4" title="2">{
+                return "", fmt.Errorf("NODE_NAME environment variable is empty")
         }</span>
-        <span class="cov1" title="1">slog.Info("Failed to find node via whoami call, trying by listing all nodes next", "err", err)
 
-        return findNodeByListingAllNodes(client, machineID)</span>
-}
-
-// Call kubernetes auth api and ask whoami
-func findNodeViaWhoami(client kubernetes.Interface, machineID string) (string, error) <span class="cov1" title="1">{
-        res, err := client.AuthenticationV1().SelfSubjectReviews().Create(context.Background(), &amp;authenticationv1.SelfSubjectReview{}, metav1.CreateOptions{})
+        <span class="cov7" title="3">node, err := client.CoreV1().Nodes().Get(context.Background(), name, metav1.GetOptions{})
         if err != nil </span><span class="cov1" title="1">{
-                return "", err
+                return "", fmt.Errorf("failed to get node %s: %v", name, err)
         }</span>
 
-        <span class="cov0" title="0">name, _ := strings.CutPrefix(res.Status.UserInfo.Username, "system:node:")
-        slog.Info("Found username via auth whoami", slog.String("username", res.Status.UserInfo.Username), slog.String("node", name))
-
-        node, err := client.CoreV1().Nodes().Get(context.Background(), name, metav1.GetOptions{})
-        if err != nil </span><span class="cov0" title="0">{
-                return "", err
+        <span class="cov4" title="2">if node.Status.NodeInfo.MachineID != machineID </span><span class="cov1" title="1">{
+                return "", fmt.Errorf("node '%s' machineID '%s' does not match host machineID '%s'", name, node.Status.NodeInfo.MachineID, machineID)
         }</span>
 
-        <span class="cov0" title="0">if node.Status.NodeInfo.MachineID != machineID </span><span class="cov0" title="0">{
-                return "", fmt.Errorf("found node \"%s\", but machine id does not match", name)
-        }</span>
-        <span class="cov0" title="0">return name, nil</span>
-}
-
-// Find the node by iterating over all nodes and comparing machine ids
-func findNodeByListingAllNodes(client kubernetes.Interface, machineID string) (string, error) <span class="cov5" title="2">{
-        nodes, err := client.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
-        if err != nil </span><span class="cov1" title="1">{
-                return "", err
-        }</span>
-
-        <span class="cov1" title="1">for _, node := range nodes.Items </span><span class="cov1" title="1">{
-                if node.Status.NodeInfo.MachineID == machineID </span><span class="cov1" title="1">{
-                        return node.GetName(), nil
-                }</span>
-        }
-
-        <span class="cov0" title="0">return "", fmt.Errorf("found no node with matching machineID: %s", machineID)</span>
+        <span class="cov1" title="1">return name, nil</span>
 }
 
 // Check if the node needs to upgrade it's kubernetes version
-func nodeNeedsUpgrade(node *corev1.Node) bool <span class="cov10" title="4">{
+func nodeNeedsUpgrade(node *corev1.Node) bool <span class="cov8" title="4">{
         if node.Annotations == nil </span><span class="cov1" title="1">{
                 return false
         }</span>
-        <span class="cov8" title="3">status := node.Annotations[constants.NodeUpgradeStatus]
+        <span class="cov7" title="3">status := node.Annotations[constants.NodeUpgradeStatus]
         if status == constants.NodeUpgradeStatusCompleted </span><span class="cov1" title="1">{
                 return false
         }</span>
-        <span class="cov5" title="2">if _, ok := node.Annotations[constants.NodeKubernetesVersion]; !ok </span><span class="cov1" title="1">{
+        <span class="cov4" title="2">if _, ok := node.Annotations[constants.NodeKubernetesVersion]; !ok </span><span class="cov1" title="1">{
                 slog.Warn("Missing version annotation on node", slog.String("node", node.GetName()), slog.String("annotation", constants.NodeKubernetesVersion))
                 return false
         }</span>
@@ -2338,7 +2307,7 @@ func nodeNeedsUpgrade(node *corev1.Node) bool <span class="cov10" title="4">{
 }
 
 // Delete the specified directory if it exists
-func deleteDir(path string) error <span class="cov5" title="2">{
+func deleteDir(path string) error <span class="cov4" title="2">{
         if _, err := os.Stat(path); !os.IsNotExist(err) </span><span class="cov1" title="1">{
                 return os.RemoveAll(path)
         }</span>
