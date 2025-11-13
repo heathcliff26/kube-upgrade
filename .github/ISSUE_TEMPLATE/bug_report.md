@@ -8,9 +8,10 @@ assignees: ''
 ---
 
 **Describe the bug**
-A clear and concise description of what the bug is.
+<!-- A clear and concise description the bug -->
 
 **To Reproduce**
+
 Steps to reproduce the behavior:
 1. Go to '...'
 2. Click on '....'
@@ -18,14 +19,15 @@ Steps to reproduce the behavior:
 4. See error
 
 **Expected behavior**
-A clear and concise description of what you expected to happen.
+<!-- Please give a clear description of what you expected to happen -->
+
 
 
 **Logs**
-Paste any log snippets that might relate to the problem. If it is longer please attach it as a file.
+<!-- Paste any log snippets that might relate to the problem. If it is longer please attach it as a file. -->
 ```
 
 ```
 
 **Additional context**
-Add any other context about the problem here.
+<!-- Add any other context about the problem here. -->
