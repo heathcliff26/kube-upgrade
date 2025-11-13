@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetMachineID(t *testing.T) {
@@ -38,6 +39,19 @@ func TestCreateCMDWithStdout(t *testing.T) {
 	assert.NoError(err, "Command should succeed")
 	assert.Equal("stdout\n", string(stdout), "Should have written to fake stdout")
 	assert.Equal("stderr\n", string(stderr), "Should have written to fake stderr")
+}
+
+func TestCreateChrootCMDWithStdout(t *testing.T) {
+	assert := assert.New(t)
+
+	cmd := CreateChrootCMDWithStdout("/chroot", "/bin/echo", "chrooted")
+	require.NotNil(t, cmd.SysProcAttr)
+
+	assert.Equal("/chroot", cmd.SysProcAttr.Chroot, "Chroot path should be set")
+	assert.Equal("/bin/echo", cmd.Path, "Command path should be set")
+	assert.Equal([]string{"/bin/echo", "chrooted"}, cmd.Args, "Command args should be set")
+	assert.Equal(os.Stdout, cmd.Stdout, "Command should use stdout")
+	assert.Equal(os.Stderr, cmd.Stderr, "Command should use stderr")
 }
 
 func TestCheckExistsAndIsExecutable(t *testing.T) {
