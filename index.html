@@ -93,9 +93,9 @@
 				
 				<option value="file18">github.com/heathcliff26/kube-upgrade/pkg/upgraded/config/errors.go (50.0%)</option>
 				
-				<option value="file19">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/config.go (81.2%)</option>
+				<option value="file19">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/config.go (90.0%)</option>
 				
-				<option value="file20">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (47.0%)</option>
+				<option value="file20">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (57.8%)</option>
 				
 				<option value="file21">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/node.go (45.5%)</option>
 				
@@ -1282,7 +1282,6 @@ func (c *controller) NewUpgradedDaemonSetSpec(plan, group string) appv1.DaemonSe
         attachVolumeMountHostPath(&amp;spec, "rootfs", "/", "/host")
         // Contains certificates referenced by kubelet config.
         attachVolumeMountHostPath(&amp;spec, "kubelet-pki", "/var/lib/kubelet/pki", "/var/lib/kubelet/pki")
-        // TODO: This could be dropped in favour of detecting the node name via hostname in upgraded.
         attachVolumeMountHostPath(&amp;spec, "machine-id", "/etc/machine-id", "/etc/machine-id")
 
         return spec
@@ -1690,7 +1689,7 @@ import (
 )
 
 // Reload the daemon configuration from it's config file
-func (d *daemon) UpdateFromConfigFile() error <span class="cov7" title="5">{
+func (d *daemon) UpdateFromConfigFile() error <span class="cov6" title="5">{
         slog.Info("Attempting to update daemon configuration from config file", slog.String("path", d.cfgPath))
 
         cfg, err := config.LoadConfig(d.cfgPath)
@@ -1698,28 +1697,28 @@ func (d *daemon) UpdateFromConfigFile() error <span class="cov7" title="5">{
                 return fmt.Errorf("failed to load config from file: %v", err)
         }</span>
 
-        <span class="cov6" title="4">return d.updateFromConfig(cfg)</span>
+        <span class="cov5" title="4">return d.updateFromConfig(cfg)</span>
 }
 
 // Update the daemon configuration from the provided config object.
 // Ensures that no changes will be made if there are errors in the config.
-func (d *daemon) updateFromConfig(cfg *api.UpgradedConfig) error <span class="cov10" title="9">{
+func (d *daemon) updateFromConfig(cfg *api.UpgradedConfig) error <span class="cov8" title="9">{
         checkInterval, err := time.ParseDuration(cfg.CheckInterval)
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to parse check interval \"%s\": %v", cfg.CheckInterval, err)
         }</span>
-        <span class="cov9" title="8">retryInterval, err := time.ParseDuration(cfg.RetryInterval)
+        <span class="cov8" title="8">retryInterval, err := time.ParseDuration(cfg.RetryInterval)
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to parse retry interval \"%s\": %v", cfg.RetryInterval, err)
         }</span>
 
-        <span class="cov8" title="7">fleetlockClient, err := fleetlock.NewClient(cfg.FleetlockURL, cfg.FleetlockGroup)
+        <span class="cov7" title="7">fleetlockClient, err := fleetlock.NewClient(cfg.FleetlockURL, cfg.FleetlockGroup)
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to create fleetlock client with url '%s' and group '%s': %v", cfg.FleetlockURL, cfg.FleetlockGroup, err)
         }</span>
 
-        <span class="cov8" title="6">d.Lock()
-        defer d.Unlock()
+        <span class="cov7" title="6">d.configLock.Lock()
+        defer d.configLock.Unlock()
 
         d.stream = cfg.Stream
         d.fleetlock = fleetlockClient
@@ -1731,26 +1730,26 @@ func (d *daemon) updateFromConfig(cfg *api.UpgradedConfig) error <span class="co
 }
 
 // Create a new config file watcher that needs to be closed when done
-func (d *daemon) NewConfigFileWatcher() error <span class="cov5" title="3">{
+func (d *daemon) NewConfigFileWatcher() error <span class="cov6" title="5">{
         watcher, err := fsnotify.NewWatcher()
         if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to create config file watcher: %v", err)
         }</span>
 
         // Need to watch the directory instead of the file, as kubernetes uses symbolic links
-        <span class="cov5" title="3">err = watcher.Add(filepath.Dir(d.cfgPath))
+        <span class="cov6" title="5">err = watcher.Add(filepath.Dir(d.cfgPath))
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to add config file to watcher: %v", err)
         }</span>
 
-        <span class="cov3" title="2">d.configWatcher = watcher
+        <span class="cov5" title="4">d.configWatcher = watcher
         return nil</span>
 }
 
-func (d *daemon) WatchConfigFile() <span class="cov1" title="1">{
+func (d *daemon) WatchConfigFile() <span class="cov4" title="3">{
         slog.Info("Started watching the config file for changes", slog.String("path", d.cfgPath))
 
-        for </span><span class="cov5" title="3">{
+        for </span><span class="cov6" title="5">{
                 select </span>{
                 case event, ok := &lt;-d.configWatcher.Events:<span class="cov3" title="2">
                         if !ok </span><span class="cov0" title="0">{
@@ -1769,8 +1768,8 @@ func (d *daemon) WatchConfigFile() <span class="cov1" title="1">{
                                         slog.Error("Failed to update configuration from config file", slog.String("path", d.cfgPath), slog.String("error", err.Error()))
                                 }</span>
                         }
-                case err, ok := &lt;-d.configWatcher.Errors:<span class="cov0" title="0">
-                        if !ok </span><span class="cov0" title="0">{
+                case err, ok := &lt;-d.configWatcher.Errors:<span class="cov3" title="2">
+                        if !ok </span><span class="cov3" title="2">{
                                 slog.Info("Config file watcher errors channel closed")
                                 return
                         }</span>
@@ -1781,6 +1780,38 @@ func (d *daemon) WatchConfigFile() <span class="cov1" title="1">{
                 }
         }
 }
+
+// Get the current stream
+func (d *daemon) Stream() string <span class="cov8" title="10">{
+        d.configLock.RLock()
+        defer d.configLock.RUnlock()
+
+        return d.stream
+}</span>
+
+// Get the fleetlock client
+func (d *daemon) Fleetlock() *fleetlock.FleetlockClient <span class="cov10" title="14">{
+        d.configLock.RLock()
+        defer d.configLock.RUnlock()
+
+        return d.fleetlock
+}</span>
+
+// Get the check interval
+func (d *daemon) CheckInterval() time.Duration <span class="cov6" title="5">{
+        d.configLock.RLock()
+        defer d.configLock.RUnlock()
+
+        return d.checkInterval
+}</span>
+
+// Get the retry interval
+func (d *daemon) RetryInterval() time.Duration <span class="cov9" title="13">{
+        d.configLock.RLock()
+        defer d.configLock.RUnlock()
+
+        return d.retryInterval
+}</span>
 </pre>
 		
 		<pre class="file" id="file20" style="display: none">package daemon
@@ -1829,7 +1860,8 @@ type daemon struct {
 
         configWatcher *fsnotify.Watcher
 
-        sync.Mutex
+        configLock sync.RWMutex
+        upgrade    sync.Mutex
 }
 
 // Create a new daemon
@@ -1894,7 +1926,7 @@ func (d *daemon) retry(f func() bool) <span class="cov5" title="3">{
                 select </span>{
                 case &lt;-d.ctx.Done():<span class="cov1" title="1">
                         return</span>
-                case &lt;-time.After(d.retryInterval):<span class="cov9" title="7"></span>
+                case &lt;-time.After(d.RetryInterval()):<span class="cov9" title="7"></span>
                 }
         }
 }
@@ -1902,7 +1934,7 @@ func (d *daemon) retry(f func() bool) <span class="cov5" title="3">{
 // Will try to release the lock until successful
 func (d *daemon) releaseLock() <span class="cov1" title="1">{
         d.retry(func() bool </span><span class="cov1" title="1">{
-                err := d.fleetlock.Release()
+                err := d.Fleetlock().Release()
                 if err == nil </span><span class="cov1" title="1">{
                         return true
                 }</span>
@@ -1923,8 +1955,21 @@ func (d *daemon) Run() error <span class="cov4" title="2">{
                 &lt;-stop
                 cancel()
         }</span>()
+        <span class="cov4" title="2">var wg sync.WaitGroup
+        wg.Add(3)
 
-        <span class="cov4" title="2">err := d.rpmostree.RegisterAsDriver()
+        err := d.NewConfigFileWatcher()
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create config file watcher: %v", err)
+        }</span>
+        <span class="cov4" title="2">defer d.configWatcher.Close()
+        go func() </span><span class="cov4" title="2">{
+                defer wg.Done()
+                d.WatchConfigFile()
+                slog.Info("Stopped watching config file")
+        }</span>()
+
+        <span class="cov4" title="2">err = d.rpmostree.RegisterAsDriver()
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to register upgraded as driver for rpm-ostree: %v", err)
         }</span>
@@ -1950,16 +1995,7 @@ func (d *daemon) Run() error <span class="cov4" title="2">{
                 d.doNodeUpgradeWithRetry(node)
         }</span>
 
-        <span class="cov0" title="0">err = d.NewConfigFileWatcher()
-        if err != nil </span><span class="cov0" title="0">{
-                return fmt.Errorf("failed to create config file watcher: %v", err)
-        }</span>
-        <span class="cov0" title="0">defer d.configWatcher.Close()
-
-        slog.Info("Starting daemon")
-
-        var wg sync.WaitGroup
-        wg.Add(3)
+        <span class="cov0" title="0">slog.Info("Starting daemon")
 
         go func() </span><span class="cov0" title="0">{
                 defer wg.Done()
@@ -1970,11 +2006,6 @@ func (d *daemon) Run() error <span class="cov4" title="2">{
                 defer wg.Done()
                 d.watchForNodeUpgrade()
                 slog.Info("Stopped watching for kubernetes upgrades")
-        }</span>()
-        <span class="cov0" title="0">go func() </span><span class="cov0" title="0">{
-                defer wg.Done()
-                d.WatchConfigFile()
-                slog.Info("Stopped watching config file")
         }</span>()
 
         <span class="cov0" title="0">wg.Wait()
@@ -2053,8 +2084,8 @@ func (d *daemon) doNodeUpgradeWithRetry(node *corev1.Node) <span class="cov1" ti
 
 // Update the node by first rebasing to a new version and then upgrading kubernetes
 func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title="6">{
-        d.Lock()
-        defer d.Unlock()
+        d.upgrade.Lock()
+        defer d.upgrade.Unlock()
 
         var err error
         if node == nil </span><span class="cov5" title="3">{
@@ -2071,7 +2102,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
         <span class="cov5" title="3">version := node.Annotations[constants.NodeKubernetesVersion]
         slog.Info("Attempting node upgrade to new kubernetes version", slog.String("node", node.GetName()), slog.String("version", version))
 
-        err = d.fleetlock.Lock()
+        err = d.Fleetlock().Lock()
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to acquire lock: %v", err)
         }</span>
@@ -2082,7 +2113,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
                 if err != nil </span><span class="cov0" title="0">{
                         return fmt.Errorf("failed to update node status: %v", err)
                 }</span>
-                <span class="cov3" title="2">err = d.rpmostree.Rebase(d.stream + ":" + version)
+                <span class="cov3" title="2">err = d.rpmostree.Rebase(d.Stream() + ":" + version)
                 if err != nil </span><span class="cov1" title="1">{
                         return d.returnNodeUpgradeError(fmt.Errorf("failed to rebase node: %v", err))
                 }</span>
@@ -2226,17 +2257,17 @@ func (d *daemon) watchForUpgrade() <span class="cov0" title="0">{
                 <span class="cov0" title="0">select </span>{
                 case &lt;-d.ctx.Done():<span class="cov0" title="0">
                         return</span>
-                case &lt;-time.After(d.checkInterval):<span class="cov0" title="0"></span>
+                case &lt;-time.After(d.CheckInterval()):<span class="cov0" title="0"></span>
                 }
         }
 }
 
 // Perform rpm-ostree upgrade
 func (d *daemon) doUpgrade() error <span class="cov10" title="3">{
-        d.Lock()
-        defer d.Unlock()
+        d.upgrade.Lock()
+        defer d.upgrade.Unlock()
 
-        err := d.fleetlock.Lock()
+        err := d.Fleetlock().Lock()
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to acquire lock: %v", err)
         }</span>
