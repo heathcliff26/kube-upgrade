@@ -44,7 +44,8 @@ type daemon struct {
 
 	configWatcher *fsnotify.Watcher
 
-	sync.Mutex
+	configLock sync.RWMutex
+	upgrade    sync.Mutex
 }
 
 // Create a new daemon
@@ -109,7 +110,7 @@ func (d *daemon) retry(f func() bool) {
 		select {
 		case <-d.ctx.Done():
 			return
-		case <-time.After(d.retryInterval):
+		case <-time.After(d.RetryInterval()):
 		}
 	}
 }
@@ -117,7 +118,7 @@ func (d *daemon) retry(f func() bool) {
 // Will try to release the lock until successful
 func (d *daemon) releaseLock() {
 	d.retry(func() bool {
-		err := d.fleetlock.Release()
+		err := d.Fleetlock().Release()
 		if err == nil {
 			return true
 		}
@@ -138,8 +139,21 @@ func (d *daemon) Run() error {
 		<-stop
 		cancel()
 	}()
+	var wg sync.WaitGroup
+	wg.Add(3)
 
-	err := d.rpmostree.RegisterAsDriver()
+	err := d.NewConfigFileWatcher()
+	if err != nil {
+		return fmt.Errorf("failed to create config file watcher: %v", err)
+	}
+	defer d.configWatcher.Close()
+	go func() {
+		defer wg.Done()
+		d.WatchConfigFile()
+		slog.Info("Stopped watching config file")
+	}()
+
+	err = d.rpmostree.RegisterAsDriver()
 	if err != nil {
 		return fmt.Errorf("failed to register upgraded as driver for rpm-ostree: %v", err)
 	}
@@ -165,16 +179,7 @@ func (d *daemon) Run() error {
 		d.doNodeUpgradeWithRetry(node)
 	}
 
-	err = d.NewConfigFileWatcher()
-	if err != nil {
-		return fmt.Errorf("failed to create config file watcher: %v", err)
-	}
-	defer d.configWatcher.Close()
-
 	slog.Info("Starting daemon")
-
-	var wg sync.WaitGroup
-	wg.Add(3)
 
 	go func() {
 		defer wg.Done()
@@ -185,11 +190,6 @@ func (d *daemon) Run() error {
 		defer wg.Done()
 		d.watchForNodeUpgrade()
 		slog.Info("Stopped watching for kubernetes upgrades")
-	}()
-	go func() {
-		defer wg.Done()
-		d.WatchConfigFile()
-		slog.Info("Stopped watching config file")
 	}()
 
 	wg.Wait()

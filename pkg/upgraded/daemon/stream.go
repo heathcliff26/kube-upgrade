@@ -39,17 +39,17 @@ func (d *daemon) watchForUpgrade() {
 		select {
 		case <-d.ctx.Done():
 			return
-		case <-time.After(d.checkInterval):
+		case <-time.After(d.CheckInterval()):
 		}
 	}
 }
 
 // Perform rpm-ostree upgrade
 func (d *daemon) doUpgrade() error {
-	d.Lock()
-	defer d.Unlock()
+	d.upgrade.Lock()
+	defer d.upgrade.Unlock()
 
-	err := d.fleetlock.Lock()
+	err := d.Fleetlock().Lock()
 	if err != nil {
 		return fmt.Errorf("failed to acquire lock: %v", err)
 	}
