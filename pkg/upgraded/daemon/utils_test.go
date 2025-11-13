@@ -13,26 +13,73 @@ import (
 	"k8s.io/client-go/kubernetes/fake"
 )
 
-func TestFindNodeByListingAllNodes(t *testing.T) {
-	client := fake.NewSimpleClientset()
-	node := &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "testnode",
-		},
-		Status: corev1.NodeStatus{
-			NodeInfo: corev1.NodeSystemInfo{
-				MachineID: "1234567890",
+func TestNodeName(t *testing.T) {
+	t.Run("Success", func(t *testing.T) {
+		assert := assert.New(t)
+
+		client := fake.NewSimpleClientset()
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "testnode",
 			},
-		},
-	}
-	_, _ = client.CoreV1().Nodes().Create(t.Context(), node, metav1.CreateOptions{})
+			Status: corev1.NodeStatus{
+				NodeInfo: corev1.NodeSystemInfo{
+					MachineID: "1234567890",
+				},
+			},
+		}
+		t.Setenv(NodeNameEnv, "testnode")
+		_, _ = client.CoreV1().Nodes().Create(t.Context(), node, metav1.CreateOptions{})
 
-	res, err := findNodeByListingAllNodes(client, "1234567890")
+		res, err := nodeName(client, "1234567890")
 
-	assert := assert.New(t)
+		assert.NoError(err, "Should succeed")
+		assert.Equal("testnode", res, "Should return correct node name")
+	})
+	t.Run("EnviromentVariableEmpty", func(t *testing.T) {
+		assert := assert.New(t)
 
-	assert.NoError(err, "Should succeed")
-	assert.Equal("testnode", res, "Should find correct node")
+		client := fake.NewSimpleClientset()
+		t.Setenv(NodeNameEnv, "")
+
+		res, err := nodeName(client, "1234567890")
+
+		assert.Empty(res, "Should not return a name")
+		assert.ErrorContains(err, "NODE_NAME environment variable is empty", "Should return correct error")
+	})
+	t.Run("NodeDoesNotExist", func(t *testing.T) {
+		assert := assert.New(t)
+
+		client := fake.NewSimpleClientset()
+		t.Setenv(NodeNameEnv, "testnode")
+
+		res, err := nodeName(client, "1234567890")
+
+		assert.Empty(res, "Should not return a name")
+		assert.ErrorContains(err, "failed to get node", "Should return correct error")
+	})
+	t.Run("MachineIDDoesNotMatch", func(t *testing.T) {
+		assert := assert.New(t)
+
+		client := fake.NewSimpleClientset()
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "testnode",
+			},
+			Status: corev1.NodeStatus{
+				NodeInfo: corev1.NodeSystemInfo{
+					MachineID: "abcdefghij",
+				},
+			},
+		}
+		t.Setenv(NodeNameEnv, "testnode")
+		_, _ = client.CoreV1().Nodes().Create(t.Context(), node, metav1.CreateOptions{})
+
+		res, err := nodeName(client, "1234567890")
+
+		assert.Empty(res, "Should not return a name")
+		assert.ErrorContains(err, "does not match host machineID", "Should return correct error")
+	})
 }
 
 func TestNodeNeedsUpgrade(t *testing.T) {

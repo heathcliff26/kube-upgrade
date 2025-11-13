@@ -49,7 +49,7 @@ func (c *controller) NewUpgradedDaemonSetSpec(plan, group string) appv1.DaemonSe
 						Image: c.upgradedImage,
 						Env: []corev1.EnvVar{
 							{
-								Name: "HOSTNAME",
+								Name: "NODE_NAME",
 								ValueFrom: &corev1.EnvVarSource{
 									FieldRef: &corev1.ObjectFieldSelector{
 										FieldPath: "spec.nodeName",
