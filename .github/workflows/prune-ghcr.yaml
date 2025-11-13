@@ -20,12 +20,22 @@ on:
         required: false
 
 jobs:
-  prune:
+  prune-upgradecontroller:
     uses: heathcliff26/ci/.github/workflows/prune-ghcr.yaml@main
     permissions:
       packages: write
     with:
       app: "kube-upgrade-controller"
+      keep: "${{ inputs.keep }}"
+      ignore-versions: "${{ inputs.ignore-versions }}"
+      delete-tagged: ${{ inputs.delete-tagged }}
+
+  prune-upgraded:
+    uses: heathcliff26/ci/.github/workflows/prune-ghcr.yaml@main
+    permissions:
+      packages: write
+    with:
+      app: "kube-upgraded"
       keep: "${{ inputs.keep }}"
       ignore-versions: "${{ inputs.ignore-versions }}"
       delete-tagged: ${{ inputs.delete-tagged }}
