@@ -69,8 +69,8 @@ func (d *daemon) doNodeUpgradeWithRetry(node *corev1.Node) {
 
 // Update the node by first rebasing to a new version and then upgrading kubernetes
 func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
-	d.Lock()
-	defer d.Unlock()
+	d.upgrade.Lock()
+	defer d.upgrade.Unlock()
 
 	var err error
 	if node == nil {
@@ -87,7 +87,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 	version := node.Annotations[constants.NodeKubernetesVersion]
 	slog.Info("Attempting node upgrade to new kubernetes version", slog.String("node", node.GetName()), slog.String("version", version))
 
-	err = d.fleetlock.Lock()
+	err = d.Fleetlock().Lock()
 	if err != nil {
 		return fmt.Errorf("failed to acquire lock: %v", err)
 	}
@@ -98,7 +98,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 		if err != nil {
 			return fmt.Errorf("failed to update node status: %v", err)
 		}
-		err = d.rpmostree.Rebase(d.stream + ":" + version)
+		err = d.rpmostree.Rebase(d.Stream() + ":" + version)
 		if err != nil {
 			return d.returnNodeUpgradeError(fmt.Errorf("failed to rebase node: %v", err))
 		}

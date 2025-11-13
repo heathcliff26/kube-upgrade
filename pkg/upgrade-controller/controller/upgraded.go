@@ -88,7 +88,6 @@ func (c *controller) NewUpgradedDaemonSetSpec(plan, group string) appv1.DaemonSe
 	attachVolumeMountHostPath(&spec, "rootfs", "/", "/host")
 	// Contains certificates referenced by kubelet config.
 	attachVolumeMountHostPath(&spec, "kubelet-pki", "/var/lib/kubelet/pki", "/var/lib/kubelet/pki")
-	// TODO: This could be dropped in favour of detecting the node name via hostname in upgraded.
 	attachVolumeMountHostPath(&spec, "machine-id", "/etc/machine-id", "/etc/machine-id")
 
 	return spec

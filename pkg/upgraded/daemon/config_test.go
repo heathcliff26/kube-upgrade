@@ -29,11 +29,11 @@ func TestUpdateFromConfigFile(t *testing.T) {
 
 		assert.NoError(d.UpdateFromConfigFile(), "Should update config from file")
 
-		assert.Equal("registry.example.com/fcos-k8s", d.stream, "Stream should match")
-		assert.Equal("https://fleetlock.example.com", d.fleetlock.GetURL(), "Fleetlock URL should match")
-		assert.Equal("compute", d.fleetlock.GetGroup(), "Fleetlock group should match")
-		assert.Equal(10*time.Minute, d.checkInterval, "Check interval should match")
-		assert.Equal(2*time.Minute, d.retryInterval, "Retry interval should match")
+		assert.Equal("registry.example.com/fcos-k8s", d.Stream(), "Stream should match")
+		assert.Equal("https://fleetlock.example.com", d.Fleetlock().GetURL(), "Fleetlock URL should match")
+		assert.Equal("compute", d.Fleetlock().GetGroup(), "Fleetlock group should match")
+		assert.Equal(10*time.Minute, d.CheckInterval(), "Check interval should match")
+		assert.Equal(2*time.Minute, d.RetryInterval(), "Retry interval should match")
 	})
 }
 
@@ -50,13 +50,13 @@ func TestUpdateFromConfig(t *testing.T) {
 
 		assert.NoError(d.updateFromConfig(cfg), "Should update from config")
 
-		assert.Equal(cfg.Stream, d.stream, "Stream should match")
-		assert.Equal(cfg.FleetlockURL, d.fleetlock.GetURL(), "Fleetlock URL should match")
-		assert.Equal(cfg.FleetlockGroup, d.fleetlock.GetGroup(), "Fleetlock group should match")
+		assert.Equal(cfg.Stream, d.Stream(), "Stream should match")
+		assert.Equal(cfg.FleetlockURL, d.Fleetlock().GetURL(), "Fleetlock URL should match")
+		assert.Equal(cfg.FleetlockGroup, d.Fleetlock().GetGroup(), "Fleetlock group should match")
 		checkInterval, _ := time.ParseDuration(cfg.CheckInterval)
 		retryInterval, _ := time.ParseDuration(cfg.RetryInterval)
-		assert.Equal(checkInterval, d.checkInterval, "Check interval should match")
-		assert.Equal(retryInterval, d.retryInterval, "Retry interval should match")
+		assert.Equal(checkInterval, d.CheckInterval(), "Check interval should match")
+		assert.Equal(retryInterval, d.RetryInterval(), "Retry interval should match")
 	})
 	tMatrix := []struct {
 		Name string
@@ -92,10 +92,10 @@ func TestUpdateFromConfig(t *testing.T) {
 
 			assert.Error(d.updateFromConfig(tCase.Cfg), "Should fail to update config")
 
-			assert.Empty(d.stream, "Should not update stream")
-			assert.Nil(d.fleetlock, "Should not update fleetlock client")
-			assert.Zero(d.checkInterval, "Should not update check interval")
-			assert.Zero(d.retryInterval, "Should not update retry interval")
+			assert.Empty(d.Stream(), "Should not update stream")
+			assert.Nil(d.Fleetlock(), "Should not update fleetlock client")
+			assert.Zero(d.CheckInterval(), "Should not update check interval")
+			assert.Zero(d.RetryInterval(), "Should not update retry interval")
 		})
 	}
 
@@ -111,7 +111,7 @@ func TestUpdateFromConfig(t *testing.T) {
 
 		done := make(chan error, 1)
 
-		d.Lock()
+		d.configLock.Lock()
 		go func() {
 			done <- d.updateFromConfig(cfg)
 		}()
@@ -123,7 +123,7 @@ func TestUpdateFromConfig(t *testing.T) {
 			// Expected case
 		}
 
-		d.Unlock()
+		d.configLock.Unlock()
 
 		select {
 		case err := <-done:
@@ -178,7 +178,7 @@ func TestWatchConfigFile(t *testing.T) {
 		ctx:     t.Context(),
 	}
 	require.NoError(d.UpdateFromConfigFile(), "Should load initial config from file")
-	require.Equal(cfg.Stream, d.stream, "Initial stream should match")
+	require.Equal(cfg.Stream, d.Stream(), "Initial stream should match")
 
 	require.NoError(d.NewConfigFileWatcher(), "Should create config file watcher")
 	t.Cleanup(func() {
@@ -190,10 +190,7 @@ func TestWatchConfigFile(t *testing.T) {
 	require.NoError(saveConfigToFile(cfg, cfgPath), "Should save updated config to file")
 
 	require.Eventually(func() bool {
-		d.Lock()
-		defer d.Unlock()
-
-		return cfg.Stream == d.stream
+		return cfg.Stream == d.Stream()
 	}, 5*time.Second, 100*time.Millisecond, "Daemon should update stream from config file")
 }
 

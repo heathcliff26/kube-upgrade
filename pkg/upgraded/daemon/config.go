@@ -41,8 +41,8 @@ func (d *daemon) updateFromConfig(cfg *api.UpgradedConfig) error {
 		return fmt.Errorf("failed to create fleetlock client with url '%s' and group '%s': %v", cfg.FleetlockURL, cfg.FleetlockGroup, err)
 	}
 
-	d.Lock()
-	defer d.Unlock()
+	d.configLock.Lock()
+	defer d.configLock.Unlock()
 
 	d.stream = cfg.Stream
 	d.fleetlock = fleetlockClient
@@ -103,4 +103,36 @@ func (d *daemon) WatchConfigFile() {
 			return
 		}
 	}
+}
+
+// Get the current stream
+func (d *daemon) Stream() string {
+	d.configLock.RLock()
+	defer d.configLock.RUnlock()
+
+	return d.stream
+}
+
+// Get the fleetlock client
+func (d *daemon) Fleetlock() *fleetlock.FleetlockClient {
+	d.configLock.RLock()
+	defer d.configLock.RUnlock()
+
+	return d.fleetlock
+}
+
+// Get the check interval
+func (d *daemon) CheckInterval() time.Duration {
+	d.configLock.RLock()
+	defer d.configLock.RUnlock()
+
+	return d.checkInterval
+}
+
+// Get the retry interval
+func (d *daemon) RetryInterval() time.Duration {
+	d.configLock.RLock()
+	defer d.configLock.RUnlock()
+
+	return d.retryInterval
 }
