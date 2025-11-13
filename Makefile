@@ -27,9 +27,7 @@ push-upgrade-controller: build-upgrade-controller
 
 # Run unit-tests
 test:
-	go test -v -race -coverprofile=coverprofile.out.tmp -coverpkg "./pkg/..." ./cmd/... ./pkg/...
-	grep -v "zz_generated" "coverprofile.out.tmp" | grep -v "github.com/heathcliff26/kube-upgrade/pkg/client" > "coverprofile.out"
-	rm coverprofile.out.tmp
+	hack/unit-test.sh
 
 # Update project dependencies
 update-deps:
