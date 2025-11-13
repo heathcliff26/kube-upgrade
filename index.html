@@ -2614,7 +2614,7 @@ func GetMachineID() (string, error) <span class="cov2" title="2">{
 }
 
 // Create a command that writes to stdout/stderr
-func CreateCMDWithStdout(name string, arg ...string) *exec.Cmd <span class="cov7" title="9">{
+func CreateCMDWithStdout(name string, arg ...string) *exec.Cmd <span class="cov7" title="10">{
         cmd := exec.Command(name, arg...)
         cmd.Stderr = os.Stderr
         cmd.Stdout = os.Stdout
@@ -2622,7 +2622,7 @@ func CreateCMDWithStdout(name string, arg ...string) *exec.Cmd <span class="cov7
 }</span>
 
 // Create a command that runs in a chroot and writes to stdout/stderr
-func CreateChrootCMDWithStdout(chrootPath string, name string, arg ...string) *exec.Cmd <span class="cov1" title="1">{
+func CreateChrootCMDWithStdout(chrootPath string, name string, arg ...string) *exec.Cmd <span class="cov2" title="2">{
         cmd := CreateCMDWithStdout(name, arg...)
         cmd.SysProcAttr = &amp;syscall.SysProcAttr{
                 Chroot: chrootPath,
