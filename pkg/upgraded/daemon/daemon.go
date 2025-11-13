@@ -80,7 +80,7 @@ func NewDaemon(cfgPath string) (*daemon, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get machine-id: %v", err)
 	}
-	node, err := findNode(kubeClient, machineID)
+	node, err := nodeName(kubeClient, machineID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get kubernetes node name for host: %v", err)
 	}
