@@ -209,13 +209,14 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 		return nil
 	}
 
-	daemons := make(map[string]appv1.DaemonSet, len(plan.Spec.Groups))
-	for _, daemon := range dsList.Items {
+	daemons := make(map[string]*appv1.DaemonSet, len(plan.Spec.Groups))
+	for i := range dsList.Items {
+		daemon := &dsList.Items[i]
 		group := daemon.Labels[constants.LabelNodeGroup]
 		if _, ok := plan.Spec.Groups[group]; ok {
 			daemons[group] = daemon
 		} else {
-			err = c.Delete(ctx, &daemon)
+			err = c.Delete(ctx, daemon)
 			if err != nil {
 				return fmt.Errorf("failed to delete DaemonSet %s: %v", daemon.Name, err)
 			}
@@ -223,13 +224,14 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 		}
 	}
 
-	cms := make(map[string]corev1.ConfigMap, len(plan.Spec.Groups))
-	for _, cm := range cmList.Items {
+	cms := make(map[string]*corev1.ConfigMap, len(plan.Spec.Groups))
+	for i := range cmList.Items {
+		cm := &cmList.Items[i]
 		group := cm.Labels[constants.LabelNodeGroup]
 		if _, ok := plan.Spec.Groups[group]; ok {
 			cms[group] = cm
 		} else {
-			err = c.Delete(ctx, &cm)
+			err = c.Delete(ctx, cm)
 			if err != nil {
 				return fmt.Errorf("failed to delete ConfigMap %s: %v", cm.Name, err)
 			}
@@ -241,41 +243,14 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 	newGroupStatus := make(map[string]string, len(plan.Spec.Groups))
 
 	for name, cfg := range plan.Spec.Groups {
-		upgradedCfg := combineConfig(plan.Spec.Upgraded, plan.Spec.Groups[name].Upgraded)
-
-		cm, ok := cms[name]
-		if !ok {
-			cm = c.NewEmptyUpgradedConfigMap(plan.Name, name)
-		}
-		err = c.AttachUpgradedConfigMapData(&cm, upgradedCfg)
+		err = c.reconcileUpgradedConfigMap(ctx, plan, logger, cms[name], name)
 		if err != nil {
-			return fmt.Errorf("failed to attach data to ConfigMap %s: %v", cm.Name, err)
-		}
-		if ok {
-			err = c.Update(ctx, &cm)
-		} else {
-			logger.WithValues("group", name, "config", cm.Name).Info("Creating upgraded ConfigMap for group")
-			err = c.Create(ctx, &cm)
-		}
-		if err != nil {
-			return fmt.Errorf("failed to create/update ConfigMap %s: %v", cm.Name, err)
+			return fmt.Errorf("failed to reconcile ConfigMap for group %s: %v", name, err)
 		}
 
-		daemon, ok := daemons[name]
-		if !ok {
-			daemon = c.NewEmptyUpgradedDaemonSet(plan.Name, name)
-		}
-		daemon.Spec = c.NewUpgradedDaemonSetSpec(plan.Name, name)
-		daemon.Spec.Template.Spec.NodeSelector = cfg.Labels
-		daemon.Spec.Template.Spec.Tolerations = cfg.Tolerations
-		if ok {
-			err = c.Update(ctx, &daemon)
-		} else {
-			logger.WithValues("group", name, "daemon", daemon.Name).Info("Creating upgraded DaemonSet for group")
-			err = c.Create(ctx, &daemon)
-		}
+		err = c.reconcileUpgradedDaemonSet(ctx, plan, logger, daemons[name], name, cfg)
 		if err != nil {
-			return fmt.Errorf("failed to create/update DaemonSet %s: %v", daemon.Name, err)
+			return fmt.Errorf("failed to reconcile DaemonSet for group %s: %v", name, err)
 		}
 
 		nodeList := &corev1.NodeList{}
