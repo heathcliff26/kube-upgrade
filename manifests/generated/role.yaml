@@ -11,6 +11,7 @@ rules:
   verbs:
   - list
   - update
+  - watch
 - apiGroups:
   - kubeupgrade.heathcliff.eu
   resources:
