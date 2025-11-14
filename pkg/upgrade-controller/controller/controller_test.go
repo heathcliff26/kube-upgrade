@@ -2,7 +2,6 @@ package controller
 
 import (
 	"testing"
-	"time"
 
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
@@ -17,6 +16,7 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	controllerFake "sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 const (
@@ -682,9 +682,10 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 			for _, daemon := range dsList.Items {
 				assert.Equalf(plan.Name, daemon.Labels[constants.LabelPlanName], "Daemonset %s should have plan name as label", daemon.Name)
 				assert.Containsf(tCase.Groups, daemon.Labels[constants.LabelNodeGroup], "Daemonset %s should belong to a valid group", daemon.Name)
-				assert.Len(daemon.Spec.Template.Spec.NodeSelector, 1, "Should have exactly 1 label")
-				assert.Len(daemon.Spec.Template.Spec.Tolerations, 1, "Should have exactly 1 toleration")
-				assert.Equal("registry.example.com/kube-upgrade:latest", daemon.Spec.Template.Spec.Containers[0].Image, "Daemonset should have correct upgraded image")
+				assert.Lenf(daemon.Spec.Template.Spec.NodeSelector, 1, "Daemonset %s should have exactly 1 label", daemon.Name)
+				assert.Lenf(daemon.Spec.Template.Spec.Tolerations, 1, "Daemonset %s should have exactly 1 toleration", daemon.Name)
+				assert.Equalf("registry.example.com/kube-upgrade:latest", daemon.Spec.Template.Spec.Containers[0].Image, "Daemonset %s should have correct upgraded image", daemon.Name)
+				assert.Lenf(daemon.OwnerReferences, 1, "Daemonset %s should exactly 1 owner", daemon.Name)
 			}
 
 			cmList := &corev1.ConfigMapList{}
@@ -694,7 +695,8 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 			for _, cm := range cmList.Items {
 				assert.Equalf(plan.Name, cm.Labels[constants.LabelPlanName], "ConfigMap %s should have plan name as label", cm.Name)
 				assert.Containsf(tCase.Groups, cm.Labels[constants.LabelNodeGroup], "ConfigMap %s should belong to a valid group", cm.Name)
-				assert.Len(cm.Data, 1, "ConfigMap should have exactly 1 data entry")
+				assert.Lenf(cm.Data, 1, "ConfigMap %s should have exactly 1 data entry", cm.Name)
+				assert.Lenf(cm.OwnerReferences, 1, "ConfigMap %s should exactly 1 owner", cm.Name)
 			}
 		})
 	}
@@ -760,7 +762,7 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 	})
 }
 
-func TestPlanFinalizer(t *testing.T) {
+func TestFinalizerMigration(t *testing.T) {
 	assert := assert.New(t)
 
 	plan := &api.KubeUpgradePlan{
@@ -776,26 +778,11 @@ func TestPlanFinalizer(t *testing.T) {
 			},
 		},
 	}
+	controllerutil.AddFinalizer(plan, constants.Finalizer)
 	c := createFakeController(nil, nil, nil, plan)
 
 	assert.NoError(c.reconcile(t.Context(), plan, klog.NewKlogr()), "First reconcile should succeed")
-	assert.Contains(plan.GetFinalizers(), constants.Finalizer, "Plan should have finalizer after first reconcile")
-
-	dsList := appv1.DaemonSetList{}
-	err := c.List(t.Context(), &dsList)
-	assert.NoError(err, "Should list daemonsets without error")
-	assert.NotEmpty(dsList.Items, "There should be daemonsets present")
-
-	plan.SetDeletionTimestamp(&metav1.Time{Time: time.Now()})
-	tmpCtrl := createFakeController(nil, nil, nil, plan)
-	c.Client = tmpCtrl.Client
-
-	assert.NoError(c.reconcile(t.Context(), plan, klog.NewKlogr()), "Second reconcile should succeed")
-	assert.NotContains(plan.GetFinalizers(), constants.Finalizer, "Finalizer should be removed for deletion")
-
-	err = c.List(t.Context(), &dsList)
-	assert.NoError(err, "Should list daemonsets without error")
-	assert.Empty(dsList.Items, "DaemonSet should be deleted after plan deletion")
+	assert.NotContains(plan.GetFinalizers(), constants.Finalizer, "Plan should not have finalizer after first reconcile")
 }
 
 func createFakeController(annotationsControl, annotationsCompute, annotationsInfra map[string]string, plan *api.KubeUpgradePlan) *controller {

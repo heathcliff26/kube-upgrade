@@ -12,6 +12,7 @@ import (
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/yaml"
 )
 
@@ -118,6 +119,10 @@ func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.K
 	if err != nil {
 		return err
 	}
+	err = controllerutil.SetControllerReference(plan, expectedCM, c.Scheme())
+	if err != nil {
+		return err
+	}
 
 	if cm == nil {
 		logger.WithValues("group", group, "config", expectedCM.Name).Info("Creating upgraded ConfigMap for group")
@@ -125,6 +130,11 @@ func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.K
 	}
 
 	updated := false
+
+	if !reflect.DeepEqual(expectedCM.OwnerReferences, cm.OwnerReferences) {
+		cm.OwnerReferences = expectedCM.OwnerReferences
+		updated = true
+	}
 
 	if !reflect.DeepEqual(expectedCM.Labels, cm.Labels) {
 		cm.Labels = expectedCM.Labels
@@ -147,6 +157,10 @@ func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.K
 	expectedDS := c.NewUpgradedDaemonSet(plan.Name, groupName)
 	expectedDS.Spec.Template.Spec.NodeSelector = group.Labels
 	expectedDS.Spec.Template.Spec.Tolerations = group.Tolerations
+	err := controllerutil.SetControllerReference(plan, expectedDS, c.Scheme())
+	if err != nil {
+		return err
+	}
 
 	if ds == nil {
 		logger.WithValues("group", groupName, "daemon", expectedDS.Name).Info("Creating upgraded DaemonSet for group")
@@ -154,6 +168,11 @@ func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.K
 	}
 
 	updated := false
+
+	if !reflect.DeepEqual(expectedDS.OwnerReferences, ds.OwnerReferences) {
+		ds.OwnerReferences = expectedDS.OwnerReferences
+		updated = true
+	}
 
 	if !reflect.DeepEqual(expectedDS.Labels, ds.Labels) {
 		ds.Labels = expectedDS.Labels
