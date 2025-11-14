@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/config.go (100.0%)</option>
 				
-				<option value="file4">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (62.1%)</option>
+				<option value="file4">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (61.5%)</option>
 				
 				<option value="file5">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/errors.go (50.0%)</option>
 				
@@ -208,7 +208,7 @@ func Resource(resource string) schema.GroupResource <span class="cov0" title="0"
 }</span>
 
 // Adds the list of known types to the given scheme.
-func AddKnownTypes(scheme *runtime.Scheme) error <span class="cov10" title="17">{
+func AddKnownTypes(scheme *runtime.Scheme) error <span class="cov10" title="16">{
         scheme.AddKnownTypes(
                 SchemeGroupVersion,
                 &amp;KubeUpgradePlan{},
@@ -320,60 +320,43 @@ func ValidateObject_UpgradedConfig(cfg UpgradedConfig) error <span class="cov8" 
 		<pre class="file" id="file3" style="display: none">package controller
 
 import (
-        "strings"
-
         api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
-        "github.com/heathcliff26/kube-upgrade/pkg/constants"
 )
 
 // Combine 2 configs, where group overrides the values used by global.
 // Returns the combined configuration.
-func combineConfig(global api.UpgradedConfig, group *api.UpgradedConfig) *api.UpgradedConfig <span class="cov9" title="43">{
+func combineConfig(global api.UpgradedConfig, group *api.UpgradedConfig) *api.UpgradedConfig <span class="cov10" title="41">{
         cfg := global
         if group == nil </span><span class="cov9" title="36">{
                 return &amp;cfg
         }</span>
 
-        <span class="cov5" title="7">if group.Stream != "" </span><span class="cov4" title="4">{
+        <span class="cov4" title="5">if group.Stream != "" </span><span class="cov4" title="4">{
                 cfg.Stream = group.Stream
         }</span>
-        <span class="cov5" title="7">if group.FleetlockURL != "" </span><span class="cov3" title="3">{
+        <span class="cov4" title="5">if group.FleetlockURL != "" </span><span class="cov3" title="3">{
                 cfg.FleetlockURL = group.FleetlockURL
         }</span>
-        <span class="cov5" title="7">if group.FleetlockGroup != "" </span><span class="cov5" title="6">{
+        <span class="cov4" title="5">if group.FleetlockGroup != "" </span><span class="cov4" title="4">{
                 cfg.FleetlockGroup = group.FleetlockGroup
         }</span>
-        <span class="cov5" title="7">if group.CheckInterval != "" </span><span class="cov4" title="4">{
+        <span class="cov4" title="5">if group.CheckInterval != "" </span><span class="cov4" title="4">{
                 cfg.CheckInterval = group.CheckInterval
         }</span>
-        <span class="cov5" title="7">if group.RetryInterval != "" </span><span class="cov4" title="4">{
+        <span class="cov4" title="5">if group.RetryInterval != "" </span><span class="cov4" title="4">{
                 cfg.RetryInterval = group.RetryInterval
         }</span>
-        <span class="cov5" title="7">if group.LogLevel != "" </span><span class="cov4" title="5">{
+        <span class="cov4" title="5">if group.LogLevel != "" </span><span class="cov4" title="5">{
                 cfg.LogLevel = group.LogLevel
         }</span>
-        <span class="cov5" title="7">if group.KubeletConfig != "" </span><span class="cov4" title="4">{
+        <span class="cov4" title="5">if group.KubeletConfig != "" </span><span class="cov4" title="4">{
                 cfg.KubeletConfig = group.KubeletConfig
         }</span>
-        <span class="cov5" title="7">if group.KubeadmPath != "" </span><span class="cov4" title="4">{
+        <span class="cov4" title="5">if group.KubeadmPath != "" </span><span class="cov4" title="4">{
                 cfg.KubeadmPath = group.KubeadmPath
         }</span>
 
-        <span class="cov5" title="7">return &amp;cfg</span>
-}
-
-// Delete all config annotations from the node.
-// Returns if the config changed.
-func deleteConfigAnnotations(annotations map[string]string) bool <span class="cov9" title="39">{
-        changed := false
-
-        for k := range annotations </span><span class="cov10" title="52">{
-                if strings.HasPrefix(k, constants.ConfigPrefix) </span><span class="cov7" title="20">{
-                        delete(annotations, k)
-                        changed = true
-                }</span>
-        }
-        <span class="cov9" title="39">return changed</span>
+        <span class="cov4" title="5">return &amp;cfg</span>
 }
 </pre>
 		
@@ -533,21 +516,21 @@ func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
         }, nil</span>
 }
 
-func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, logger logr.Logger) error <span class="cov7" title="17">{
+func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, logger logr.Logger) error <span class="cov7" title="16">{
         if plan.Status.Groups == nil </span><span class="cov6" title="10">{
                 plan.Status.Groups = make(map[string]string, len(plan.Spec.Groups))
         }</span>
 
         // Migration from v0.6.0: Remove the finalizer as it is not needed
         // TODO: Remove in future release
-        <span class="cov7" title="17">if controllerutil.RemoveFinalizer(plan, constants.Finalizer) </span><span class="cov1" title="1">{
+        <span class="cov7" title="16">if controllerutil.RemoveFinalizer(plan, constants.Finalizer) </span><span class="cov1" title="1">{
                 err := c.Update(ctx, plan)
                 if err != nil </span><span class="cov0" title="0">{
                         return fmt.Errorf("failed to remove finalizer from plan %s: %v", plan.Name, err)
                 }</span>
         }
 
-        <span class="cov7" title="17">cmList := &amp;corev1.ConfigMapList{}
+        <span class="cov7" title="16">cmList := &amp;corev1.ConfigMapList{}
         err := c.List(ctx, cmList, client.InNamespace(c.namespace), client.MatchingLabels{
                 constants.LabelPlanName: plan.Name,
         })
@@ -556,7 +539,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
                 return err
         }</span>
 
-        <span class="cov7" title="17">dsList := &amp;appv1.DaemonSetList{}
+        <span class="cov7" title="16">dsList := &amp;appv1.DaemonSetList{}
         err = c.List(ctx, dsList, client.InNamespace(c.namespace), client.MatchingLabels{
                 constants.LabelPlanName: plan.Name,
         })
@@ -565,7 +548,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
                 return err
         }</span>
 
-        <span class="cov7" title="17">daemons := make(map[string]*appv1.DaemonSet, len(plan.Spec.Groups))
+        <span class="cov7" title="16">daemons := make(map[string]*appv1.DaemonSet, len(plan.Spec.Groups))
         for i := range dsList.Items </span><span class="cov6" title="8">{
                 daemon := &amp;dsList.Items[i]
                 group := daemon.Labels[constants.LabelNodeGroup]
@@ -580,7 +563,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
                 }
         }
 
-        <span class="cov7" title="17">cms := make(map[string]*corev1.ConfigMap, len(plan.Spec.Groups))
+        <span class="cov7" title="16">cms := make(map[string]*corev1.ConfigMap, len(plan.Spec.Groups))
         for i := range cmList.Items </span><span class="cov6" title="8">{
                 cm := &amp;cmList.Items[i]
                 group := cm.Labels[constants.LabelNodeGroup]
@@ -595,52 +578,52 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
                 }
         }
 
-        <span class="cov7" title="17">nodesToUpdate := make(map[string][]corev1.Node, len(plan.Spec.Groups))
+        <span class="cov7" title="16">nodesToUpdate := make(map[string][]corev1.Node, len(plan.Spec.Groups))
         newGroupStatus := make(map[string]string, len(plan.Spec.Groups))
 
-        for name, cfg := range plan.Spec.Groups </span><span class="cov9" title="37">{
+        for name, cfg := range plan.Spec.Groups </span><span class="cov9" title="35">{
                 err = c.reconcileUpgradedConfigMap(ctx, plan, logger, cms[name], name)
                 if err != nil </span><span class="cov0" title="0">{
                         return fmt.Errorf("failed to reconcile ConfigMap for group %s: %v", name, err)
                 }</span>
 
-                <span class="cov9" title="37">err = c.reconcileUpgradedDaemonSet(ctx, plan, logger, daemons[name], name, cfg)
+                <span class="cov9" title="35">err = c.reconcileUpgradedDaemonSet(ctx, plan, logger, daemons[name], name, cfg)
                 if err != nil </span><span class="cov0" title="0">{
                         return fmt.Errorf("failed to reconcile DaemonSet for group %s: %v", name, err)
                 }</span>
 
-                <span class="cov9" title="37">nodeList := &amp;corev1.NodeList{}
+                <span class="cov9" title="35">nodeList := &amp;corev1.NodeList{}
                 err = c.List(ctx, nodeList, client.MatchingLabels(cfg.Labels))
                 if err != nil </span><span class="cov0" title="0">{
                         logger.WithValues("group", name).Error(err, "Failed to get nodes for group")
                         return err
                 }</span>
 
-                <span class="cov9" title="37">status, update, nodes, err := c.reconcileNodes(plan.Spec.KubernetesVersion, plan.Spec.AllowDowngrade, nodeList.Items)
+                <span class="cov9" title="35">status, update, nodes, err := c.reconcileNodes(plan.Spec.KubernetesVersion, plan.Spec.AllowDowngrade, nodeList.Items)
                 if err != nil </span><span class="cov0" title="0">{
                         logger.WithValues("group", name).Error(err, "Failed to reconcile nodes for group")
                         return err
                 }</span>
 
-                <span class="cov9" title="37">newGroupStatus[name] = status
+                <span class="cov9" title="35">newGroupStatus[name] = status
 
-                if update </span><span class="cov8" title="23">{
+                if update </span><span class="cov8" title="21">{
                         nodesToUpdate[name] = nodes
                 }</span> else<span class="cov7" title="14"> if plan.Status.Groups[name] != newGroupStatus[name] </span><span class="cov6" title="10">{
                         logger.WithValues("group", name, "status", newGroupStatus[name]).Info("Group changed status")
                 }</span>
         }
 
-        <span class="cov7" title="17">for name, nodes := range nodesToUpdate </span><span class="cov8" title="23">{
+        <span class="cov7" title="16">for name, nodes := range nodesToUpdate </span><span class="cov8" title="21">{
                 if groupWaitForDependency(plan.Spec.Groups[name].DependsOn, newGroupStatus) </span><span class="cov5" title="6">{
                         logger.WithValues("group", name).Info("Group is waiting on dependencies")
                         newGroupStatus[name] = api.PlanStatusWaiting
                         continue</span>
-                } else<span class="cov7" title="17"> if plan.Status.Groups[name] != newGroupStatus[name] </span><span class="cov7" title="15">{
+                } else<span class="cov7" title="15"> if plan.Status.Groups[name] != newGroupStatus[name] </span><span class="cov7" title="15">{
                         logger.WithValues("group", name, "status", newGroupStatus[name]).Info("Group changed status")
                 }</span>
 
-                <span class="cov7" title="17">for _, node := range nodes </span><span class="cov7" title="17">{
+                <span class="cov7" title="15">for _, node := range nodes </span><span class="cov7" title="15">{
                         err = c.Update(ctx, &amp;node)
                         if err != nil </span><span class="cov0" title="0">{
                                 return fmt.Errorf("failed to update node %s: %v", node.GetName(), err)
@@ -648,44 +631,38 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
                 }
         }
 
-        <span class="cov7" title="17">plan.Status.Groups = newGroupStatus
+        <span class="cov7" title="16">plan.Status.Groups = newGroupStatus
         plan.Status.Summary = createStatusSummary(plan.Status.Groups)
 
         return nil</span>
 }
 
-func (c *controller) reconcileNodes(kubeVersion string, downgrade bool, nodes []corev1.Node) (string, bool, []corev1.Node, error) <span class="cov10" title="39">{
+func (c *controller) reconcileNodes(kubeVersion string, downgrade bool, nodes []corev1.Node) (string, bool, []corev1.Node, error) <span class="cov10" title="37">{
         if len(nodes) == 0 </span><span class="cov4" title="4">{
                 return api.PlanStatusUnknown, false, nil, nil
         }</span>
 
-        <span class="cov9" title="35">completed := 0
+        <span class="cov9" title="33">completed := 0
         needUpdate := false
         errorNodes := make([]string, 0)
 
-        for i := range nodes </span><span class="cov9" title="35">{
+        for i := range nodes </span><span class="cov9" title="33">{
                 if nodes[i].Annotations == nil </span><span class="cov8" title="20">{
                         nodes[i].Annotations = make(map[string]string)
                 }</span>
 
-                // Step to cleanup after migration to v0.6.0
-                // TODO: Remove in v0.7.0
-                <span class="cov9" title="35">if deleteConfigAnnotations(nodes[i].Annotations) </span><span class="cov2" title="2">{
-                        needUpdate = true
-                }</span>
-
-                <span class="cov9" title="35">if !downgrade &amp;&amp; semver.Compare(kubeVersion, nodes[i].Status.NodeInfo.KubeletVersion) &lt; 0 </span><span class="cov1" title="1">{
+                <span class="cov9" title="33">if !downgrade &amp;&amp; semver.Compare(kubeVersion, nodes[i].Status.NodeInfo.KubeletVersion) &lt; 0 </span><span class="cov1" title="1">{
                         return api.PlanStatusError, false, nil, fmt.Errorf("node %s version %s is newer than %s, but downgrade is disabled", nodes[i].GetName(), nodes[i].Status.NodeInfo.KubeletVersion, kubeVersion)
                 }</span>
 
-                <span class="cov9" title="34">if nodes[i].Annotations[constants.NodeKubernetesVersion] == kubeVersion </span><span class="cov7" title="12">{
+                <span class="cov9" title="32">if nodes[i].Annotations[constants.NodeKubernetesVersion] == kubeVersion </span><span class="cov6" title="10">{
                         switch nodes[i].Annotations[constants.NodeUpgradeStatus] </span>{
-                        case constants.NodeUpgradeStatusCompleted:<span class="cov6" title="11">
+                        case constants.NodeUpgradeStatusCompleted:<span class="cov6" title="9">
                                 completed++</span>
                         case constants.NodeUpgradeStatusError:<span class="cov1" title="1">
                                 errorNodes = append(errorNodes, nodes[i].GetName())</span>
                         }
-                        <span class="cov7" title="12">continue</span>
+                        <span class="cov6" title="10">continue</span>
                 }
 
                 <span class="cov8" title="22">nodes[i].Annotations[constants.NodeKubernetesVersion] = kubeVersion
@@ -694,15 +671,15 @@ func (c *controller) reconcileNodes(kubeVersion string, downgrade bool, nodes []
                 needUpdate = true</span>
         }
 
-        <span class="cov9" title="34">var status string
+        <span class="cov9" title="32">var status string
         if len(errorNodes) &gt; 0 </span><span class="cov1" title="1">{
                 status = fmt.Sprintf("%s: The nodes %v are reporting errors", api.PlanStatusError, errorNodes)
-        }</span> else<span class="cov9" title="33"> if len(nodes) == completed </span><span class="cov6" title="11">{
+        }</span> else<span class="cov9" title="31"> if len(nodes) == completed </span><span class="cov6" title="9">{
                 status = api.PlanStatusComplete
         }</span> else<span class="cov8" title="22"> {
                 status = fmt.Sprintf("%s: %d/%d nodes upgraded", api.PlanStatusProgressing, completed, len(nodes))
         }</span>
-        <span class="cov9" title="34">return status, needUpdate, nodes, nil</span>
+        <span class="cov9" title="32">return status, needUpdate, nodes, nil</span>
 }
 </pre>
 		
@@ -775,7 +752,7 @@ import (
 
 // Creates a new DaemonSet with the required metadata and spec.
 // Caller should add node selector after creation.
-func (c *controller) NewUpgradedDaemonSet(plan, group string) *appv1.DaemonSet <span class="cov7" title="46">{
+func (c *controller) NewUpgradedDaemonSet(plan, group string) *appv1.DaemonSet <span class="cov7" title="44">{
         labels := upgradedLabels(plan, group)
 
         ds := &amp;appv1.DaemonSet{
@@ -848,13 +825,13 @@ func (c *controller) NewUpgradedDaemonSet(plan, group string) *appv1.DaemonSet <
 }</span>
 
 // Creates a new ConfigMap with the required metadata and data.
-func (c *controller) NewUpgradedConfigMap(plan, group string, cfg *api.UpgradedConfig) (*corev1.ConfigMap, error) <span class="cov7" title="46">{
+func (c *controller) NewUpgradedConfigMap(plan, group string, cfg *api.UpgradedConfig) (*corev1.ConfigMap, error) <span class="cov7" title="44">{
         data, err := yaml.Marshal(cfg)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("failed to convert upgraded config to yaml: %v", err)
         }</span>
 
-        <span class="cov7" title="46">labels := upgradedLabels(plan, group)
+        <span class="cov7" title="44">labels := upgradedLabels(plan, group)
 
         return &amp;corev1.ConfigMap{
                 ObjectMeta: metav1.ObjectMeta{
@@ -869,19 +846,19 @@ func (c *controller) NewUpgradedConfigMap(plan, group string, cfg *api.UpgradedC
 }
 
 // Reconcile the given ConfigMap with the expected state from the given config.
-func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.KubeUpgradePlan, logger logr.Logger, cm *corev1.ConfigMap, group string) error <span class="cov7" title="37">{
+func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.KubeUpgradePlan, logger logr.Logger, cm *corev1.ConfigMap, group string) error <span class="cov7" title="35">{
         upgradedCfg := combineConfig(plan.Spec.Upgraded, plan.Spec.Groups[group].Upgraded)
 
         expectedCM, err := c.NewUpgradedConfigMap(plan.Name, group, upgradedCfg)
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
-        <span class="cov7" title="37">err = controllerutil.SetControllerReference(plan, expectedCM, c.Scheme())
+        <span class="cov7" title="35">err = controllerutil.SetControllerReference(plan, expectedCM, c.Scheme())
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov7" title="37">if cm == nil </span><span class="cov6" title="31">{
+        <span class="cov7" title="35">if cm == nil </span><span class="cov6" title="29">{
                 logger.WithValues("group", group, "config", expectedCM.Name).Info("Creating upgraded ConfigMap for group")
                 return c.Create(ctx, expectedCM)
         }</span>
@@ -910,7 +887,7 @@ func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.K
 }
 
 // Reconcile the given DaemonSet with the expected spec.
-func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.KubeUpgradePlan, logger logr.Logger, ds *appv1.DaemonSet, groupName string, group api.KubeUpgradePlanGroup) error <span class="cov7" title="37">{
+func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.KubeUpgradePlan, logger logr.Logger, ds *appv1.DaemonSet, groupName string, group api.KubeUpgradePlanGroup) error <span class="cov7" title="35">{
         expectedDS := c.NewUpgradedDaemonSet(plan.Name, groupName)
         expectedDS.Spec.Template.Spec.NodeSelector = group.Labels
         expectedDS.Spec.Template.Spec.Tolerations = group.Tolerations
@@ -919,7 +896,7 @@ func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.K
                 return err
         }</span>
 
-        <span class="cov7" title="37">if ds == nil </span><span class="cov6" title="31">{
+        <span class="cov7" title="35">if ds == nil </span><span class="cov6" title="29">{
                 logger.WithValues("group", groupName, "daemon", expectedDS.Name).Info("Creating upgraded DaemonSet for group")
                 return c.Create(ctx, expectedDS)
         }</span>
@@ -947,7 +924,7 @@ func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.K
         <span class="cov0" title="0">return nil</span>
 }
 
-func attachVolumeMountHostPath(ds *appv1.DaemonSet, name, hostPath, mountPath string) <span class="cov10" title="184">{
+func attachVolumeMountHostPath(ds *appv1.DaemonSet, name, hostPath, mountPath string) <span class="cov10" title="176">{
         ds.Spec.Template.Spec.Volumes = append(ds.Spec.Template.Spec.Volumes, corev1.Volume{
                 Name: name,
                 VolumeSource: corev1.VolumeSource{
@@ -962,7 +939,7 @@ func attachVolumeMountHostPath(ds *appv1.DaemonSet, name, hostPath, mountPath st
         })
 }</span>
 
-func upgradedLabels(planName, groupName string) map[string]string <span class="cov8" title="95">{
+func upgradedLabels(planName, groupName string) map[string]string <span class="cov8" title="91">{
         return map[string]string{
                 constants.LabelPlanName:  planName,
                 constants.LabelNodeGroup: groupName,
@@ -1006,33 +983,33 @@ func GetNamespace() (string, error) <span class="cov3" title="3">{
 }
 
 // Return a pointer to the variable value
-func Pointer[T any](v T) *T <span class="cov9" title="47">{
+func Pointer[T any](v T) *T <span class="cov9" title="45">{
         return &amp;v
 }</span>
 
 // Check if the given group needs to wait on another one
-func groupWaitForDependency(deps []string, status map[string]string) bool <span class="cov8" title="26">{
-        for _, d := range deps </span><span class="cov7" title="17">{
+func groupWaitForDependency(deps []string, status map[string]string) bool <span class="cov8" title="24">{
+        for _, d := range deps </span><span class="cov7" title="16">{
                 if status[d] != api.PlanStatusComplete </span><span class="cov5" title="7">{
                         return true
                 }</span>
         }
-        <span class="cov7" title="19">return false</span>
+        <span class="cov7" title="17">return false</span>
 }
 
 // Return the status summary from the given input
-func createStatusSummary(status map[string]string) string <span class="cov8" title="23">{
+func createStatusSummary(status map[string]string) string <span class="cov8" title="22">{
         if len(status) == 0 </span><span class="cov1" title="1">{
                 return api.PlanStatusUnknown
         }</span>
-        <span class="cov8" title="22">waiting := false
+        <span class="cov8" title="21">waiting := false
         unknown := false
         progressing := make([]string, 0, len(status))
         errorGroups := make([]string, 0, len(status))
 
-        for group, s := range status </span><span class="cov10" title="52">{
+        for group, s := range status </span><span class="cov10" title="50">{
                 switch </span>{
-                case s == api.PlanStatusComplete:<span class="cov7" title="20"></span>
+                case s == api.PlanStatusComplete:<span class="cov7" title="18"></span>
                 case strings.HasPrefix(s, api.PlanStatusProgressing):<span class="cov7" title="18">
                         progressing = append(progressing, group)</span>
                 case s == api.PlanStatusWaiting:<span class="cov5" title="7">
@@ -1044,15 +1021,15 @@ func createStatusSummary(status map[string]string) string <span class="cov8" tit
                 }
         }
 
-        <span class="cov8" title="22">if unknown </span><span class="cov4" title="5">{
+        <span class="cov8" title="21">if unknown </span><span class="cov4" title="5">{
                 return api.PlanStatusUnknown
-        }</span> else<span class="cov7" title="17"> if len(errorGroups) &gt; 0 </span><span class="cov2" title="2">{
+        }</span> else<span class="cov7" title="16"> if len(errorGroups) &gt; 0 </span><span class="cov2" title="2">{
                 return fmt.Sprintf("%s: Some groups encountered errors %v", api.PlanStatusError, errorGroups)
-        }</span> else<span class="cov7" title="15"> if len(progressing) &gt; 0 </span><span class="cov6" title="10">{
+        }</span> else<span class="cov7" title="14"> if len(progressing) &gt; 0 </span><span class="cov6" title="10">{
                 return fmt.Sprintf("%s: Upgrading groups %v", api.PlanStatusProgressing, progressing)
-        }</span> else<span class="cov4" title="5"> if waiting </span><span class="cov1" title="1">{
+        }</span> else<span class="cov4" title="4"> if waiting </span><span class="cov1" title="1">{
                 return api.PlanStatusWaiting
-        }</span> else<span class="cov4" title="4"> {
+        }</span> else<span class="cov3" title="3"> {
                 return api.PlanStatusComplete
         }</span>
 }
