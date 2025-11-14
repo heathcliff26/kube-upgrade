@@ -45,6 +45,10 @@ type controller struct {
 // +kubebuilder:rbac:groups=kubeupgrade.heathcliff.eu,resources=kubeupgradeplans,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kubeupgrade.heathcliff.eu,resources=kubeupgradeplans/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups="",resources=nodes,verbs=list;update
+// +kubebuilder:rbac:groups="",namespace=kube-upgrade,resources=events,verbs=create;patch
+// +kubebuilder:rbac:groups="coordination.k8s.io",namespace=kube-upgrade,resources=leases,verbs=create;get;update
+// +kubebuilder:rbac:groups="apps",namespace=kube-upgrade,resources=daemonsets,verbs=list;watch;create;update;delete
+// +kubebuilder:rbac:groups="",namespace=kube-upgrade,resources=configmaps,verbs=list;watch;create;update;delete
 
 func NewController(name string) (*controller, error) {
 	config, err := rest.InClusterConfig()
