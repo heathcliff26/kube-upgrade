@@ -14,7 +14,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -29,10 +28,6 @@ const (
 	upgradedImageEnv     = "UPGRADED_IMAGE"
 	upgradedTagEnv       = "UPGRADED_TAG"
 )
-
-func init() {
-	ctrl.SetLogger(klog.NewKlogr())
-}
 
 type controller struct {
 	client.Client
@@ -128,7 +123,7 @@ func (c *controller) Run() error {
 }
 
 func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := klog.LoggerWithValues(klog.NewKlogr(), "plan", req.Name)
+	logger := ctrl.Log.WithValues("plan", req.Name)
 
 	var plan api.KubeUpgradePlan
 	err := c.Get(ctx, req.NamespacedName, &plan)
@@ -162,6 +157,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 	// Migration from v0.6.0: Remove the finalizer as it is not needed
 	// TODO: Remove in future release
 	if controllerutil.RemoveFinalizer(plan, constants.Finalizer) {
+		logger.V(logLevelDebug).Info("Removing finalizer from plan")
 		err := c.Update(ctx, plan)
 		if err != nil {
 			return fmt.Errorf("failed to remove finalizer from plan %s: %v", plan.Name, err)
@@ -173,7 +169,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 		constants.LabelPlanName: plan.Name,
 	})
 	if err != nil {
-		logger.WithValues("plan", plan.Name).Error(err, "Failed to fetch upgraded ConfigMaps")
+		logger.Error(err, "Failed to fetch upgraded ConfigMaps")
 		return err
 	}
 
@@ -182,7 +178,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 		constants.LabelPlanName: plan.Name,
 	})
 	if err != nil {
-		logger.WithValues("plan", plan.Name).Error(err, "Failed to fetch upgraded DaemonSets")
+		logger.Error(err, "Failed to fetch upgraded DaemonSets")
 		return err
 	}
 
@@ -220,6 +216,8 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 	newGroupStatus := make(map[string]string, len(plan.Spec.Groups))
 
 	for name, cfg := range plan.Spec.Groups {
+		logger := logger.WithValues("group", name)
+
 		err = c.reconcileUpgradedConfigMap(ctx, plan, logger, cms[name], name)
 		if err != nil {
 			return fmt.Errorf("failed to reconcile ConfigMap for group %s: %v", name, err)
@@ -253,15 +251,18 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 	}
 
 	for name, nodes := range nodesToUpdate {
+		logger := logger.WithValues("group", name)
+
 		if groupWaitForDependency(plan.Spec.Groups[name].DependsOn, newGroupStatus) {
-			logger.WithValues("group", name).Info("Group is waiting on dependencies")
+			logger.Info("Group is waiting on dependencies")
 			newGroupStatus[name] = api.PlanStatusWaiting
 			continue
 		} else if plan.Status.Groups[name] != newGroupStatus[name] {
-			logger.WithValues("group", name, "status", newGroupStatus[name]).Info("Group changed status")
+			logger.WithValues("status", newGroupStatus[name]).Info("Group changed status")
 		}
 
 		for _, node := range nodes {
+			logger.V(logLevelDebug).WithValues("node", node.Name).Info("Updating node annotations")
 			err = c.Update(ctx, &node)
 			if err != nil {
 				return fmt.Errorf("failed to update node %s: %v", node.GetName(), err)

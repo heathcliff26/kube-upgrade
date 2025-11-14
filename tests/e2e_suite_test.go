@@ -231,21 +231,25 @@ func TestE2E(t *testing.T) {
 				plan := &api.KubeUpgradePlan{}
 				err := r.Get(ctx, "upgrade-plan", "", plan)
 				return err != nil && client.IgnoreNotFound(err) == nil
-			}, 1*time.Minute, 5*time.Second, "Plan should be deleted within timeout")
+			}, 1*time.Minute, 5*time.Second, "Plan should be deleted")
 
 			cmList := &corev1.ConfigMapList{}
-			err = c.Client().Resources().List(ctx, cmList, resources.WithLabelSelector(fmt.Sprintf("%s=%s", constants.LabelPlanName, "upgrade-plan")))
-			if err != nil {
-				t.Fatalf("Error while getting configmaps: %v", err)
-			}
-			assert.Empty(cmList.Items, "Should have deleted configmaps")
+			assert.Eventually(func() bool {
+				err = c.Client().Resources().List(ctx, cmList, resources.WithLabelSelector(fmt.Sprintf("%s=%s", constants.LabelPlanName, "upgrade-plan")))
+				if err != nil {
+					t.Fatalf("Error while getting configmaps: %v", err)
+				}
+				return len(cmList.Items) == 0
+			}, 1*time.Minute, 5*time.Second, "Should have deleted ConfigMaps")
 
-			daemons := &appsv1.DaemonSetList{}
-			err = c.Client().Resources().List(ctx, daemons, resources.WithLabelSelector(fmt.Sprintf("%s=%s", constants.LabelPlanName, "upgrade-plan")))
-			if err != nil {
-				t.Fatalf("Error while getting daemonsets: %v", err)
-			}
-			assert.Empty(daemons.Items, "Should have deleted daemonsets")
+			dsList := &appsv1.DaemonSetList{}
+			assert.Eventually(func() bool {
+				err = c.Client().Resources().List(ctx, dsList, resources.WithLabelSelector(fmt.Sprintf("%s=%s", constants.LabelPlanName, "upgrade-plan")))
+				if err != nil {
+					t.Fatalf("Error while getting daemonsets: %v", err)
+				}
+				return len(dsList.Items) == 0
+			}, 1*time.Minute, 5*time.Second, "Should have deleted DaemonSets")
 
 			return ctx
 		}).Feature()

@@ -13,7 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/klog/v2"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	controllerFake "sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -473,7 +473,7 @@ func TestReconcile(t *testing.T) {
 
 			ctx := t.Context()
 
-			err := c.reconcile(ctx, &tCase.Plan, klog.NewKlogr())
+			err := c.reconcile(ctx, &tCase.Plan, ctrl.Log)
 
 			if !assert.NoError(err, "Reconcile should succeed") {
 				t.FailNow()
@@ -602,7 +602,7 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 				addFakeUpgradedDaemonset(t, c, plan.Name, group)
 			}
 
-			assert.NoError(c.reconcile(t.Context(), plan, klog.NewKlogr()), "Reconcile should succeed")
+			assert.NoError(c.reconcile(t.Context(), plan, ctrl.Log), "Reconcile should succeed")
 
 			dsList := &appv1.DaemonSetList{}
 			err := c.List(t.Context(), dsList, client.InNamespace(c.namespace))
@@ -651,7 +651,7 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 		daemon.Spec.Template.Spec.HostPID = false
 		_ = c.Create(t.Context(), daemon)
 
-		assert.NoError(c.reconcile(t.Context(), plan, klog.NewKlogr()), "Reconcile should succeed")
+		assert.NoError(c.reconcile(t.Context(), plan, ctrl.Log), "Reconcile should succeed")
 
 		err := c.Get(t.Context(), client.ObjectKeyFromObject(daemon), daemon)
 		assert.NoError(err, "Should get daemonset without error")
@@ -683,7 +683,7 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 		cm, _ := c.NewUpgradedConfigMap(plan.Name, groupControl, cfg)
 		_ = c.Create(t.Context(), cm)
 
-		assert.NoError(c.reconcile(t.Context(), plan, klog.NewKlogr()), "Reconcile should succeed")
+		assert.NoError(c.reconcile(t.Context(), plan, ctrl.Log), "Reconcile should succeed")
 
 		err := c.Get(t.Context(), client.ObjectKeyFromObject(cm), cm)
 		assert.NoError(err, "Should get daemonset without error")
@@ -710,7 +710,7 @@ func TestFinalizerMigration(t *testing.T) {
 	controllerutil.AddFinalizer(plan, constants.Finalizer)
 	c := createFakeController(nil, nil, nil, plan)
 
-	assert.NoError(c.reconcile(t.Context(), plan, klog.NewKlogr()), "First reconcile should succeed")
+	assert.NoError(c.reconcile(t.Context(), plan, ctrl.Log), "First reconcile should succeed")
 	assert.NotContains(plan.GetFinalizers(), constants.Finalizer, "Plan should not have finalizer after first reconcile")
 }
 
