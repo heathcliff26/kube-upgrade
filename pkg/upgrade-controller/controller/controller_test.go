@@ -715,15 +715,14 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 			},
 		}
 		c := createFakeController(nil, nil, nil, plan)
-		daemon := c.NewEmptyUpgradedDaemonSet(plan.Name, groupControl)
-		daemon.Spec = c.NewUpgradedDaemonSetSpec(plan.Name, groupControl)
+		daemon := c.NewUpgradedDaemonSet(plan.Name, groupControl)
 		daemon.Spec.Template.Spec.HostNetwork = true
 		daemon.Spec.Template.Spec.HostPID = false
-		_ = c.Create(t.Context(), &daemon)
+		_ = c.Create(t.Context(), daemon)
 
 		assert.NoError(c.reconcile(t.Context(), plan, klog.NewKlogr()), "Reconcile should succeed")
 
-		err := c.Get(t.Context(), client.ObjectKeyFromObject(&daemon), &daemon)
+		err := c.Get(t.Context(), client.ObjectKeyFromObject(daemon), daemon)
 		assert.NoError(err, "Should get daemonset without error")
 		assert.False(daemon.Spec.Template.Spec.HostNetwork, "Daemonset HostNetwork should be updated to false")
 		assert.True(daemon.Spec.Template.Spec.HostPID, "Daemonset HostPID should be updated to true")
@@ -749,14 +748,13 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 			},
 		}
 		c := createFakeController(nil, nil, nil, plan)
-		cm := c.NewEmptyUpgradedConfigMap(plan.Name, groupControl)
 		cfg.Stream = "registry.example.com/updated-stream"
-		_ = c.AttachUpgradedConfigMapData(&cm, cfg)
-		_ = c.Create(t.Context(), &cm)
+		cm, _ := c.NewUpgradedConfigMap(plan.Name, groupControl, cfg)
+		_ = c.Create(t.Context(), cm)
 
 		assert.NoError(c.reconcile(t.Context(), plan, klog.NewKlogr()), "Reconcile should succeed")
 
-		err := c.Get(t.Context(), client.ObjectKeyFromObject(&cm), &cm)
+		err := c.Get(t.Context(), client.ObjectKeyFromObject(cm), cm)
 		assert.NoError(err, "Should get daemonset without error")
 		assert.Contains(cm.Data[upgradedconfig.DefaultConfigFile], api.DefaultUpgradedStream, "ConfigMap data should be updated")
 	})
@@ -848,15 +846,13 @@ func createFakeController(annotationsControl, annotationsCompute, annotationsInf
 func addFakeUpgradedConfigMap(t *testing.T, c *controller, plan, group string) {
 	cfg := &api.UpgradedConfig{}
 	api.SetObjectDefaults_UpgradedConfig(cfg)
-	cm := c.NewEmptyUpgradedConfigMap(plan, group)
-	_ = c.AttachUpgradedConfigMapData(&cm, cfg)
+	cm, _ := c.NewUpgradedConfigMap(plan, group, cfg)
 
-	_ = c.Create(t.Context(), &cm)
+	_ = c.Create(t.Context(), cm)
 }
 
 func addFakeUpgradedDaemonset(t *testing.T, c *controller, plan, group string) {
-	daemon := c.NewEmptyUpgradedDaemonSet(plan, group)
-	daemon.Spec = c.NewUpgradedDaemonSetSpec(plan, group)
+	daemon := c.NewUpgradedDaemonSet(plan, group)
 
-	_ = c.Create(t.Context(), &daemon)
+	_ = c.Create(t.Context(), daemon)
 }
