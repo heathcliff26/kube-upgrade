@@ -5,8 +5,6 @@ package externalversions
 import (
 	fmt "fmt"
 
-	v1alpha1 "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
-	v1alpha2 "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
 	v1alpha3 "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	cache "k8s.io/client-go/tools/cache"
@@ -38,15 +36,7 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=kubeupgrade.heathcliff.eu, Version=v1alpha1
-	case v1alpha1.SchemeGroupVersion.WithResource("kubeupgradeplans"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Kubeupgrade().V1alpha1().KubeUpgradePlans().Informer()}, nil
-
-		// Group=kubeupgrade.heathcliff.eu, Version=v1alpha2
-	case v1alpha2.SchemeGroupVersion.WithResource("kubeupgradeplans"):
-		return &genericInformer{resource: resource.GroupResource(), informer: f.Kubeupgrade().V1alpha2().KubeUpgradePlans().Informer()}, nil
-
-		// Group=kubeupgrade.heathcliff.eu, Version=v1alpha3
+	// Group=kubeupgrade.heathcliff.eu, Version=v1alpha3
 	case v1alpha3.SchemeGroupVersion.WithResource("kubeupgradeplans"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Kubeupgrade().V1alpha3().KubeUpgradePlans().Informer()}, nil
 
