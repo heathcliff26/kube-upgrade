@@ -226,3 +226,60 @@ func TestAnnotateNodeWithUpgradedVersion(t *testing.T) {
 	_, err = d.annotateNodeWithUpgradedVersion(node)
 	assert.NoError(err, "Should not update node when version already matches")
 }
+
+func TestNodeHasCorrectStream(t *testing.T) {
+	tMatrix := []struct {
+		Name           string
+		Version        string
+		Stream         string
+		BootedImageRef string
+		Result         bool
+	}{
+		{
+			Name:           "CorrectStream",
+			Version:        "v1.34.2",
+			Stream:         "registry.example.com/fcos-k8s",
+			BootedImageRef: "ostree-unverified-registry:registry.example.com/fcos-k8s:v1.34.2",
+			Result:         true,
+		},
+		{
+			Name:           "WrongImage",
+			Version:        "v1.34.2",
+			Stream:         "registry.example.org/fcos-k8s",
+			BootedImageRef: "ostree-unverified-registry:registry.example.com/fcos-k8s:v1.34.2",
+		},
+		{
+			Name:           "WrongVersion",
+			Version:        "v1.34.2",
+			Stream:         "registry.example.com/fcos-k8s",
+			BootedImageRef: "ostree-unverified-registry:registry.example.com/fcos-k8s:v1.33.5",
+		},
+		{
+			Name:           "MissingVersionAnnotation",
+			Version:        "v1.34.2",
+			Stream:         "registry.example.com/fcos-k8s",
+			BootedImageRef: "ostree-unverified-registry:registry.example.com/fcos-k8s:v1.34.2",
+			Result:         true,
+		},
+	}
+	for _, tCase := range tMatrix {
+		t.Run(tCase.Name, func(t *testing.T) {
+			assert := assert.New(t)
+
+			d := &daemon{
+				bootedImageRef: tCase.BootedImageRef,
+				stream:         tCase.Stream,
+			}
+			node := &corev1.Node{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "testnode",
+					Annotations: map[string]string{
+						constants.NodeKubernetesVersion: tCase.Version,
+					},
+				},
+			}
+
+			assert.Equal(tCase.Result, d.nodeHasCorrectStream(node), "Should return correct result")
+		})
+	}
+}

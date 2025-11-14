@@ -3,6 +3,7 @@ package daemon
 import (
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
@@ -48,7 +49,7 @@ func (d *daemon) watchForNodeUpgrade() {
 
 // Check if we need to upgrade the node and trigger the upgrade if needed
 func (d *daemon) checkNodeStatus(node *corev1.Node) {
-	if !nodeNeedsUpgrade(node) {
+	if !nodeNeedsUpgrade(node) && d.nodeHasCorrectStream(node) {
 		return
 	}
 
@@ -92,7 +93,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 		return fmt.Errorf("failed to acquire lock: %v", err)
 	}
 
-	if version != d.kubeadm.Version() {
+	if version != d.kubeadm.Version() || !d.nodeHasCorrectStream(node) {
 		slog.Info("Rebasing os to new kubernetes version", slog.String("version", version), slog.String("current", d.kubeadm.Version()))
 		err := d.updateNodeStatus(constants.NodeUpgradeStatusRebasing)
 		if err != nil {
@@ -198,4 +199,18 @@ func (d *daemon) annotateNodeWithUpgradedVersion(node *corev1.Node) (*corev1.Nod
 
 	node.Annotations[constants.NodeUpgradedVersion] = version.Version()
 	return d.client.CoreV1().Nodes().Update(d.ctx, node, metav1.UpdateOptions{})
+}
+
+// Check if the current image stream matches the requested one
+func (d *daemon) nodeHasCorrectStream(node *corev1.Node) bool {
+	if node.Annotations == nil {
+		return true
+	}
+
+	version := node.Annotations[constants.NodeKubernetesVersion]
+	if version == "" {
+		return true
+	}
+
+	return strings.HasSuffix(d.bootedImageRef, d.Stream()+":"+version)
 }

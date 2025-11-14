@@ -36,7 +36,8 @@ type daemon struct {
 	rpmostree *rpmostree.RPMOStreeCMD
 	kubeadm   *kubeadm.KubeadmCMD
 
-	node string
+	node           string
+	bootedImageRef string
 
 	client kubernetes.Interface
 	ctx    context.Context
@@ -87,14 +88,20 @@ func NewDaemon(cfgPath string) (*daemon, error) {
 	}
 	slog.Info("Found node name for this host", slog.String("node", node))
 
+	bootedImageRef, err := rpmOstreeCMD.GetBootedImageRef()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ostree image ref: %v", err)
+	}
+
 	d := &daemon{
 		cfgPath: cfgPath,
 
 		rpmostree: rpmOstreeCMD,
 		kubeadm:   kubeadmCMD,
 
-		node:   node,
-		client: kubeClient,
+		node:           node,
+		bootedImageRef: bootedImageRef,
+		client:         kubeClient,
 	}
 
 	err = d.updateFromConfig(cfg)
@@ -168,7 +175,7 @@ func (d *daemon) Run() error {
 		return fmt.Errorf("failed to annotate node with upgraded version: %v", err)
 	}
 
-	if !nodeNeedsUpgrade(node) {
+	if !nodeNeedsUpgrade(node) && d.nodeHasCorrectStream(node) {
 		slog.Debug("Releasing any log that may be held by this machine")
 		d.releaseLock()
 		if d.ctx.Err() != nil {

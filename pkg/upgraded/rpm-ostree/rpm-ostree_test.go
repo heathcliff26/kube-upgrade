@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNew(t *testing.T) {
@@ -49,9 +50,7 @@ func TestCheckForUpgrade(t *testing.T) {
 			assert := assert.New(t)
 
 			cmd, err := New(tCase.Path)
-			if !assert.NoError(err, "Should create a command") {
-				t.FailNow()
-			}
+			require.NoError(t, err, "Should create a command")
 			res, err := cmd.CheckForUpgrade()
 
 			if tCase.Error {
@@ -69,9 +68,7 @@ func TestRebase(t *testing.T) {
 	assert := assert.New(t)
 
 	cmd, err := New("testdata/print-args.sh")
-	if !assert.NoError(err, "Should create a command") {
-		t.FailNow()
-	}
+	require.NoError(t, err, "Should create a command")
 
 	actualStdout := os.Stdout
 	rOut, wOut, _ := os.Pipe()
@@ -85,4 +82,15 @@ func TestRebase(t *testing.T) {
 
 	assert.NoError(err, "Command should succeed")
 	assert.Equal("rebase --reboot ostree-unverified-registry:test-image\n", string(stdout), "Should have added image to command args")
+}
+
+func TestGetBootedImageRef(t *testing.T) {
+	assert := assert.New(t)
+
+	cmd, err := New("testdata/print-status.sh")
+	require.NoError(t, err, "Should create a command")
+
+	ref, err := cmd.GetBootedImageRef()
+	assert.NoError(err, "Should succeed")
+	assert.Equal("ostree-unverified-registry:ghcr.io/heathcliff26/fcos-k8s:v1.34.2", ref, "Should return correct image ref")
 }
