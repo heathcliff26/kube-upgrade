@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/e2e-framework/klient/decoder"
 	"sigs.k8s.io/e2e-framework/klient/k8s"
 	"sigs.k8s.io/e2e-framework/klient/k8s/resources"
@@ -207,13 +208,15 @@ func TestE2E(t *testing.T) {
 			cmList := &corev1.ConfigMapList{}
 			err := c.Client().Resources().List(ctx, cmList, resources.WithLabelSelector(fmt.Sprintf("%s=%s", constants.LabelPlanName, "upgrade-plan")))
 			if err != nil || cmList.Items == nil {
-				t.Fatalf("Error while getting daemonsets: %v", err)
+				t.Fatalf("Error while getting configmaps: %v", err)
 			}
 
-			assert.Len(cmList.Items, 2, "Should have 2 daemonsets")
+			assert.Len(cmList.Items, 2, "Should have 2 configmaps")
 			return ctx
 		}).
-		Teardown(func(ctx context.Context, t *testing.T, c *envconf.Config) context.Context {
+		Assess("delete", func(ctx context.Context, t *testing.T, c *envconf.Config) context.Context {
+			assert := assert.New(t)
+
 			r, err := resources.New(c.Client().RESTConfig())
 			if err != nil {
 				t.Fatal(err)
@@ -223,6 +226,26 @@ func TestE2E(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Failed to delete upgrade-plan: %v", err)
 			}
+
+			assert.Eventually(func() bool {
+				plan := &api.KubeUpgradePlan{}
+				err := r.Get(ctx, "upgrade-plan", "", plan)
+				return err != nil && client.IgnoreNotFound(err) == nil
+			}, 1*time.Minute, 5*time.Second, "Plan should be deleted within timeout")
+
+			cmList := &corev1.ConfigMapList{}
+			err = c.Client().Resources().List(ctx, cmList, resources.WithLabelSelector(fmt.Sprintf("%s=%s", constants.LabelPlanName, "upgrade-plan")))
+			if err != nil {
+				t.Fatalf("Error while getting configmaps: %v", err)
+			}
+			assert.Empty(cmList.Items, "Should have deleted configmaps")
+
+			daemons := &appsv1.DaemonSetList{}
+			err = c.Client().Resources().List(ctx, daemons, resources.WithLabelSelector(fmt.Sprintf("%s=%s", constants.LabelPlanName, "upgrade-plan")))
+			if err != nil {
+				t.Fatalf("Error while getting daemonsets: %v", err)
+			}
+			assert.Empty(daemons.Items, "Should have deleted daemonsets")
 
 			return ctx
 		}).Feature()
