@@ -3,6 +3,7 @@ package e2e
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"sigs.k8s.io/e2e-framework/pkg/env"
@@ -14,7 +15,7 @@ import (
 
 const namespace = "kube-upgrade"
 
-const certManagerVersion = "v1.15.3"
+const certManagerVersion = "v1.19.1"
 
 var testenv env.Environment
 
@@ -22,7 +23,17 @@ func TestMain(m *testing.M) {
 	testenv = env.New()
 	clusterName := envconf.RandomName("kube-upgrade-e2e", 24)
 
-	err := os.Chdir("..")
+	tmpDir := filepath.Join(os.TempDir(), clusterName)
+	err := os.MkdirAll(tmpDir, 0755)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	fmt.Printf("Using temporary directory %s\n", tmpDir)
+
+	os.Setenv("KUBECONFIG", filepath.Join(tmpDir, "kubeconfig"))
+
+	err = os.Chdir("..")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -40,7 +51,7 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	imageArchive := fmt.Sprintf("tmp_image_%s.tar", clusterName)
+	imageArchive := filepath.Join(tmpDir, "kube-upgrade-images.tar")
 
 	err = utils.RunCommandWithSeperatedOutput(fmt.Sprintf("podman save -o %s localhost/kube-upgrade-controller:%s localhost/kube-upgraded:%s", imageArchive, clusterName, clusterName), os.Stdout, os.Stderr)
 	if err != nil {
@@ -64,18 +75,18 @@ func TestMain(m *testing.M) {
 
 	fmt.Print("\nRunning cleanup\n\n")
 
-	fmt.Printf("Removing image archive file %s\n", imageArchive)
-	err = os.Remove(imageArchive)
-	if err != nil {
-		fmt.Printf("Failed to remove image archive %s: %v\n", imageArchive, err)
-		os.Exit(1)
-	}
-
 	fmt.Printf("Deleting kind cluster %s\n", clusterName)
 	err = utils.RunCommandWithSeperatedOutput("kind delete cluster --name "+clusterName, os.Stdout, os.Stderr)
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
+		exitCode = 1
+	}
+
+	fmt.Printf("Removing temporary directory '%s'\n", tmpDir)
+	err = os.RemoveAll(tmpDir)
+	if err != nil {
+		fmt.Printf("Failed to remove temporary directory '%s': %v\n", tmpDir, err)
+		exitCode = 1
 	}
 
 	fmt.Println("")

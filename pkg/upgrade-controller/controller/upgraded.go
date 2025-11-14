@@ -124,8 +124,10 @@ func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.K
 		return err
 	}
 
+	logger = logger.WithValues("config", expectedCM.Name)
+
 	if cm == nil {
-		logger.WithValues("group", group, "config", expectedCM.Name).Info("Creating upgraded ConfigMap for group")
+		logger.Info("Creating upgraded ConfigMap for group")
 		return c.Create(ctx, expectedCM)
 	}
 
@@ -147,6 +149,7 @@ func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.K
 	}
 
 	if updated {
+		logger.V(logLevelDebug).Info("Updating ConfigMap")
 		return c.Update(ctx, cm)
 	}
 	return nil
@@ -162,8 +165,10 @@ func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.K
 		return err
 	}
 
+	logger = logger.WithValues("daemon", expectedDS.Name)
+
 	if ds == nil {
-		logger.WithValues("group", groupName, "daemon", expectedDS.Name).Info("Creating upgraded DaemonSet for group")
+		logger.Info("Creating upgraded DaemonSet for group")
 		return c.Create(ctx, expectedDS)
 	}
 
@@ -185,6 +190,7 @@ func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.K
 	}
 
 	if updated {
+		logger.V(logLevelDebug).Info("Updating Daemonset")
 		return c.Update(ctx, ds)
 	}
 	return nil
