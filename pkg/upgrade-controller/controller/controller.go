@@ -7,17 +7,16 @@ import (
 
 	"github.com/go-logr/logr"
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
-	"github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/scheme"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 	"golang.org/x/mod/semver"
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/kubernetes"
+	"k8s.io/apimachinery/pkg/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
@@ -38,7 +37,6 @@ func init() {
 type controller struct {
 	client.Client
 	manager       manager.Manager
-	client        kubernetes.Interface
 	namespace     string
 	upgradedImage string
 }
@@ -47,12 +45,9 @@ type controller struct {
 // +kubebuilder:rbac:groups=kubeupgrade.heathcliff.eu,resources=kubeupgradeplans,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=kubeupgrade.heathcliff.eu,resources=kubeupgradeplans/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups="",resources=nodes,verbs=list;update
+
 func NewController(name string) (*controller, error) {
 	config, err := rest.InClusterConfig()
-	if err != nil {
-		return nil, err
-	}
-	client, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
 	}
@@ -62,8 +57,18 @@ func NewController(name string) (*controller, error) {
 		return nil, err
 	}
 
+	scheme := runtime.NewScheme()
+	err = api.AddToScheme(scheme)
+	if err != nil {
+		return nil, err
+	}
+	err = clientgoscheme.AddToScheme(scheme)
+	if err != nil {
+		return nil, err
+	}
+
 	mgr, err := ctrl.NewManager(config, manager.Options{
-		Scheme:                        scheme.Scheme,
+		Scheme:                        scheme,
 		LeaderElection:                true,
 		LeaderElectionNamespace:       ns,
 		LeaderElectionID:              name,
@@ -72,6 +77,9 @@ func NewController(name string) (*controller, error) {
 		RenewDeadline:                 Pointer(10 * time.Second),
 		RetryPeriod:                   Pointer(5 * time.Second),
 		HealthProbeBindAddress:        ":9090",
+		Cache: cache.Options{
+			DefaultNamespaces: map[string]cache.Config{ns: {}},
+		},
 	})
 	if err != nil {
 		return nil, err
@@ -88,14 +96,17 @@ func NewController(name string) (*controller, error) {
 	return &controller{
 		Client:        mgr.GetClient(),
 		manager:       mgr,
-		client:        client,
 		namespace:     ns,
 		upgradedImage: GetUpgradedImage(),
 	}, nil
 }
 
 func (c *controller) Run() error {
-	err := ctrl.NewControllerManagedBy(c.manager).For(&api.KubeUpgradePlan{}).Complete(c)
+	err := ctrl.NewControllerManagedBy(c.manager).
+		For(&api.KubeUpgradePlan{}).
+		Owns(&appv1.DaemonSet{}).
+		Owns(&corev1.ConfigMap{}).
+		Complete(c)
 	if err != nil {
 		return err
 	}
@@ -151,16 +162,18 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 		}
 	}
 
-	cmList, err := c.client.CoreV1().ConfigMaps(c.namespace).List(ctx, metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("%s=%s", constants.LabelPlanName, plan.Name),
+	cmList := &corev1.ConfigMapList{}
+	err := c.List(ctx, cmList, client.InNamespace(c.namespace), client.MatchingLabels{
+		constants.LabelPlanName: plan.Name,
 	})
 	if err != nil {
 		logger.WithValues("plan", plan.Name).Error(err, "Failed to fetch upgraded ConfigMaps")
 		return err
 	}
 
-	daemonsList, err := c.client.AppsV1().DaemonSets(c.namespace).List(ctx, metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("%s=%s", constants.LabelPlanName, plan.Name),
+	dsList := &appv1.DaemonSetList{}
+	err = c.List(ctx, dsList, client.InNamespace(c.namespace), client.MatchingLabels{
+		constants.LabelPlanName: plan.Name,
 	})
 	if err != nil {
 		logger.WithValues("plan", plan.Name).Error(err, "Failed to fetch upgraded DaemonSets")
@@ -169,22 +182,22 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 
 	if !plan.DeletionTimestamp.IsZero() {
 		logger.WithValues("plan", plan.Name).Info("Plan is being deleted, cleaning up resources")
-		for _, daemon := range daemonsList.Items {
-			err := c.client.AppsV1().DaemonSets(c.namespace).Delete(ctx, daemon.Name, metav1.DeleteOptions{})
+		for _, daemon := range dsList.Items {
+			err = c.Delete(ctx, &daemon)
 			if err != nil {
 				return fmt.Errorf("failed to delete DaemonSet %s: %v", daemon.Name, err)
 			}
 			logger.WithValues("name", daemon.Name).Info("Deleted DaemonSet")
 		}
 		for _, cm := range cmList.Items {
-			err := c.client.CoreV1().ConfigMaps(c.namespace).Delete(ctx, cm.Name, metav1.DeleteOptions{})
+			err := c.Delete(ctx, &cm)
 			if err != nil {
 				return fmt.Errorf("failed to delete ConfigMap %s: %v", cm.Name, err)
 			}
 			logger.WithValues("name", cm.Name).Info("Deleted ConfigMap")
 		}
 		controllerutil.RemoveFinalizer(plan, constants.Finalizer)
-		err := c.Update(ctx, plan)
+		err = c.Update(ctx, plan)
 		if err != nil {
 			return fmt.Errorf("failed to remove finalizer from plan %s: %v", plan.Name, err)
 		}
@@ -193,12 +206,12 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 	}
 
 	daemons := make(map[string]appv1.DaemonSet, len(plan.Spec.Groups))
-	for _, daemon := range daemonsList.Items {
+	for _, daemon := range dsList.Items {
 		group := daemon.Labels[constants.LabelNodeGroup]
 		if _, ok := plan.Spec.Groups[group]; ok {
 			daemons[group] = daemon
 		} else {
-			err := c.client.AppsV1().DaemonSets(c.namespace).Delete(ctx, daemon.Name, metav1.DeleteOptions{})
+			err = c.Delete(ctx, &daemon)
 			if err != nil {
 				return fmt.Errorf("failed to delete DaemonSet %s: %v", daemon.Name, err)
 			}
@@ -212,7 +225,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 		if _, ok := plan.Spec.Groups[group]; ok {
 			cms[group] = cm
 		} else {
-			err := c.client.CoreV1().ConfigMaps(c.namespace).Delete(ctx, cm.Name, metav1.DeleteOptions{})
+			err = c.Delete(ctx, &cm)
 			if err != nil {
 				return fmt.Errorf("failed to delete ConfigMap %s: %v", cm.Name, err)
 			}
@@ -235,10 +248,10 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 			return fmt.Errorf("failed to attach data to ConfigMap %s: %v", cm.Name, err)
 		}
 		if ok {
-			_, err = c.client.CoreV1().ConfigMaps(c.namespace).Update(ctx, &cm, metav1.UpdateOptions{})
+			err = c.Update(ctx, &cm)
 		} else {
 			logger.WithValues("group", name, "config", cm.Name).Info("Creating upgraded ConfigMap for group")
-			_, err = c.client.CoreV1().ConfigMaps(c.namespace).Create(ctx, &cm, metav1.CreateOptions{})
+			err = c.Create(ctx, &cm)
 		}
 		if err != nil {
 			return fmt.Errorf("failed to create/update ConfigMap %s: %v", cm.Name, err)
@@ -252,18 +265,17 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 		daemon.Spec.Template.Spec.NodeSelector = cfg.Labels
 		daemon.Spec.Template.Spec.Tolerations = cfg.Tolerations
 		if ok {
-			_, err = c.client.AppsV1().DaemonSets(c.namespace).Update(ctx, &daemon, metav1.UpdateOptions{})
+			err = c.Update(ctx, &daemon)
 		} else {
 			logger.WithValues("group", name, "daemon", daemon.Name).Info("Creating upgraded DaemonSet for group")
-			_, err = c.client.AppsV1().DaemonSets(c.namespace).Create(ctx, &daemon, metav1.CreateOptions{})
+			err = c.Create(ctx, &daemon)
 		}
 		if err != nil {
 			return fmt.Errorf("failed to create/update DaemonSet %s: %v", daemon.Name, err)
 		}
 
-		nodeList, err := c.client.CoreV1().Nodes().List(ctx, metav1.ListOptions{
-			LabelSelector: labels.SelectorFromSet(cfg.Labels).String(),
-		})
+		nodeList := &corev1.NodeList{}
+		err = c.List(ctx, nodeList, client.MatchingLabels(cfg.Labels))
 		if err != nil {
 			logger.WithValues("group", name).Error(err, "Failed to get nodes for group")
 			return err
@@ -294,7 +306,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 		}
 
 		for _, node := range nodes {
-			_, err := c.client.CoreV1().Nodes().Update(ctx, &node, metav1.UpdateOptions{})
+			err = c.Update(ctx, &node)
 			if err != nil {
 				return fmt.Errorf("failed to update node %s: %v", node.GetName(), err)
 			}

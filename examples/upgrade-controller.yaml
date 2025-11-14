@@ -672,10 +672,10 @@ rules:
     verbs: ["create", "get", "update"]
   - apiGroups: ["apps"]
     resources: ["daemonsets"]
-    verbs: ["list", "create", "update", "delete"]
+    verbs: ["list", "watch", "create", "update", "delete"]
   - apiGroups: [""]
     resources: ["configmaps"]
-    verbs: ["list", "create", "update", "delete"]
+    verbs: ["list", "watch", "create", "update", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
