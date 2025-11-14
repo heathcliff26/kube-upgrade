@@ -159,10 +159,12 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 		plan.Status.Groups = make(map[string]string, len(plan.Spec.Groups))
 	}
 
-	if controllerutil.AddFinalizer(plan, constants.Finalizer) {
+	// Migration from v0.6.0: Remove the finalizer as it is not needed
+	// TODO: Remove in future release
+	if controllerutil.RemoveFinalizer(plan, constants.Finalizer) {
 		err := c.Update(ctx, plan)
 		if err != nil {
-			return fmt.Errorf("failed to add finalizer to plan %s: %v", plan.Name, err)
+			return fmt.Errorf("failed to remove finalizer from plan %s: %v", plan.Name, err)
 		}
 	}
 
@@ -182,31 +184,6 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
 	if err != nil {
 		logger.WithValues("plan", plan.Name).Error(err, "Failed to fetch upgraded DaemonSets")
 		return err
-	}
-
-	if !plan.DeletionTimestamp.IsZero() {
-		logger.WithValues("plan", plan.Name).Info("Plan is being deleted, cleaning up resources")
-		for _, daemon := range dsList.Items {
-			err = c.Delete(ctx, &daemon)
-			if err != nil {
-				return fmt.Errorf("failed to delete DaemonSet %s: %v", daemon.Name, err)
-			}
-			logger.WithValues("name", daemon.Name).Info("Deleted DaemonSet")
-		}
-		for _, cm := range cmList.Items {
-			err := c.Delete(ctx, &cm)
-			if err != nil {
-				return fmt.Errorf("failed to delete ConfigMap %s: %v", cm.Name, err)
-			}
-			logger.WithValues("name", cm.Name).Info("Deleted ConfigMap")
-		}
-		controllerutil.RemoveFinalizer(plan, constants.Finalizer)
-		err = c.Update(ctx, plan)
-		if err != nil {
-			return fmt.Errorf("failed to remove finalizer from plan %s: %v", plan.Name, err)
-		}
-		logger.WithValues("plan", plan.Name).Info("Finished cleanup of resources")
-		return nil
 	}
 
 	daemons := make(map[string]*appv1.DaemonSet, len(plan.Spec.Groups))

@@ -34,4 +34,5 @@ const (
 	LabelNodeGroup = BaseDomain + "group"
 )
 
+// TODO: Remove in future release when migration code is removed
 const Finalizer = BaseDomain + "finalizer"
