@@ -8,26 +8,29 @@ import (
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 	upgradedconfig "github.com/heathcliff26/kube-upgrade/pkg/upgraded/config"
 	"github.com/stretchr/testify/assert"
+	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	kubeFake "k8s.io/client-go/kubernetes/fake"
+	"k8s.io/apimachinery/pkg/types"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/klog/v2"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	controllerFake "sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 const (
-	groupControl = "control"
-	labelControl = "node-role.kubernetes.io/control-plane"
-	nodeControl  = "node-control"
+	groupControl    = "control"
+	labelControl    = "node-role.kubernetes.io/control-plane"
+	nodeControlName = "node-control"
 
-	groupCompute = "compute"
-	labelCompute = "node-role.kubernetes.io/compute"
-	nodeCompute  = "node-compute"
+	groupCompute    = "compute"
+	labelCompute    = "node-role.kubernetes.io/compute"
+	nodeComputeName = "node-compute"
 
-	groupInfra = "infra"
-	labelInfra = "node-role.kubernetes.io/infra"
-	nodeInfra  = "node-infra"
+	groupInfra    = "infra"
+	labelInfra    = "node-role.kubernetes.io/infra"
+	nodeInfraName = "node-infra"
 
 	labelValue = "true"
 )
@@ -535,7 +538,7 @@ func TestReconcile(t *testing.T) {
 
 	for _, tCase := range tMatrix {
 		t.Run(tCase.Name, func(t *testing.T) {
-			c := createFakeController(t, tCase.AnnotationsControl, tCase.AnnotationsCompute, tCase.AnnotationsInfra, &tCase.Plan)
+			c := createFakeController(tCase.AnnotationsControl, tCase.AnnotationsCompute, tCase.AnnotationsInfra, &tCase.Plan)
 
 			assert := assert.New(t)
 
@@ -555,9 +558,10 @@ func TestReconcile(t *testing.T) {
 
 			assert.Equal(tCase.ExpectedGroupStatus, tCase.Plan.Status.Groups, "Group status should match")
 
-			nodeControl, _ := c.client.CoreV1().Nodes().Get(ctx, nodeControl, metav1.GetOptions{})
-			nodeCompute, _ := c.client.CoreV1().Nodes().Get(ctx, nodeCompute, metav1.GetOptions{})
-			nodeInfra, _ := c.client.CoreV1().Nodes().Get(ctx, nodeInfra, metav1.GetOptions{})
+			nodeControl, nodeCompute, nodeInfra := &corev1.Node{}, &corev1.Node{}, &corev1.Node{}
+			_ = c.Get(ctx, types.NamespacedName{Name: nodeControlName}, nodeControl)
+			_ = c.Get(ctx, types.NamespacedName{Name: nodeComputeName}, nodeCompute)
+			_ = c.Get(ctx, types.NamespacedName{Name: nodeInfraName}, nodeInfra)
 
 			assert.Equal(tCase.ExpectedAnnotationsControl, nodeControl.GetAnnotations(), "Control group should have expected annotations")
 			assert.Equal(tCase.ExpectedAnnotationsCompute, nodeCompute.GetAnnotations(), "Compute group should have expected annotations")
@@ -567,13 +571,9 @@ func TestReconcile(t *testing.T) {
 }
 
 func TestReconcileNodes(t *testing.T) {
-	c := &controller{
-		client: kubeFake.NewSimpleClientset(),
-	}
-
 	nodeControl := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: nodeControl,
+			Name: nodeControlName,
 			Labels: map[string]string{
 				labelControl: labelValue,
 			},
@@ -584,7 +584,9 @@ func TestReconcileNodes(t *testing.T) {
 			},
 		},
 	}
-	nodeControl, _ = c.client.CoreV1().Nodes().Create(t.Context(), nodeControl, metav1.CreateOptions{})
+	c := &controller{
+		Client: controllerFake.NewFakeClient(nodeControl),
+	}
 
 	assert := assert.New(t)
 
@@ -664,7 +666,7 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 					},
 				}
 			}
-			c := createFakeController(t, nil, nil, nil, plan)
+			c := createFakeController(nil, nil, nil, plan)
 			c.upgradedImage = "registry.example.com/kube-upgrade:latest"
 			for _, group := range tCase.InitialDaemons {
 				addFakeUpgradedConfigMap(t, c, plan.Name, group)
@@ -673,10 +675,11 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 
 			assert.NoError(c.reconcile(t.Context(), plan, klog.NewKlogr()), "Reconcile should succeed")
 
-			daemonsList, err := c.client.AppsV1().DaemonSets(c.namespace).List(t.Context(), metav1.ListOptions{})
+			dsList := &appv1.DaemonSetList{}
+			err := c.List(t.Context(), dsList, client.InNamespace(c.namespace))
 			assert.NoError(err, "Should list daemonsets without error")
 
-			for _, daemon := range daemonsList.Items {
+			for _, daemon := range dsList.Items {
 				assert.Equalf(plan.Name, daemon.Labels[constants.LabelPlanName], "Daemonset %s should have plan name as label", daemon.Name)
 				assert.Containsf(tCase.Groups, daemon.Labels[constants.LabelNodeGroup], "Daemonset %s should belong to a valid group", daemon.Name)
 				assert.Len(daemon.Spec.Template.Spec.NodeSelector, 1, "Should have exactly 1 label")
@@ -684,7 +687,8 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 				assert.Equal("registry.example.com/kube-upgrade:latest", daemon.Spec.Template.Spec.Containers[0].Image, "Daemonset should have correct upgraded image")
 			}
 
-			cmList, err := c.client.CoreV1().ConfigMaps(c.namespace).List(t.Context(), metav1.ListOptions{})
+			cmList := &corev1.ConfigMapList{}
+			err = c.List(t.Context(), cmList, client.InNamespace(c.namespace))
 			assert.NoError(err, "Should list configmaps without error")
 
 			for _, cm := range cmList.Items {
@@ -710,19 +714,19 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 				},
 			},
 		}
-		c := createFakeController(t, nil, nil, nil, plan)
+		c := createFakeController(nil, nil, nil, plan)
 		daemon := c.NewEmptyUpgradedDaemonSet(plan.Name, groupControl)
 		daemon.Spec = c.NewUpgradedDaemonSetSpec(plan.Name, groupControl)
 		daemon.Spec.Template.Spec.HostNetwork = true
 		daemon.Spec.Template.Spec.HostPID = false
-		_, _ = c.client.AppsV1().DaemonSets(c.namespace).Create(t.Context(), &daemon, metav1.CreateOptions{})
+		_ = c.Create(t.Context(), &daemon)
 
 		assert.NoError(c.reconcile(t.Context(), plan, klog.NewKlogr()), "Reconcile should succeed")
 
-		result, err := c.client.AppsV1().DaemonSets(c.namespace).Get(t.Context(), daemon.Name, metav1.GetOptions{})
+		err := c.Get(t.Context(), client.ObjectKeyFromObject(&daemon), &daemon)
 		assert.NoError(err, "Should get daemonset without error")
-		assert.False(result.Spec.Template.Spec.HostNetwork, "Daemonset HostNetwork should be updated to false")
-		assert.True(result.Spec.Template.Spec.HostPID, "Daemonset HostPID should be updated to true")
+		assert.False(daemon.Spec.Template.Spec.HostNetwork, "Daemonset HostNetwork should be updated to false")
+		assert.True(daemon.Spec.Template.Spec.HostPID, "Daemonset HostPID should be updated to true")
 	})
 	t.Run("UpdateConfigMap", func(t *testing.T) {
 		assert := assert.New(t)
@@ -744,17 +748,17 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 				},
 			},
 		}
-		c := createFakeController(t, nil, nil, nil, plan)
+		c := createFakeController(nil, nil, nil, plan)
 		cm := c.NewEmptyUpgradedConfigMap(plan.Name, groupControl)
 		cfg.Stream = "registry.example.com/updated-stream"
 		_ = c.AttachUpgradedConfigMapData(&cm, cfg)
-		_, _ = c.client.CoreV1().ConfigMaps(c.namespace).Create(t.Context(), &cm, metav1.CreateOptions{})
+		_ = c.Create(t.Context(), &cm)
 
 		assert.NoError(c.reconcile(t.Context(), plan, klog.NewKlogr()), "Reconcile should succeed")
 
-		result, err := c.client.CoreV1().ConfigMaps(c.namespace).Get(t.Context(), cm.Name, metav1.GetOptions{})
+		err := c.Get(t.Context(), client.ObjectKeyFromObject(&cm), &cm)
 		assert.NoError(err, "Should get daemonset without error")
-		assert.Contains(result.Data[upgradedconfig.DefaultConfigFile], api.DefaultUpgradedStream, "ConfigMap data should be updated")
+		assert.Contains(cm.Data[upgradedconfig.DefaultConfigFile], api.DefaultUpgradedStream, "ConfigMap data should be updated")
 	})
 }
 
@@ -774,40 +778,36 @@ func TestPlanFinalizer(t *testing.T) {
 			},
 		},
 	}
-	c := createFakeController(t, nil, nil, nil, plan)
+	c := createFakeController(nil, nil, nil, plan)
 
 	assert.NoError(c.reconcile(t.Context(), plan, klog.NewKlogr()), "First reconcile should succeed")
 	assert.Contains(plan.GetFinalizers(), constants.Finalizer, "Plan should have finalizer after first reconcile")
 
-	daemonsList, err := c.client.AppsV1().DaemonSets(c.namespace).List(t.Context(), metav1.ListOptions{})
+	dsList := appv1.DaemonSetList{}
+	err := c.List(t.Context(), &dsList)
 	assert.NoError(err, "Should list daemonsets without error")
-	assert.NotEmpty(daemonsList.Items, "There should be daemonsets present")
+	assert.NotEmpty(dsList.Items, "There should be daemonsets present")
 
 	plan.SetDeletionTimestamp(&metav1.Time{Time: time.Now()})
-	tmpCtrl := createFakeController(t, nil, nil, nil, plan)
+	tmpCtrl := createFakeController(nil, nil, nil, plan)
 	c.Client = tmpCtrl.Client
 
 	assert.NoError(c.reconcile(t.Context(), plan, klog.NewKlogr()), "Second reconcile should succeed")
 	assert.NotContains(plan.GetFinalizers(), constants.Finalizer, "Finalizer should be removed for deletion")
 
-	daemonsList, err = c.client.AppsV1().DaemonSets(c.namespace).List(t.Context(), metav1.ListOptions{})
+	err = c.List(t.Context(), &dsList)
 	assert.NoError(err, "Should list daemonsets without error")
-	assert.Empty(daemonsList.Items, "DaemonSet should be deleted after plan deletion")
+	assert.Empty(dsList.Items, "DaemonSet should be deleted after plan deletion")
 }
 
-func createFakeController(t *testing.T, annotationsControl, annotationsCompute, annotationsInfra map[string]string, plan *api.KubeUpgradePlan) *controller {
+func createFakeController(annotationsControl, annotationsCompute, annotationsInfra map[string]string, plan *api.KubeUpgradePlan) *controller {
 	scheme := runtime.NewScheme()
 	_ = api.AddToScheme(scheme)
-	fakeCtrlClient := controllerFake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(plan).Build()
-	c := &controller{
-		client:    kubeFake.NewSimpleClientset(),
-		Client:    fakeCtrlClient,
-		namespace: "kube-upgrade",
-	}
+	_ = clientgoscheme.AddToScheme(scheme)
 
 	nodeControl := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: nodeControl,
+			Name: nodeControlName,
 			Labels: map[string]string{
 				labelControl: labelValue,
 			},
@@ -816,7 +816,7 @@ func createFakeController(t *testing.T, annotationsControl, annotationsCompute, 
 	}
 	nodeCompute := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: nodeCompute,
+			Name: nodeComputeName,
 			Labels: map[string]string{
 				labelCompute: labelValue,
 			},
@@ -825,7 +825,7 @@ func createFakeController(t *testing.T, annotationsControl, annotationsCompute, 
 	}
 	nodeInfra := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: nodeInfra,
+			Name: nodeInfraName,
 			Labels: map[string]string{
 				labelInfra: labelValue,
 			},
@@ -833,10 +833,14 @@ func createFakeController(t *testing.T, annotationsControl, annotationsCompute, 
 		},
 	}
 
-	ctx := t.Context()
-	_, _ = c.client.CoreV1().Nodes().Create(ctx, nodeControl, metav1.CreateOptions{})
-	_, _ = c.client.CoreV1().Nodes().Create(ctx, nodeCompute, metav1.CreateOptions{})
-	_, _ = c.client.CoreV1().Nodes().Create(ctx, nodeInfra, metav1.CreateOptions{})
+	fakeCtrlClient := controllerFake.NewClientBuilder().
+		WithScheme(scheme).
+		WithRuntimeObjects(plan, nodeControl, nodeCompute, nodeInfra).
+		Build()
+	c := &controller{
+		Client:    fakeCtrlClient,
+		namespace: "kube-upgrade",
+	}
 
 	return c
 }
@@ -847,12 +851,12 @@ func addFakeUpgradedConfigMap(t *testing.T, c *controller, plan, group string) {
 	cm := c.NewEmptyUpgradedConfigMap(plan, group)
 	_ = c.AttachUpgradedConfigMapData(&cm, cfg)
 
-	_, _ = c.client.CoreV1().ConfigMaps(c.namespace).Create(t.Context(), &cm, metav1.CreateOptions{})
+	_ = c.Create(t.Context(), &cm)
 }
 
 func addFakeUpgradedDaemonset(t *testing.T, c *controller, plan, group string) {
 	daemon := c.NewEmptyUpgradedDaemonSet(plan, group)
 	daemon.Spec = c.NewUpgradedDaemonSetSpec(plan, group)
 
-	_, _ = c.client.AppsV1().DaemonSets(c.namespace).Create(t.Context(), &daemon, metav1.CreateOptions{})
+	_ = c.Create(t.Context(), &daemon)
 }
