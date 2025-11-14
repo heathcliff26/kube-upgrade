@@ -43,6 +43,7 @@ roleRef:
   name: upgrade-controller
   apiGroup: rbac.authorization.k8s.io
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.heathcliff.eu/cert-manager.io/issuer_v1.json
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
@@ -53,6 +54,7 @@ metadata:
 spec:
   selfSigned: {}
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.heathcliff.eu/cert-manager.io/certificate_v1.json
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:

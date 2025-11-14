@@ -14,6 +14,10 @@ if [[ "${RELEASE_VERSION}" != "" ]] && [[ "${TAG}" == "latest" ]]; then
     TAG="${RELEASE_VERSION}"
 fi
 
+# Need to ensure $schema is not expanded by envsubst
+# shellcheck disable=SC2016
+export schema='$schema'
+
 # shellcheck disable=SC2155
 export kube_upgrade_crd=$(cat "${base_dir}/manifests/generated/kubeupgrade.heathcliff.eu_kubeupgradeplans.yaml")
 # shellcheck disable=SC2155
@@ -31,8 +35,7 @@ echo "Fetching latest kubernetes version"
 export kube_version_latest="$(curl -L -s https://dl.k8s.io/release/stable.txt)"
 
 echo "Creating example plan"
-# shellcheck disable=SC2016
-envsubst '${kube_version_latest}' <"${base_dir}/manifests/base/upgrade-cr.yaml.template" >"${output_dir}/upgrade-cr.yaml"
+envsubst <"${base_dir}/manifests/base/upgrade-cr.yaml.template" >"${output_dir}/upgrade-cr.yaml"
 
 echo "Wrote manifests to ${output_dir}"
 
