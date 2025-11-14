@@ -1,6 +1,7 @@
 package rpmostree
 
 import (
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"sync"
@@ -79,4 +80,29 @@ func (r *RPMOStreeCMD) RegisterAsDriver() error {
 	defer r.mutex.Unlock()
 
 	return utils.CreateCMDWithStdout(r.binary, "deploy", "--register-driver=upgraded").Run()
+}
+
+// Request the current status and return the booted image reference.
+func (r *RPMOStreeCMD) GetBootedImageRef() (string, error) {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	// #nosec G204: Binary path is controlled by the user
+	out, err := exec.Command(r.binary, "status", "--json").Output()
+	if err != nil {
+		return "", err
+	}
+
+	var status RPMOstreeStatus
+	err = json.Unmarshal(out, &status)
+	if err != nil {
+		return "", err
+	}
+
+	for _, deploy := range status.Deployments {
+		if deploy.Booted {
+			return deploy.ContainerImageReference, nil
+		}
+	}
+	return "", fmt.Errorf("no booted deployment found")
 }
