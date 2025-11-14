@@ -289,12 +289,6 @@ func (c *controller) reconcileNodes(kubeVersion string, downgrade bool, nodes []
 			nodes[i].Annotations = make(map[string]string)
 		}
 
-		// Step to cleanup after migration to v0.6.0
-		// TODO: Remove in v0.7.0
-		if deleteConfigAnnotations(nodes[i].Annotations) {
-			needUpdate = true
-		}
-
 		if !downgrade && semver.Compare(kubeVersion, nodes[i].Status.NodeInfo.KubeletVersion) < 0 {
 			return api.PlanStatusError, false, nil, fmt.Errorf("node %s version %s is newer than %s, but downgrade is disabled", nodes[i].GetName(), nodes[i].Status.NodeInfo.KubeletVersion, kubeVersion)
 		}
