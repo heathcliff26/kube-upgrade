@@ -83,9 +83,9 @@
 				
 				<option value="file13">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/config.go (90.0%)</option>
 				
-				<option value="file14">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (57.8%)</option>
+				<option value="file14">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (55.8%)</option>
 				
-				<option value="file15">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/node.go (45.5%)</option>
+				<option value="file15">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/node.go (46.7%)</option>
 				
 				<option value="file16">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/stream.go (32.3%)</option>
 				
@@ -95,7 +95,7 @@
 				
 				<option value="file19">github.com/heathcliff26/kube-upgrade/pkg/upgraded/root.go (16.1%)</option>
 				
-				<option value="file20">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/rpm-ostree.go (92.9%)</option>
+				<option value="file20">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/rpm-ostree.go (87.8%)</option>
 				
 				<option value="file21">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/utils.go (100.0%)</option>
 				
@@ -254,18 +254,18 @@ func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error <span class="cov
         <span class="cov9" title="15">if len(spec.Groups) &lt; 1 </span><span class="cov1" title="1">{
                 return fmt.Errorf("need at least one node group for upgrades")
         }</span>
-        <span class="cov8" title="14">for name, group := range spec.Groups </span><span class="cov9" title="18">{
+        <span class="cov8" title="14">for name, group := range spec.Groups </span><span class="cov9" title="19">{
                 for _, dependency := range group.DependsOn </span><span class="cov6" title="6">{
                         if _, ok := spec.Groups[dependency]; !ok </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" depends on non-existing group \"%s\"", name, dependency)
                         }</span>
                 }
 
-                <span class="cov9" title="17">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
+                <span class="cov9" title="18">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
                         return fmt.Errorf("group \"%s\" needs at least one label selector", name)
                 }</span>
 
-                <span class="cov9" title="16">if group.Upgraded != nil </span><span class="cov3" title="2">{
+                <span class="cov9" title="17">if group.Upgraded != nil </span><span class="cov3" title="2">{
                         err := ValidateObject_UpgradedConfig(*group.Upgraded)
                         if err != nil </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" has an invalid upgraded config: %v", name, err)
@@ -1418,7 +1418,7 @@ func (d *daemon) WatchConfigFile() <span class="cov4" title="3">{
 }
 
 // Get the current stream
-func (d *daemon) Stream() string <span class="cov8" title="10">{
+func (d *daemon) Stream() string <span class="cov10" title="14">{
         d.configLock.RLock()
         defer d.configLock.RUnlock()
 
@@ -1488,7 +1488,8 @@ type daemon struct {
         rpmostree *rpmostree.RPMOStreeCMD
         kubeadm   *kubeadm.KubeadmCMD
 
-        node string
+        node           string
+        bootedImageRef string
 
         client kubernetes.Interface
         ctx    context.Context
@@ -1539,14 +1540,20 @@ func NewDaemon(cfgPath string) (*daemon, error) <span class="cov5" title="3">{
         }</span>
         <span class="cov0" title="0">slog.Info("Found node name for this host", slog.String("node", node))
 
-        d := &amp;daemon{
+        bootedImageRef, err := rpmOstreeCMD.GetBootedImageRef()
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to get ostree image ref: %v", err)
+        }</span>
+
+        <span class="cov0" title="0">d := &amp;daemon{
                 cfgPath: cfgPath,
 
                 rpmostree: rpmOstreeCMD,
                 kubeadm:   kubeadmCMD,
 
-                node:   node,
-                client: kubeClient,
+                node:           node,
+                bootedImageRef: bootedImageRef,
+                client:         kubeClient,
         }
 
         err = d.updateFromConfig(cfg)
@@ -1620,7 +1627,7 @@ func (d *daemon) Run() error <span class="cov4" title="2">{
                 return fmt.Errorf("failed to annotate node with upgraded version: %v", err)
         }</span>
 
-        <span class="cov0" title="0">if !nodeNeedsUpgrade(node) </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">if !nodeNeedsUpgrade(node) &amp;&amp; d.nodeHasCorrectStream(node) </span><span class="cov0" title="0">{
                 slog.Debug("Releasing any log that may be held by this machine")
                 d.releaseLock()
                 if d.ctx.Err() != nil </span><span class="cov0" title="0">{
@@ -1654,6 +1661,7 @@ func (d *daemon) Run() error <span class="cov4" title="2">{
 import (
         "fmt"
         "log/slog"
+        "strings"
         "time"
 
         "github.com/heathcliff26/kube-upgrade/pkg/constants"
@@ -1699,7 +1707,7 @@ func (d *daemon) watchForNodeUpgrade() <span class="cov0" title="0">{
 
 // Check if we need to upgrade the node and trigger the upgrade if needed
 func (d *daemon) checkNodeStatus(node *corev1.Node) <span class="cov0" title="0">{
-        if !nodeNeedsUpgrade(node) </span><span class="cov0" title="0">{
+        if !nodeNeedsUpgrade(node) &amp;&amp; d.nodeHasCorrectStream(node) </span><span class="cov0" title="0">{
                 return
         }</span>
 
@@ -1743,7 +1751,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
                 return fmt.Errorf("failed to acquire lock: %v", err)
         }</span>
 
-        <span class="cov3" title="2">if version != d.kubeadm.Version() </span><span class="cov3" title="2">{
+        <span class="cov3" title="2">if version != d.kubeadm.Version() || !d.nodeHasCorrectStream(node) </span><span class="cov3" title="2">{
                 slog.Info("Rebasing os to new kubernetes version", slog.String("version", version), slog.String("current", d.kubeadm.Version()))
                 err := d.updateNodeStatus(constants.NodeUpgradeStatusRebasing)
                 if err != nil </span><span class="cov0" title="0">{
@@ -1849,6 +1857,20 @@ func (d *daemon) annotateNodeWithUpgradedVersion(node *corev1.Node) (*corev1.Nod
 
         <span class="cov3" title="2">node.Annotations[constants.NodeUpgradedVersion] = version.Version()
         return d.client.CoreV1().Nodes().Update(d.ctx, node, metav1.UpdateOptions{})</span>
+}
+
+// Check if the current image stream matches the requested one
+func (d *daemon) nodeHasCorrectStream(node *corev1.Node) bool <span class="cov6" title="4">{
+        if node.Annotations == nil </span><span class="cov0" title="0">{
+                return true
+        }</span>
+
+        <span class="cov6" title="4">version := node.Annotations[constants.NodeKubernetesVersion]
+        if version == "" </span><span class="cov0" title="0">{
+                return true
+        }</span>
+
+        <span class="cov6" title="4">return strings.HasSuffix(d.bootedImageRef, d.Stream()+":"+version)</span>
 }
 </pre>
 		
@@ -2133,6 +2155,7 @@ func run(cfgPath string) <span class="cov0" title="0">{
 		<pre class="file" id="file20" style="display: none">package rpmostree
 
 import (
+        "encoding/json"
         "fmt"
         "os/exec"
         "sync"
@@ -2146,13 +2169,13 @@ type RPMOStreeCMD struct {
 }
 
 // Create a new wrapper for rpm-ostree
-func New(path string) (*RPMOStreeCMD, error) <span class="cov10" title="16">{
+func New(path string) (*RPMOStreeCMD, error) <span class="cov10" title="17">{
         err := utils.CheckExistsAndIsExecutable(path)
         if err != nil </span><span class="cov1" title="1">{
                 return nil, err
         }</span>
 
-        <span class="cov9" title="15">return &amp;RPMOStreeCMD{
+        <span class="cov9" title="16">return &amp;RPMOStreeCMD{
                 binary: path,
         }, nil</span>
 }
@@ -2212,6 +2235,31 @@ func (r *RPMOStreeCMD) RegisterAsDriver() error <span class="cov3" title="2">{
 
         return utils.CreateCMDWithStdout(r.binary, "deploy", "--register-driver=upgraded").Run()
 }</span>
+
+// Request the current status and return the booted image reference.
+func (r *RPMOStreeCMD) GetBootedImageRef() (string, error) <span class="cov1" title="1">{
+        r.mutex.Lock()
+        defer r.mutex.Unlock()
+
+        // #nosec G204: Binary path is controlled by the user
+        out, err := exec.Command(r.binary, "status", "--json").Output()
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov1" title="1">var status RPMOstreeStatus
+        err = json.Unmarshal(out, &amp;status)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov1" title="1">for _, deploy := range status.Deployments </span><span class="cov1" title="1">{
+                if deploy.Booted </span><span class="cov1" title="1">{
+                        return deploy.ContainerImageReference, nil
+                }</span>
+        }
+        <span class="cov0" title="0">return "", fmt.Errorf("no booted deployment found")</span>
+}
 </pre>
 		
 		<pre class="file" id="file21" style="display: none">package rpmostree
@@ -2267,15 +2315,15 @@ func CreateChrootCMDWithStdout(chrootPath string, name string, arg ...string) *e
 }</span>
 
 // Check if the given file exists and is executable
-func CheckExistsAndIsExecutable(path string) error <span class="cov10" title="27">{
+func CheckExistsAndIsExecutable(path string) error <span class="cov10" title="28">{
         f, err := os.Stat(path)
         if err != nil </span><span class="cov4" title="4">{
                 return err
         }</span>
-        <span class="cov9" title="23">if f.Mode().Perm()&amp;0100 == 0 </span><span class="cov1" title="1">{
+        <span class="cov9" title="24">if f.Mode().Perm()&amp;0100 == 0 </span><span class="cov1" title="1">{
                 return fmt.Errorf("%s is not an executable", path)
         }</span>
-        <span class="cov9" title="22">return nil</span>
+        <span class="cov9" title="23">return nil</span>
 }
 </pre>
 		
