@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
-	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -161,65 +160,6 @@ func TestCombineConfig(t *testing.T) {
 	for _, tCase := range tMatrix {
 		t.Run(tCase.Name, func(t *testing.T) {
 			assert.Equal(t, tCase.Result, combineConfig(tCase.Global, tCase.Group), "Should combine the 2 configs")
-		})
-	}
-}
-
-func TestDeleteConfigAnnotations(t *testing.T) {
-	tMatrix := []struct {
-		Name             string
-		Original, Result map[string]string
-		Changed          bool
-	}{
-		{
-			Name: "DeleteConfigAnnotations",
-			Original: map[string]string{
-				constants.ConfigStream:         "registry.example.org/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.org",
-				constants.ConfigFleetlockGroup: "not-default",
-				constants.ConfigCheckInterval:  "3h0m0s",
-				constants.ConfigRetryInterval:  "5m0s",
-			},
-			Result:  map[string]string{},
-			Changed: true,
-		},
-		{
-			Name: "DoNotTouchUnrelatedAnnotations",
-			Original: map[string]string{
-				constants.ConfigStream:         "registry.example.org/test-stream",
-				constants.ConfigFleetlockURL:   "https://fleetlock.example.org",
-				constants.ConfigFleetlockGroup: "not-default",
-				constants.ConfigCheckInterval:  "3h0m0s",
-				constants.ConfigRetryInterval:  "5m0s",
-				"example.com/test":             "true",
-			},
-			Result: map[string]string{
-				"example.com/test": "true",
-			},
-			Changed: true,
-		},
-		{
-			Name: "Unchanged",
-			Original: map[string]string{
-				"example.com/test": "true",
-			},
-			Result: map[string]string{
-				"example.com/test": "true",
-			},
-			Changed: false,
-		},
-		{
-			Name:     "AnnotationsNil",
-			Original: nil,
-			Result:   nil,
-			Changed:  false,
-		},
-	}
-	for _, tCase := range tMatrix {
-		t.Run(tCase.Name, func(t *testing.T) {
-			assert := assert.New(t)
-			assert.Equal(tCase.Changed, deleteConfigAnnotations(tCase.Original), "Should indicate if annotations changed")
-			assert.Equal(tCase.Result, tCase.Original, "Should have applied the annotations")
 		})
 	}
 }

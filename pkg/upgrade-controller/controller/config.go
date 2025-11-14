@@ -1,10 +1,7 @@
 package controller
 
 import (
-	"strings"
-
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
-	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 )
 
 // Combine 2 configs, where group overrides the values used by global.
@@ -41,18 +38,4 @@ func combineConfig(global api.UpgradedConfig, group *api.UpgradedConfig) *api.Up
 	}
 
 	return &cfg
-}
-
-// Delete all config annotations from the node.
-// Returns if the config changed.
-func deleteConfigAnnotations(annotations map[string]string) bool {
-	changed := false
-
-	for k := range annotations {
-		if strings.HasPrefix(k, constants.ConfigPrefix) {
-			delete(annotations, k)
-			changed = true
-		}
-	}
-	return changed
 }

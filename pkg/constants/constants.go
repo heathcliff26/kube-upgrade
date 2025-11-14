@@ -20,15 +20,6 @@ const (
 	NodeUpgradeStatusError     = "error"
 )
 
-// TODO: Remove when removing migration code in v0.7.0
-const (
-	ConfigStream         = ConfigPrefix + "stream"
-	ConfigFleetlockURL   = ConfigPrefix + "fleetlock-url"
-	ConfigFleetlockGroup = ConfigPrefix + "fleetlock-group"
-	ConfigCheckInterval  = ConfigPrefix + "check-interval"
-	ConfigRetryInterval  = ConfigPrefix + "retry-interval"
-)
-
 const (
 	LabelPlanName  = BaseDomain + "plan"
 	LabelNodeGroup = BaseDomain + "group"
