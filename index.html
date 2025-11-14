@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/config.go (100.0%)</option>
 				
-				<option value="file4">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (60.7%)</option>
+				<option value="file4">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (62.1%)</option>
 				
 				<option value="file5">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/errors.go (50.0%)</option>
 				
@@ -208,7 +208,7 @@ func Resource(resource string) schema.GroupResource <span class="cov0" title="0"
 }</span>
 
 // Adds the list of known types to the given scheme.
-func AddKnownTypes(scheme *runtime.Scheme) error <span class="cov10" title="18">{
+func AddKnownTypes(scheme *runtime.Scheme) error <span class="cov10" title="17">{
         scheme.AddKnownTypes(
                 SchemeGroupVersion,
                 &amp;KubeUpgradePlan{},
@@ -533,19 +533,21 @@ func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
         }, nil</span>
 }
 
-func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, logger logr.Logger) error <span class="cov8" title="18">{
+func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, logger logr.Logger) error <span class="cov7" title="17">{
         if plan.Status.Groups == nil </span><span class="cov6" title="10">{
                 plan.Status.Groups = make(map[string]string, len(plan.Spec.Groups))
         }</span>
 
-        <span class="cov8" title="18">if controllerutil.AddFinalizer(plan, constants.Finalizer) </span><span class="cov7" title="17">{
+        // Migration from v0.6.0: Remove the finalizer as it is not needed
+        // TODO: Remove in future release
+        <span class="cov7" title="17">if controllerutil.RemoveFinalizer(plan, constants.Finalizer) </span><span class="cov1" title="1">{
                 err := c.Update(ctx, plan)
                 if err != nil </span><span class="cov0" title="0">{
-                        return fmt.Errorf("failed to add finalizer to plan %s: %v", plan.Name, err)
+                        return fmt.Errorf("failed to remove finalizer from plan %s: %v", plan.Name, err)
                 }</span>
         }
 
-        <span class="cov8" title="18">cmList := &amp;corev1.ConfigMapList{}
+        <span class="cov7" title="17">cmList := &amp;corev1.ConfigMapList{}
         err := c.List(ctx, cmList, client.InNamespace(c.namespace), client.MatchingLabels{
                 constants.LabelPlanName: plan.Name,
         })
@@ -554,7 +556,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
                 return err
         }</span>
 
-        <span class="cov8" title="18">dsList := &amp;appv1.DaemonSetList{}
+        <span class="cov7" title="17">dsList := &amp;appv1.DaemonSetList{}
         err = c.List(ctx, dsList, client.InNamespace(c.namespace), client.MatchingLabels{
                 constants.LabelPlanName: plan.Name,
         })
@@ -562,31 +564,6 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
                 logger.WithValues("plan", plan.Name).Error(err, "Failed to fetch upgraded DaemonSets")
                 return err
         }</span>
-
-        <span class="cov8" title="18">if !plan.DeletionTimestamp.IsZero() </span><span class="cov1" title="1">{
-                logger.WithValues("plan", plan.Name).Info("Plan is being deleted, cleaning up resources")
-                for _, daemon := range dsList.Items </span><span class="cov0" title="0">{
-                        err = c.Delete(ctx, &amp;daemon)
-                        if err != nil </span><span class="cov0" title="0">{
-                                return fmt.Errorf("failed to delete DaemonSet %s: %v", daemon.Name, err)
-                        }</span>
-                        <span class="cov0" title="0">logger.WithValues("name", daemon.Name).Info("Deleted DaemonSet")</span>
-                }
-                <span class="cov1" title="1">for _, cm := range cmList.Items </span><span class="cov0" title="0">{
-                        err := c.Delete(ctx, &amp;cm)
-                        if err != nil </span><span class="cov0" title="0">{
-                                return fmt.Errorf("failed to delete ConfigMap %s: %v", cm.Name, err)
-                        }</span>
-                        <span class="cov0" title="0">logger.WithValues("name", cm.Name).Info("Deleted ConfigMap")</span>
-                }
-                <span class="cov1" title="1">controllerutil.RemoveFinalizer(plan, constants.Finalizer)
-                err = c.Update(ctx, plan)
-                if err != nil </span><span class="cov0" title="0">{
-                        return fmt.Errorf("failed to remove finalizer from plan %s: %v", plan.Name, err)
-                }</span>
-                <span class="cov1" title="1">logger.WithValues("plan", plan.Name).Info("Finished cleanup of resources")
-                return nil</span>
-        }
 
         <span class="cov7" title="17">daemons := make(map[string]*appv1.DaemonSet, len(plan.Spec.Groups))
         for i := range dsList.Items </span><span class="cov6" title="8">{
@@ -792,6 +769,7 @@ import (
         appv1 "k8s.io/api/apps/v1"
         corev1 "k8s.io/api/core/v1"
         metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+        "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
         "sigs.k8s.io/yaml"
 )
 
@@ -898,6 +876,10 @@ func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.K
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
+        <span class="cov7" title="37">err = controllerutil.SetControllerReference(plan, expectedCM, c.Scheme())
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
 
         <span class="cov7" title="37">if cm == nil </span><span class="cov6" title="31">{
                 logger.WithValues("group", group, "config", expectedCM.Name).Info("Creating upgraded ConfigMap for group")
@@ -906,7 +888,12 @@ func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.K
 
         <span class="cov4" title="6">updated := false
 
-        if !reflect.DeepEqual(expectedCM.Labels, cm.Labels) </span><span class="cov0" title="0">{
+        if !reflect.DeepEqual(expectedCM.OwnerReferences, cm.OwnerReferences) </span><span class="cov4" title="6">{
+                cm.OwnerReferences = expectedCM.OwnerReferences
+                updated = true
+        }</span>
+
+        <span class="cov4" title="6">if !reflect.DeepEqual(expectedCM.Labels, cm.Labels) </span><span class="cov0" title="0">{
                 cm.Labels = expectedCM.Labels
                 updated = true
         }</span>
@@ -927,15 +914,24 @@ func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.K
         expectedDS := c.NewUpgradedDaemonSet(plan.Name, groupName)
         expectedDS.Spec.Template.Spec.NodeSelector = group.Labels
         expectedDS.Spec.Template.Spec.Tolerations = group.Tolerations
+        err := controllerutil.SetControllerReference(plan, expectedDS, c.Scheme())
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
 
-        if ds == nil </span><span class="cov6" title="31">{
+        <span class="cov7" title="37">if ds == nil </span><span class="cov6" title="31">{
                 logger.WithValues("group", groupName, "daemon", expectedDS.Name).Info("Creating upgraded DaemonSet for group")
                 return c.Create(ctx, expectedDS)
         }</span>
 
         <span class="cov4" title="6">updated := false
 
-        if !reflect.DeepEqual(expectedDS.Labels, ds.Labels) </span><span class="cov0" title="0">{
+        if !reflect.DeepEqual(expectedDS.OwnerReferences, ds.OwnerReferences) </span><span class="cov4" title="6">{
+                ds.OwnerReferences = expectedDS.OwnerReferences
+                updated = true
+        }</span>
+
+        <span class="cov4" title="6">if !reflect.DeepEqual(expectedDS.Labels, ds.Labels) </span><span class="cov0" title="0">{
                 ds.Labels = expectedDS.Labels
                 updated = true
         }</span>
