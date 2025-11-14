@@ -3,12 +3,8 @@
 package applyconfiguration
 
 import (
-	v1alpha1 "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha1"
-	v1alpha2 "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha2"
 	v1alpha3 "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	internal "github.com/heathcliff26/kube-upgrade/pkg/client/applyconfiguration/internal"
-	kubeupgradev1alpha1 "github.com/heathcliff26/kube-upgrade/pkg/client/applyconfiguration/kubeupgrade/v1alpha1"
-	kubeupgradev1alpha2 "github.com/heathcliff26/kube-upgrade/pkg/client/applyconfiguration/kubeupgrade/v1alpha2"
 	kubeupgradev1alpha3 "github.com/heathcliff26/kube-upgrade/pkg/client/applyconfiguration/kubeupgrade/v1alpha3"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
@@ -19,31 +15,7 @@ import (
 // apply configuration type exists for the given GroupVersionKind.
 func ForKind(kind schema.GroupVersionKind) interface{} {
 	switch kind {
-	// Group=kubeupgrade.heathcliff.eu, Version=v1alpha1
-	case v1alpha1.SchemeGroupVersion.WithKind("KubeUpgradePlan"):
-		return &kubeupgradev1alpha1.KubeUpgradePlanApplyConfiguration{}
-	case v1alpha1.SchemeGroupVersion.WithKind("KubeUpgradePlanGroup"):
-		return &kubeupgradev1alpha1.KubeUpgradePlanGroupApplyConfiguration{}
-	case v1alpha1.SchemeGroupVersion.WithKind("KubeUpgradeSpec"):
-		return &kubeupgradev1alpha1.KubeUpgradeSpecApplyConfiguration{}
-	case v1alpha1.SchemeGroupVersion.WithKind("KubeUpgradeStatus"):
-		return &kubeupgradev1alpha1.KubeUpgradeStatusApplyConfiguration{}
-	case v1alpha1.SchemeGroupVersion.WithKind("UpgradedConfig"):
-		return &kubeupgradev1alpha1.UpgradedConfigApplyConfiguration{}
-
-		// Group=kubeupgrade.heathcliff.eu, Version=v1alpha2
-	case v1alpha2.SchemeGroupVersion.WithKind("KubeUpgradePlan"):
-		return &kubeupgradev1alpha2.KubeUpgradePlanApplyConfiguration{}
-	case v1alpha2.SchemeGroupVersion.WithKind("KubeUpgradePlanGroup"):
-		return &kubeupgradev1alpha2.KubeUpgradePlanGroupApplyConfiguration{}
-	case v1alpha2.SchemeGroupVersion.WithKind("KubeUpgradeSpec"):
-		return &kubeupgradev1alpha2.KubeUpgradeSpecApplyConfiguration{}
-	case v1alpha2.SchemeGroupVersion.WithKind("KubeUpgradeStatus"):
-		return &kubeupgradev1alpha2.KubeUpgradeStatusApplyConfiguration{}
-	case v1alpha2.SchemeGroupVersion.WithKind("UpgradedConfig"):
-		return &kubeupgradev1alpha2.UpgradedConfigApplyConfiguration{}
-
-		// Group=kubeupgrade.heathcliff.eu, Version=v1alpha3
+	// Group=kubeupgrade.heathcliff.eu, Version=v1alpha3
 	case v1alpha3.SchemeGroupVersion.WithKind("KubeUpgradePlan"):
 		return &kubeupgradev1alpha3.KubeUpgradePlanApplyConfiguration{}
 	case v1alpha3.SchemeGroupVersion.WithKind("KubeUpgradePlanGroup"):

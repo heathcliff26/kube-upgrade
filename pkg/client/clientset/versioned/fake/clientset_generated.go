@@ -5,10 +5,6 @@ package fake
 import (
 	applyconfiguration "github.com/heathcliff26/kube-upgrade/pkg/client/applyconfiguration"
 	clientset "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned"
-	kubeupgradev1alpha1 "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/typed/kubeupgrade/v1alpha1"
-	fakekubeupgradev1alpha1 "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/typed/kubeupgrade/v1alpha1/fake"
-	kubeupgradev1alpha2 "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/typed/kubeupgrade/v1alpha2"
-	fakekubeupgradev1alpha2 "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/typed/kubeupgrade/v1alpha2/fake"
 	kubeupgradev1alpha3 "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/typed/kubeupgrade/v1alpha3"
 	fakekubeupgradev1alpha3 "github.com/heathcliff26/kube-upgrade/pkg/client/clientset/versioned/typed/kubeupgrade/v1alpha3/fake"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -112,16 +108,6 @@ var (
 	_ clientset.Interface = &Clientset{}
 	_ testing.FakeClient  = &Clientset{}
 )
-
-// KubeupgradeV1alpha1 retrieves the KubeupgradeV1alpha1Client
-func (c *Clientset) KubeupgradeV1alpha1() kubeupgradev1alpha1.KubeupgradeV1alpha1Interface {
-	return &fakekubeupgradev1alpha1.FakeKubeupgradeV1alpha1{Fake: &c.Fake}
-}
-
-// KubeupgradeV1alpha2 retrieves the KubeupgradeV1alpha2Client
-func (c *Clientset) KubeupgradeV1alpha2() kubeupgradev1alpha2.KubeupgradeV1alpha2Interface {
-	return &fakekubeupgradev1alpha2.FakeKubeupgradeV1alpha2{Fake: &c.Fake}
-}
 
 // KubeupgradeV1alpha3 retrieves the KubeupgradeV1alpha3Client
 func (c *Clientset) KubeupgradeV1alpha3() kubeupgradev1alpha3.KubeupgradeV1alpha3Interface {
