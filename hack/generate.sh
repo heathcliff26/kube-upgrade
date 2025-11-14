@@ -24,14 +24,18 @@ kube::codegen::gen_client \
     --boilerplate /dev/null \
     "pkg/apis"
 
+rm -rf "${base_dir}/manifests/generated"
+
 echo "Generating manifests"
 "${bin_dir}/controller-gen" crd \
     rbac:roleName=upgrade-controller \
     webhook \
     paths="./..." \
-    output:crd:artifacts:config=manifests/generated \
-    output:rbac:artifacts:config=manifests/generated \
-    output:webhook:artifacts:config=manifests/generated
+    output:dir:="manifests/generated"
+
+echo "Patching role to allow for customizing namespace"
+# shellcheck disable=SC2016
+sed -i 's/namespace: kube-upgrade/namespace: ${KUBE_UPGRADE_NAMESPACE}/g' manifests/generated/role.yaml
 
 echo "Patching webhook manifests"
 yq -i e '.webhooks[0].clientConfig.service.name = "upgrade-controller-webhooks"' manifests/generated/manifests.yaml
