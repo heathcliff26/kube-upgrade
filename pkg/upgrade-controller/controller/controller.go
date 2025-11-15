@@ -11,8 +11,6 @@ import (
 	"golang.org/x/mod/semver"
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
@@ -56,12 +54,7 @@ func NewController(name string) (*controller, error) {
 		return nil, err
 	}
 
-	scheme := runtime.NewScheme()
-	err = api.AddToScheme(scheme)
-	if err != nil {
-		return nil, err
-	}
-	err = clientgoscheme.AddToScheme(scheme)
+	scheme, err := newScheme()
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +106,9 @@ func (c *controller) Run() error {
 	err = ctrl.NewWebhookManagedBy(c.manager).
 		For(&api.KubeUpgradePlan{}).
 		WithDefaulter(&planMutatingHook{}).
-		WithValidator(&planValidatingHook{}).
+		WithValidator(&planValidatingHook{
+			Client: c.Client,
+		}).
 		Complete()
 	if err != nil {
 		return err

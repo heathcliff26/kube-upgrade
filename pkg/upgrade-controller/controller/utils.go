@@ -9,6 +9,8 @@ import (
 
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"github.com/heathcliff26/kube-upgrade/pkg/version"
+	"k8s.io/apimachinery/pkg/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 )
 
 var serviceAccountNamespaceFile = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
@@ -100,4 +102,18 @@ func GetUpgradedImage() string {
 		tag = version.Version()
 	}
 	return fmt.Sprintf("%s:%s", image, tag)
+}
+
+// Return a new scheme with already registered standard types and kube-upgrade types
+func newScheme() (*runtime.Scheme, error) {
+	scheme := runtime.NewScheme()
+	err := api.AddToScheme(scheme)
+	if err != nil {
+		return nil, err
+	}
+	err = clientgoscheme.AddToScheme(scheme)
+	if err != nil {
+		return nil, err
+	}
+	return scheme, nil
 }
