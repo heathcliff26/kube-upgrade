@@ -6,6 +6,8 @@ import (
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestValidate(t *testing.T) {
@@ -206,16 +208,15 @@ func TestValidate(t *testing.T) {
 }
 
 func TestValidateCreate(t *testing.T) {
-	assert := assert.New(t)
 
-	ctx := t.Context()
-
-	warn, err := (&planValidatingHook{}).ValidateCreate(ctx, &api.KubeUpgradePlan{})
-
-	assert.Nil(warn, "Should not return a warning")
-	assert.Error(err, "Should return an error")
-
-	plan := &api.KubeUpgradePlan{
+	scheme, _ := newScheme()
+	webhook := &planValidatingHook{
+		Client: fake.NewClientBuilder().WithScheme(scheme).Build(),
+	}
+	validPlan := &api.KubeUpgradePlan{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "valid-plan",
+		},
 		Spec: api.KubeUpgradeSpec{
 			KubernetesVersion: "v1.31.0",
 			Groups: map[string]api.KubeUpgradePlanGroup{
@@ -228,11 +229,46 @@ func TestValidateCreate(t *testing.T) {
 			},
 		},
 	}
+	t.Run("EmptyPlan", func(t *testing.T) {
+		assert := assert.New(t)
 
-	warn, err = (&planValidatingHook{}).ValidateCreate(ctx, plan)
+		warn, err := webhook.ValidateCreate(t.Context(), &api.KubeUpgradePlan{})
 
-	assert.Nil(warn, "Should not return a warning")
-	assert.NoError(err, "Should not return an error")
+		assert.Nil(warn, "Should not return a warning")
+		assert.Error(err, "Should return an error")
+	})
+	t.Run("ShouldAllowValidPlan", func(t *testing.T) {
+		assert := assert.New(t)
+		plan := validPlan.DeepCopy()
+
+		warn, err := webhook.ValidateCreate(t.Context(), plan)
+
+		assert.Nil(warn, "Should not return a warning")
+		assert.NoError(err, "Should not return an error")
+	})
+	t.Run("DoNotAllowMultiplePlans", func(t *testing.T) {
+		assert := assert.New(t)
+		plan := validPlan.DeepCopy()
+		plan2 := validPlan.DeepCopy()
+		plan2.Name = "second-plan"
+		webhook := &planValidatingHook{
+			Client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(plan).Build(),
+		}
+
+		warn, err := webhook.ValidateCreate(t.Context(), plan2)
+
+		assert.Nil(warn, "Should not return a warning")
+		assert.ErrorContains(err, "KubeUpgradePlan already exists", "Should not allow creating multiple plans")
+	})
+	t.Run("NotInitializedWithClient", func(t *testing.T) {
+		assert := assert.New(t)
+		plan := validPlan.DeepCopy()
+
+		assert.NotPanics(func() {
+			_, err := (&planValidatingHook{}).ValidateCreate(t.Context(), plan)
+			assert.Error(err, "Should return an error without a client")
+		}, "Should not panic without a client")
+	})
 }
 
 func TestValidateUpdate(t *testing.T) {
