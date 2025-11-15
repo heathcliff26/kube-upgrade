@@ -67,7 +67,7 @@
 				
 				<option value="file5">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/errors.go (50.0%)</option>
 				
-				<option value="file6">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/log.go (93.8%)</option>
+				<option value="file6">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/log.go (100.0%)</option>
 				
 				<option value="file7">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/mutatingwebhook.go (100.0%)</option>
 				
@@ -77,7 +77,7 @@
 				
 				<option value="file10">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/validatingwebhook.go (100.0%)</option>
 				
-				<option value="file11">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/root.go (23.5%)</option>
+				<option value="file11">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/root.go (21.1%)</option>
 				
 				<option value="file12">github.com/heathcliff26/kube-upgrade/pkg/upgraded/config/config.go (97.7%)</option>
 				
@@ -152,26 +152,26 @@ func SetObjectDefaults_KubeUpgradeSpec(spec *KubeUpgradeSpec) <span class="cov7"
         <span class="cov7" title="20">SetObjectDefaults_UpgradedConfig(&amp;spec.Upgraded)</span>
 }
 
-func SetObjectDefaults_UpgradedConfig(cfg *UpgradedConfig) <span class="cov10" title="54">{
-        if cfg.Stream == "" </span><span class="cov9" title="51">{
+func SetObjectDefaults_UpgradedConfig(cfg *UpgradedConfig) <span class="cov10" title="55">{
+        if cfg.Stream == "" </span><span class="cov9" title="52">{
                 cfg.Stream = DefaultUpgradedStream
         }</span>
-        <span class="cov10" title="54">if cfg.FleetlockGroup == "" </span><span class="cov10" title="54">{
+        <span class="cov10" title="55">if cfg.FleetlockGroup == "" </span><span class="cov10" title="55">{
                 cfg.FleetlockGroup = DefaultUpgradedFleetlockGroup
         }</span>
-        <span class="cov10" title="54">if cfg.CheckInterval == "" </span><span class="cov9" title="52">{
+        <span class="cov10" title="55">if cfg.CheckInterval == "" </span><span class="cov9" title="53">{
                 cfg.CheckInterval = DefaultUpgradedCheckInterval
         }</span>
-        <span class="cov10" title="54">if cfg.RetryInterval == "" </span><span class="cov9" title="52">{
+        <span class="cov10" title="55">if cfg.RetryInterval == "" </span><span class="cov9" title="53">{
                 cfg.RetryInterval = DefaultUpgradedRetryInterval
         }</span>
-        <span class="cov10" title="54">if cfg.LogLevel == "" </span><span class="cov10" title="54">{
+        <span class="cov10" title="55">if cfg.LogLevel == "" </span><span class="cov10" title="55">{
                 cfg.LogLevel = DefaultUpgradedLogLevel
         }</span>
-        <span class="cov10" title="54">if cfg.KubeletConfig == "" </span><span class="cov10" title="54">{
+        <span class="cov10" title="55">if cfg.KubeletConfig == "" </span><span class="cov10" title="55">{
                 cfg.KubeletConfig = DefaultUpgradedKubeletConfig
         }</span>
-        <span class="cov10" title="54">if cfg.KubeadmPath == "" </span><span class="cov10" title="54">{
+        <span class="cov10" title="55">if cfg.KubeadmPath == "" </span><span class="cov10" title="55">{
                 cfg.KubeadmPath = DefaultUpgradedKubeadmPath
         }</span>
 }
@@ -256,18 +256,18 @@ func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error <span class="cov
         <span class="cov9" title="15">if len(spec.Groups) &lt; 1 </span><span class="cov1" title="1">{
                 return fmt.Errorf("need at least one node group for upgrades")
         }</span>
-        <span class="cov8" title="14">for name, group := range spec.Groups </span><span class="cov9" title="17">{
+        <span class="cov8" title="14">for name, group := range spec.Groups </span><span class="cov9" title="19">{
                 for _, dependency := range group.DependsOn </span><span class="cov6" title="6">{
                         if _, ok := spec.Groups[dependency]; !ok </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" depends on non-existing group \"%s\"", name, dependency)
                         }</span>
                 }
 
-                <span class="cov9" title="16">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
+                <span class="cov9" title="18">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
                         return fmt.Errorf("group \"%s\" needs at least one label selector", name)
                 }</span>
 
-                <span class="cov9" title="15">if group.Upgraded != nil </span><span class="cov3" title="2">{
+                <span class="cov9" title="17">if group.Upgraded != nil </span><span class="cov3" title="2">{
                         err := ValidateObject_UpgradedConfig(*group.Upgraded)
                         if err != nil </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" has an invalid upgraded config: %v", name, err)
@@ -367,9 +367,9 @@ func combineConfig(global api.UpgradedConfig, group *api.UpgradedConfig) *api.Up
 import (
         "context"
         "fmt"
+        "log/slog"
         "time"
 
-        "github.com/go-logr/logr"
         api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
         "github.com/heathcliff26/kube-upgrade/pkg/constants"
         "golang.org/x/mod/semver"
@@ -487,12 +487,12 @@ func (c *controller) Run() error <span class="cov0" title="0">{
 }
 
 func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) <span class="cov0" title="0">{
-        logger := ctrl.Log.WithValues("plan", req.Name)
+        logger := slog.With("plan", req.Name)
 
         var plan api.KubeUpgradePlan
         err := c.Get(ctx, req.NamespacedName, &amp;plan)
         if err != nil </span><span class="cov0" title="0">{
-                logger.Error(err, "Failed to get Plan")
+                logger.Error("Failed to get Plan", "err", err)
                 return ctrl.Result{}, err
         }</span>
 
@@ -503,7 +503,7 @@ func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 
         <span class="cov0" title="0">err = c.Status().Update(ctx, &amp;plan)
         if err != nil </span><span class="cov0" title="0">{
-                logger.Error(err, "Failed to update plan status")
+                logger.Error("Failed to update plan status", "err", err)
                 return ctrl.Result{}, err
         }</span>
 
@@ -513,7 +513,7 @@ func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
         }, nil</span>
 }
 
-func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, logger logr.Logger) error <span class="cov7" title="16">{
+func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, logger *slog.Logger) error <span class="cov7" title="16">{
         if plan.Status.Groups == nil </span><span class="cov6" title="10">{
                 plan.Status.Groups = make(map[string]string, len(plan.Spec.Groups))
         }</span>
@@ -521,7 +521,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
         // Migration from v0.6.0: Remove the finalizer as it is not needed
         // TODO: Remove in future release
         <span class="cov7" title="16">if controllerutil.RemoveFinalizer(plan, constants.Finalizer) </span><span class="cov1" title="1">{
-                logger.V(logLevelDebug).Info("Removing finalizer from plan")
+                logger.Debug("Removing finalizer from plan")
                 err := c.Update(ctx, plan)
                 if err != nil </span><span class="cov0" title="0">{
                         return fmt.Errorf("failed to remove finalizer from plan %s: %v", plan.Name, err)
@@ -533,7 +533,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
                 constants.LabelPlanName: plan.Name,
         })
         if err != nil </span><span class="cov0" title="0">{
-                logger.Error(err, "Failed to fetch upgraded ConfigMaps")
+                logger.Error("Failed to fetch upgraded ConfigMaps", "err", err)
                 return err
         }</span>
 
@@ -542,7 +542,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
                 constants.LabelPlanName: plan.Name,
         })
         if err != nil </span><span class="cov0" title="0">{
-                logger.Error(err, "Failed to fetch upgraded DaemonSets")
+                logger.Error("Failed to fetch upgraded DaemonSets", "err", err)
                 return err
         }</span>
 
@@ -557,7 +557,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
                         if err != nil </span><span class="cov0" title="0">{
                                 return fmt.Errorf("failed to delete DaemonSet %s: %v", daemon.Name, err)
                         }</span>
-                        <span class="cov2" title="2">logger.WithValues("name", daemon.Name).Info("Deleted obsolete DaemonSet")</span>
+                        <span class="cov2" title="2">logger.Info("Deleted obsolete DaemonSet", "name", daemon.Name)</span>
                 }
         }
 
@@ -572,7 +572,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
                         if err != nil </span><span class="cov0" title="0">{
                                 return fmt.Errorf("failed to delete ConfigMap %s: %v", cm.Name, err)
                         }</span>
-                        <span class="cov2" title="2">logger.WithValues("name", cm.Name).Info("Deleted obsolete ConfigMap")</span>
+                        <span class="cov2" title="2">logger.Info("Deleted obsolete ConfigMap", "name", cm.Name)</span>
                 }
         }
 
@@ -580,7 +580,7 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
         newGroupStatus := make(map[string]string, len(plan.Spec.Groups))
 
         for name, cfg := range plan.Spec.Groups </span><span class="cov9" title="35">{
-                logger := logger.WithValues("group", name)
+                logger := logger.With("group", name)
 
                 err = c.reconcileUpgradedConfigMap(ctx, plan, logger, cms[name], name)
                 if err != nil </span><span class="cov0" title="0">{
@@ -595,13 +595,13 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
                 <span class="cov9" title="35">nodeList := &amp;corev1.NodeList{}
                 err = c.List(ctx, nodeList, client.MatchingLabels(cfg.Labels))
                 if err != nil </span><span class="cov0" title="0">{
-                        logger.WithValues("group", name).Error(err, "Failed to get nodes for group")
+                        logger.Error("Failed to get nodes for group", "err", err)
                         return err
                 }</span>
 
                 <span class="cov9" title="35">status, update, nodes, err := c.reconcileNodes(plan.Spec.KubernetesVersion, plan.Spec.AllowDowngrade, nodeList.Items)
                 if err != nil </span><span class="cov0" title="0">{
-                        logger.WithValues("group", name).Error(err, "Failed to reconcile nodes for group")
+                        logger.Error("Failed to reconcile nodes for group", "err", err)
                         return err
                 }</span>
 
@@ -610,23 +610,23 @@ func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, l
                 if update </span><span class="cov8" title="21">{
                         nodesToUpdate[name] = nodes
                 }</span> else<span class="cov7" title="14"> if plan.Status.Groups[name] != newGroupStatus[name] </span><span class="cov6" title="10">{
-                        logger.WithValues("group", name, "status", newGroupStatus[name]).Info("Group changed status")
+                        logger.Info("Group changed status", "status", newGroupStatus[name])
                 }</span>
         }
 
         <span class="cov7" title="16">for name, nodes := range nodesToUpdate </span><span class="cov8" title="21">{
-                logger := logger.WithValues("group", name)
+                logger := logger.With("group", name)
 
                 if groupWaitForDependency(plan.Spec.Groups[name].DependsOn, newGroupStatus) </span><span class="cov5" title="6">{
                         logger.Info("Group is waiting on dependencies")
                         newGroupStatus[name] = api.PlanStatusWaiting
                         continue</span>
                 } else<span class="cov7" title="15"> if plan.Status.Groups[name] != newGroupStatus[name] </span><span class="cov7" title="15">{
-                        logger.WithValues("status", newGroupStatus[name]).Info("Group changed status")
+                        logger.Info("Group changed status", "status", newGroupStatus[name])
                 }</span>
 
                 <span class="cov7" title="15">for _, node := range nodes </span><span class="cov7" title="15">{
-                        logger.V(logLevelDebug).WithValues("node", node.Name).Info("Updating node annotations")
+                        logger.Debug("Updating node annotations", "node", node.Name)
                         err = c.Update(ctx, &amp;node)
                         if err != nil </span><span class="cov0" title="0">{
                                 return fmt.Errorf("failed to update node %s: %v", node.GetName(), err)
@@ -710,49 +710,48 @@ func (e *ErrorGetNamespace) Error() string <span class="cov0" title="0">{
 		<pre class="file" id="file6" style="display: none">package controller
 
 import (
-        "flag"
+        "log/slog"
         "os"
-        "strconv"
         "strings"
 
-        "k8s.io/klog/v2"
+        "github.com/go-logr/logr"
         ctrl "sigs.k8s.io/controller-runtime"
 )
 
-const logLevelEnv = "LOG_LEVEL"
-
 const (
-        logLevelDebug = 4
-        logLevelInfo  = 0
-        logLevelWarn  = -4
+        logLevelEnv     = "LOG_LEVEL"
+        logLevelDefault = slog.LevelInfo
 )
 
 func init() <span class="cov3" title="2">{
-        var fs flag.FlagSet
-        klog.InitFlags(&amp;fs)
-        err := fs.Set("v", strconv.Itoa(getLogLevel()))
-        if err != nil </span><span class="cov0" title="0">{
-                klog.Fatalf("Failed to set klog verbosity: %v", err)
-        }</span>
-        <span class="cov3" title="2">logger := klog.NewKlogr()
-        ctrl.SetLogger(logger)
-        logger.WithValues(logLevelEnv, os.Getenv(logLevelEnv), "level", getLogLevel()).Info("Logger initialized")</span>
-}
+        initLogger()
+}</span>
 
-func getLogLevel() int <span class="cov10" title="11">{
+func initLogger() <span class="cov8" title="10">{
+        opts := &amp;slog.HandlerOptions{
+                Level: getLogLevel(),
+        }
+        handler := slog.NewTextHandler(os.Stdout, opts)
+        ctrl.SetLogger(logr.FromSlogHandler(handler))
+        slog.SetDefault(slog.New(handler))
+}</span>
+
+func getLogLevel() slog.Level <span class="cov10" title="18">{
         levelStr := os.Getenv(logLevelEnv)
         switch strings.ToLower(levelStr) </span>{
-        case "debug":<span class="cov3" title="2">
-                return logLevelDebug</span>
-        case "info":<span class="cov1" title="1">
-                return logLevelInfo</span>
-        case "warn":<span class="cov3" title="2">
-                return logLevelWarn</span>
-        case "":<span class="cov7" title="5">
-                return logLevelInfo</span>
-        default:<span class="cov1" title="1">
-                klog.Warningf("Unknown log level '%s', defaulting to 'info'", levelStr)
-                return logLevelInfo</span>
+        case "debug":<span class="cov5" title="4">
+                return slog.LevelDebug</span>
+        case "info":<span class="cov3" title="2">
+                return slog.LevelInfo</span>
+        case "warn":<span class="cov5" title="4">
+                return slog.LevelWarn</span>
+        case "error":<span class="cov3" title="2">
+                return slog.LevelError</span>
+        case "":<span class="cov5" title="4">
+                return logLevelDefault</span>
+        default:<span class="cov3" title="2">
+                slog.Warn("Unknown log level", "level", levelStr, "default", logLevelDefault)
+                return logLevelDefault</span>
         }
 }
 </pre>
@@ -790,9 +789,9 @@ func (*planMutatingHook) Default(_ context.Context, obj runtime.Object) error <s
 import (
         "context"
         "fmt"
+        "log/slog"
         "reflect"
 
-        "github.com/go-logr/logr"
         api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
         "github.com/heathcliff26/kube-upgrade/pkg/constants"
         upgradedconfig "github.com/heathcliff26/kube-upgrade/pkg/upgraded/config"
@@ -899,7 +898,7 @@ func (c *controller) NewUpgradedConfigMap(plan, group string, cfg *api.UpgradedC
 }
 
 // Reconcile the given ConfigMap with the expected state from the given config.
-func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.KubeUpgradePlan, logger logr.Logger, cm *corev1.ConfigMap, group string) error <span class="cov7" title="35">{
+func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.KubeUpgradePlan, logger *slog.Logger, cm *corev1.ConfigMap, group string) error <span class="cov7" title="35">{
         upgradedCfg := combineConfig(plan.Spec.Upgraded, plan.Spec.Groups[group].Upgraded)
 
         expectedCM, err := c.NewUpgradedConfigMap(plan.Name, group, upgradedCfg)
@@ -911,7 +910,7 @@ func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.K
                 return err
         }</span>
 
-        <span class="cov7" title="35">logger = logger.WithValues("config", expectedCM.Name)
+        <span class="cov7" title="35">logger = logger.With("config", expectedCM.Name)
 
         if cm == nil </span><span class="cov6" title="29">{
                 logger.Info("Creating upgraded ConfigMap for group")
@@ -936,14 +935,14 @@ func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.K
         }</span>
 
         <span class="cov4" title="6">if updated </span><span class="cov4" title="6">{
-                logger.V(logLevelDebug).Info("Updating ConfigMap")
+                logger.Debug("Updating ConfigMap")
                 return c.Update(ctx, cm)
         }</span>
         <span class="cov0" title="0">return nil</span>
 }
 
 // Reconcile the given DaemonSet with the expected spec.
-func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.KubeUpgradePlan, logger logr.Logger, ds *appv1.DaemonSet, groupName string, group api.KubeUpgradePlanGroup) error <span class="cov7" title="35">{
+func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.KubeUpgradePlan, logger *slog.Logger, ds *appv1.DaemonSet, groupName string, group api.KubeUpgradePlanGroup) error <span class="cov7" title="35">{
         expectedDS := c.NewUpgradedDaemonSet(plan.Name, groupName)
         expectedDS.Spec.Template.Spec.NodeSelector = group.Labels
         expectedDS.Spec.Template.Spec.Tolerations = group.Tolerations
@@ -952,7 +951,7 @@ func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.K
                 return err
         }</span>
 
-        <span class="cov7" title="35">logger = logger.WithValues("daemon", expectedDS.Name)
+        <span class="cov7" title="35">logger = logger.With("daemon", expectedDS.Name)
 
         if ds == nil </span><span class="cov6" title="29">{
                 logger.Info("Creating upgraded DaemonSet for group")
@@ -977,7 +976,7 @@ func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.K
         }</span>
 
         <span class="cov4" title="6">if updated </span><span class="cov4" title="6">{
-                logger.V(logLevelDebug).Info("Updating Daemonset")
+                logger.Debug("Updating Daemonset")
                 return c.Update(ctx, ds)
         }</span>
         <span class="cov0" title="0">return nil</span>
@@ -1011,12 +1010,12 @@ func upgradedLabels(planName, groupName string) map[string]string <span class="c
 import (
         "errors"
         "fmt"
+        "log/slog"
         "os"
         "strings"
 
         api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
         "github.com/heathcliff26/kube-upgrade/pkg/version"
-        ctrl "sigs.k8s.io/controller-runtime"
 )
 
 var serviceAccountNamespaceFile = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
@@ -1095,16 +1094,16 @@ func createStatusSummary(status map[string]string) string <span class="cov8" tit
 
 // Return the upgraded image to use based on environment variables
 func GetUpgradedImage() string <span class="cov4" title="4">{
-        logger := ctrl.Log
+        logger := slog.With("env", upgradedImageEnv)
 
         image := os.Getenv(upgradedImageEnv)
         tag := os.Getenv(upgradedTagEnv)
         if image == "" </span><span class="cov2" title="2">{
-                logger.WithValues("env", upgradedImageEnv, "image", defaultUpgradedImage).Info("Upgraded image is not set, falling back to default")
+                logger.Info("Upgraded image is not set, falling back to default", "image", defaultUpgradedImage)
                 image = defaultUpgradedImage
         }</span>
         <span class="cov4" title="4">if tag == "" </span><span class="cov2" title="2">{
-                logger.WithValues("env", upgradedTagEnv, "tag", version.Version()).Info("Upgraded image tag is not set, falling back to default")
+                logger.Info("Upgraded image tag is not set, falling back to default", "tag", version.Version())
                 tag = version.Version()
         }</span>
         <span class="cov4" title="4">return fmt.Sprintf("%s:%s", image, tag)</span>
@@ -1167,9 +1166,12 @@ func (*planValidatingHook) ValidateDelete(_ context.Context, _ runtime.Object) (
 		<pre class="file" id="file11" style="display: none">package upgradecontroller
 
 import (
+        "fmt"
+        "log/slog"
+        "os"
+
         "github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller"
         "github.com/heathcliff26/kube-upgrade/pkg/version"
-        "k8s.io/klog/v2"
 
         "github.com/spf13/cobra"
 )
@@ -1180,7 +1182,7 @@ func Execute() <span class="cov0" title="0">{
         cmd := NewUpgradeController()
         err := cmd.Execute()
         if err != nil </span><span class="cov0" title="0">{
-                klog.Fatalf("Failed to execute command: %v", err)
+                fatalf("Failed to execute command: %v", err)
         }</span>
 }
 
@@ -1210,13 +1212,18 @@ func NewUpgradeController() *cobra.Command <span class="cov8" title="1">{
 func run() <span class="cov0" title="0">{
         ctrl, err := controller.NewController(Name)
         if err != nil </span><span class="cov0" title="0">{
-                klog.Fatalf("Failed to create controller: %v", err)
+                fatalf("Failed to create controller: %v", err)
         }</span>
         <span class="cov0" title="0">err = ctrl.Run()
         if err != nil </span><span class="cov0" title="0">{
-                klog.Fatalf("Controller exited with error: %v", err)
+                fatalf("Controller exited with error: %v", err)
         }</span>
 }
+
+func fatalf(format string, args ...interface{}) <span class="cov0" title="0">{
+        slog.Error(fmt.Sprintf(format, args...))
+        os.Exit(1)
+}</span>
 </pre>
 		
 		<pre class="file" id="file12" style="display: none">package config
@@ -1250,11 +1257,11 @@ func init() <span class="cov5" title="5">{
 }</span>
 
 // Parse a given string and set the resulting log level
-func setLogLevel(level string) error <span class="cov9" title="19">{
+func setLogLevel(level string) error <span class="cov9" title="20">{
         switch strings.ToLower(level) </span>{
         case "debug":<span class="cov4" title="3">
                 logLevel.Set(slog.LevelDebug)</span>
-        case "info":<span class="cov7" title="10">
+        case "info":<span class="cov8" title="11">
                 logLevel.Set(slog.LevelInfo)</span>
         case "warn":<span class="cov3" title="2">
                 logLevel.Set(slog.LevelWarn)</span>
@@ -1263,10 +1270,10 @@ func setLogLevel(level string) error <span class="cov9" title="19">{
         default:<span class="cov3" title="2">
                 return NewErrUnknownLogLevel(level)</span>
         }
-        <span class="cov9" title="17">return nil</span>
+        <span class="cov9" title="18">return nil</span>
 }
 
-func DefaultConfig() *api.UpgradedConfig <span class="cov10" title="20">{
+func DefaultConfig() *api.UpgradedConfig <span class="cov10" title="21">{
         cfg := &amp;api.UpgradedConfig{}
         api.SetObjectDefaults_UpgradedConfig(cfg)
         return cfg
@@ -1276,7 +1283,7 @@ func DefaultConfig() *api.UpgradedConfig <span class="cov10" title="20">{
 // When path is empty, it checks the default path "/etc/kube-upgraded/config.yaml".
 // When no config is found in the default path, it returns the default config.
 // Returns error when the given config is invalid.
-func LoadConfig(path string) (*api.UpgradedConfig, error) <span class="cov9" title="18">{
+func LoadConfig(path string) (*api.UpgradedConfig, error) <span class="cov9" title="19">{
         c := DefaultConfig()
 
         if path == "" </span><span class="cov0" title="0">{
@@ -1284,50 +1291,50 @@ func LoadConfig(path string) (*api.UpgradedConfig, error) <span class="cov9" tit
         }</span>
 
         // #nosec G304: File will be passed by controller
-        <span class="cov9" title="18">f, err := os.ReadFile(path)
+        <span class="cov9" title="19">f, err := os.ReadFile(path)
         if err != nil </span><span class="cov3" title="2">{
                 return nil, err
         }</span>
 
-        <span class="cov9" title="16">err = yaml.Unmarshal(f, &amp;c)
+        <span class="cov9" title="17">err = yaml.Unmarshal(f, &amp;c)
         if err != nil </span><span class="cov1" title="1">{
                 return nil, err
         }</span>
 
-        <span class="cov9" title="15">err = ValidateConfig(c)
+        <span class="cov9" title="16">err = ValidateConfig(c)
         if err != nil </span><span class="cov6" title="6">{
                 return nil, err
         }</span>
 
-        <span class="cov7" title="9">err = setLogLevel(c.LogLevel)
+        <span class="cov7" title="10">err = setLogLevel(c.LogLevel)
         if err != nil </span><span class="cov1" title="1">{
                 return nil, err
         }</span>
 
-        <span class="cov7" title="8">return c, nil</span>
+        <span class="cov7" title="9">return c, nil</span>
 }
 
 // Validates the given config to ensure all required fields are set.
-func ValidateConfig(cfg *api.UpgradedConfig) error <span class="cov9" title="15">{
+func ValidateConfig(cfg *api.UpgradedConfig) error <span class="cov9" title="16">{
         if cfg == nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("invalid config, config is nil")
         }</span>
-        <span class="cov8" title="14">if cfg.Stream == "" </span><span class="cov1" title="1">{
+        <span class="cov9" title="15">if cfg.Stream == "" </span><span class="cov1" title="1">{
                 return fmt.Errorf("invalid config, missing stream")
         }</span>
-        <span class="cov8" title="13">if cfg.FleetlockURL == "" </span><span class="cov1" title="1">{
+        <span class="cov8" title="14">if cfg.FleetlockURL == "" </span><span class="cov1" title="1">{
                 return fmt.Errorf("invalid config, missing fleetlockUrl")
         }</span>
-        <span class="cov8" title="12">if cfg.FleetlockGroup == "" </span><span class="cov1" title="1">{
+        <span class="cov8" title="13">if cfg.FleetlockGroup == "" </span><span class="cov1" title="1">{
                 return fmt.Errorf("invalid config, missing fleetlockGroup")
         }</span>
-        <span class="cov8" title="11">if cfg.KubeletConfig == "" </span><span class="cov1" title="1">{
+        <span class="cov8" title="12">if cfg.KubeletConfig == "" </span><span class="cov1" title="1">{
                 return fmt.Errorf("invalid config, missing kubeletConfig")
         }</span>
-        <span class="cov7" title="10">if cfg.KubeadmPath == "" </span><span class="cov1" title="1">{
+        <span class="cov8" title="11">if cfg.KubeadmPath == "" </span><span class="cov1" title="1">{
                 return fmt.Errorf("invalid config, missing kubeadmPath")
         }</span>
-        <span class="cov7" title="9">return nil</span>
+        <span class="cov7" title="10">return nil</span>
 }
 </pre>
 		
@@ -1363,7 +1370,7 @@ import (
 )
 
 // Reload the daemon configuration from it's config file
-func (d *daemon) UpdateFromConfigFile() error <span class="cov5" title="4">{
+func (d *daemon) UpdateFromConfigFile() error <span class="cov6" title="5">{
         slog.Info("Attempting to update daemon configuration from config file", slog.String("path", d.cfgPath))
 
         cfg, err := config.LoadConfig(d.cfgPath)
@@ -1371,27 +1378,27 @@ func (d *daemon) UpdateFromConfigFile() error <span class="cov5" title="4">{
                 return fmt.Errorf("failed to load config from file: %v", err)
         }</span>
 
-        <span class="cov4" title="3">return d.updateFromConfig(cfg)</span>
+        <span class="cov5" title="4">return d.updateFromConfig(cfg)</span>
 }
 
 // Update the daemon configuration from the provided config object.
 // Ensures that no changes will be made if there are errors in the config.
-func (d *daemon) updateFromConfig(cfg *api.UpgradedConfig) error <span class="cov8" title="8">{
+func (d *daemon) updateFromConfig(cfg *api.UpgradedConfig) error <span class="cov8" title="9">{
         checkInterval, err := time.ParseDuration(cfg.CheckInterval)
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to parse check interval \"%s\": %v", cfg.CheckInterval, err)
         }</span>
-        <span class="cov7" title="7">retryInterval, err := time.ParseDuration(cfg.RetryInterval)
+        <span class="cov8" title="8">retryInterval, err := time.ParseDuration(cfg.RetryInterval)
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to parse retry interval \"%s\": %v", cfg.RetryInterval, err)
         }</span>
 
-        <span class="cov7" title="6">fleetlockClient, err := fleetlock.NewClient(cfg.FleetlockURL, cfg.FleetlockGroup)
+        <span class="cov7" title="7">fleetlockClient, err := fleetlock.NewClient(cfg.FleetlockURL, cfg.FleetlockGroup)
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to create fleetlock client with url '%s' and group '%s': %v", cfg.FleetlockURL, cfg.FleetlockGroup, err)
         }</span>
 
-        <span class="cov6" title="5">d.configLock.Lock()
+        <span class="cov7" title="6">d.configLock.Lock()
         defer d.configLock.Unlock()
 
         d.stream = cfg.Stream
@@ -1423,20 +1430,20 @@ func (d *daemon) NewConfigFileWatcher() error <span class="cov6" title="5">{
 func (d *daemon) WatchConfigFile() <span class="cov4" title="3">{
         slog.Info("Started watching the config file for changes", slog.String("path", d.cfgPath))
 
-        for </span><span class="cov5" title="4">{
+        for </span><span class="cov6" title="5">{
                 select </span>{
-                case event, ok := &lt;-d.configWatcher.Events:<span class="cov1" title="1">
+                case event, ok := &lt;-d.configWatcher.Events:<span class="cov3" title="2">
                         if !ok </span><span class="cov0" title="0">{
                                 slog.Info("Config file watcher events channel closed")
                                 return
                         }</span>
                         // Ignore chmod, rename and remove events, they are not relevant
-                        <span class="cov1" title="1">if event.Has(fsnotify.Chmod | fsnotify.Rename | fsnotify.Remove) </span><span class="cov0" title="0">{
+                        <span class="cov3" title="2">if event.Has(fsnotify.Chmod | fsnotify.Rename | fsnotify.Remove) </span><span class="cov0" title="0">{
                                 continue</span>
                         }
-                        <span class="cov1" title="1">slog.Debug("Received event on config file directory", slog.String("Op", event.Op.String()), slog.String("name", event.Name))
+                        <span class="cov3" title="2">slog.Debug("Received event on config file directory", slog.String("Op", event.Op.String()), slog.String("name", event.Name))
                         // Check if the event is for our config file or the ..data symlink
-                        if event.Name == d.cfgPath || event.Name == filepath.Join(filepath.Dir(d.cfgPath), "..data") </span><span class="cov1" title="1">{
+                        if event.Name == d.cfgPath || event.Name == filepath.Join(filepath.Dir(d.cfgPath), "..data") </span><span class="cov3" title="2">{
                                 err := d.UpdateFromConfigFile()
                                 if err != nil </span><span class="cov0" title="0">{
                                         slog.Error("Failed to update configuration from config file", slog.String("path", d.cfgPath), slog.String("error", err.Error()))
