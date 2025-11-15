@@ -3,9 +3,9 @@ package controller
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"reflect"
 
-	"github.com/go-logr/logr"
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 	upgradedconfig "github.com/heathcliff26/kube-upgrade/pkg/upgraded/config"
@@ -112,7 +112,7 @@ func (c *controller) NewUpgradedConfigMap(plan, group string, cfg *api.UpgradedC
 }
 
 // Reconcile the given ConfigMap with the expected state from the given config.
-func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.KubeUpgradePlan, logger logr.Logger, cm *corev1.ConfigMap, group string) error {
+func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.KubeUpgradePlan, logger *slog.Logger, cm *corev1.ConfigMap, group string) error {
 	upgradedCfg := combineConfig(plan.Spec.Upgraded, plan.Spec.Groups[group].Upgraded)
 
 	expectedCM, err := c.NewUpgradedConfigMap(plan.Name, group, upgradedCfg)
@@ -124,7 +124,7 @@ func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.K
 		return err
 	}
 
-	logger = logger.WithValues("config", expectedCM.Name)
+	logger = logger.With("config", expectedCM.Name)
 
 	if cm == nil {
 		logger.Info("Creating upgraded ConfigMap for group")
@@ -149,14 +149,14 @@ func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.K
 	}
 
 	if updated {
-		logger.V(logLevelDebug).Info("Updating ConfigMap")
+		logger.Debug("Updating ConfigMap")
 		return c.Update(ctx, cm)
 	}
 	return nil
 }
 
 // Reconcile the given DaemonSet with the expected spec.
-func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.KubeUpgradePlan, logger logr.Logger, ds *appv1.DaemonSet, groupName string, group api.KubeUpgradePlanGroup) error {
+func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.KubeUpgradePlan, logger *slog.Logger, ds *appv1.DaemonSet, groupName string, group api.KubeUpgradePlanGroup) error {
 	expectedDS := c.NewUpgradedDaemonSet(plan.Name, groupName)
 	expectedDS.Spec.Template.Spec.NodeSelector = group.Labels
 	expectedDS.Spec.Template.Spec.Tolerations = group.Tolerations
@@ -165,7 +165,7 @@ func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.K
 		return err
 	}
 
-	logger = logger.WithValues("daemon", expectedDS.Name)
+	logger = logger.With("daemon", expectedDS.Name)
 
 	if ds == nil {
 		logger.Info("Creating upgraded DaemonSet for group")
@@ -190,7 +190,7 @@ func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.K
 	}
 
 	if updated {
-		logger.V(logLevelDebug).Info("Updating Daemonset")
+		logger.Debug("Updating Daemonset")
 		return c.Update(ctx, ds)
 	}
 	return nil

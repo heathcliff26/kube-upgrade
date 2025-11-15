@@ -1,9 +1,12 @@
 package upgradecontroller
 
 import (
+	"fmt"
+	"log/slog"
+	"os"
+
 	"github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller"
 	"github.com/heathcliff26/kube-upgrade/pkg/version"
-	"k8s.io/klog/v2"
 
 	"github.com/spf13/cobra"
 )
@@ -14,7 +17,7 @@ func Execute() {
 	cmd := NewUpgradeController()
 	err := cmd.Execute()
 	if err != nil {
-		klog.Fatalf("Failed to execute command: %v", err)
+		fatalf("Failed to execute command: %v", err)
 	}
 }
 
@@ -44,10 +47,15 @@ func NewUpgradeController() *cobra.Command {
 func run() {
 	ctrl, err := controller.NewController(Name)
 	if err != nil {
-		klog.Fatalf("Failed to create controller: %v", err)
+		fatalf("Failed to create controller: %v", err)
 	}
 	err = ctrl.Run()
 	if err != nil {
-		klog.Fatalf("Controller exited with error: %v", err)
+		fatalf("Controller exited with error: %v", err)
 	}
+}
+
+func fatalf(format string, args ...interface{}) {
+	slog.Error(fmt.Sprintf(format, args...))
+	os.Exit(1)
 }

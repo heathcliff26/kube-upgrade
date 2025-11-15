@@ -1,48 +1,47 @@
 package controller
 
 import (
-	"flag"
+	"log/slog"
 	"os"
-	"strconv"
 	"strings"
 
-	"k8s.io/klog/v2"
+	"github.com/go-logr/logr"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-const logLevelEnv = "LOG_LEVEL"
-
 const (
-	logLevelDebug = 4
-	logLevelInfo  = 0
-	logLevelWarn  = -4
+	logLevelEnv     = "LOG_LEVEL"
+	logLevelDefault = slog.LevelInfo
 )
 
 func init() {
-	var fs flag.FlagSet
-	klog.InitFlags(&fs)
-	err := fs.Set("v", strconv.Itoa(getLogLevel()))
-	if err != nil {
-		klog.Fatalf("Failed to set klog verbosity: %v", err)
-	}
-	logger := klog.NewKlogr()
-	ctrl.SetLogger(logger)
-	logger.WithValues(logLevelEnv, os.Getenv(logLevelEnv), "level", getLogLevel()).Info("Logger initialized")
+	initLogger()
 }
 
-func getLogLevel() int {
+func initLogger() {
+	opts := &slog.HandlerOptions{
+		Level: getLogLevel(),
+	}
+	handler := slog.NewTextHandler(os.Stdout, opts)
+	ctrl.SetLogger(logr.FromSlogHandler(handler))
+	slog.SetDefault(slog.New(handler))
+}
+
+func getLogLevel() slog.Level {
 	levelStr := os.Getenv(logLevelEnv)
 	switch strings.ToLower(levelStr) {
 	case "debug":
-		return logLevelDebug
+		return slog.LevelDebug
 	case "info":
-		return logLevelInfo
+		return slog.LevelInfo
 	case "warn":
-		return logLevelWarn
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
 	case "":
-		return logLevelInfo
+		return logLevelDefault
 	default:
-		klog.Warningf("Unknown log level '%s', defaulting to 'info'", levelStr)
-		return logLevelInfo
+		slog.Warn("Unknown log level", "level", levelStr, "default", logLevelDefault)
+		return logLevelDefault
 	}
 }
