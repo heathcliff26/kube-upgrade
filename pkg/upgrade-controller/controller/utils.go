@@ -3,12 +3,12 @@ package controller
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"github.com/heathcliff26/kube-upgrade/pkg/version"
-	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 var serviceAccountNamespaceFile = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
@@ -87,16 +87,16 @@ func createStatusSummary(status map[string]string) string {
 
 // Return the upgraded image to use based on environment variables
 func GetUpgradedImage() string {
-	logger := ctrl.Log
+	logger := slog.With("env", upgradedImageEnv)
 
 	image := os.Getenv(upgradedImageEnv)
 	tag := os.Getenv(upgradedTagEnv)
 	if image == "" {
-		logger.WithValues("env", upgradedImageEnv, "image", defaultUpgradedImage).Info("Upgraded image is not set, falling back to default")
+		logger.Info("Upgraded image is not set, falling back to default", "image", defaultUpgradedImage)
 		image = defaultUpgradedImage
 	}
 	if tag == "" {
-		logger.WithValues("env", upgradedTagEnv, "tag", version.Version()).Info("Upgraded image tag is not set, falling back to default")
+		logger.Info("Upgraded image tag is not set, falling back to default", "tag", version.Version())
 		tag = version.Version()
 	}
 	return fmt.Sprintf("%s:%s", image, tag)
