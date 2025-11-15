@@ -1,9 +1,9 @@
 package constants
 
 const (
-	BaseDomain   = "kube-upgrade.heathcliff.eu/"
-	NodePrefix   = "node." + BaseDomain
-	ConfigPrefix = "config." + BaseDomain
+	BaseDomain       = "kube-upgrade.heathcliff.eu/"
+	NodePrefix       = "node." + BaseDomain
+	ControllerPrefix = "controller." + BaseDomain
 )
 
 const (
@@ -23,6 +23,10 @@ const (
 const (
 	LabelPlanName  = BaseDomain + "plan"
 	LabelNodeGroup = BaseDomain + "group"
+)
+
+const (
+	ControllerResourceHash = ControllerPrefix + "checksum"
 )
 
 // TODO: Remove in future release when migration code is removed

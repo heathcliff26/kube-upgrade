@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	groupControl    = "control"
+	groupControl    = "control-plane"
 	labelControl    = "node-role.kubernetes.io/control-plane"
 	nodeControlName = "node-control"
 
@@ -76,7 +76,7 @@ func TestReconcile(t *testing.T) {
 					},
 				},
 			},
-			ExpectedSummary: api.PlanStatusProgressing + ": Upgrading groups [control]",
+			ExpectedSummary: api.PlanStatusProgressing + ": Upgrading groups [control-plane]",
 			ExpectedGroupStatus: map[string]string{
 				groupControl: api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 				groupCompute: api.PlanStatusWaiting,
@@ -110,7 +110,7 @@ func TestReconcile(t *testing.T) {
 					},
 				},
 				Status: api.KubeUpgradeStatus{
-					Summary: api.PlanStatusProgressing + ": Upgrading groups [control]",
+					Summary: api.PlanStatusProgressing + ": Upgrading groups [control-plane]",
 					Groups: map[string]string{
 						groupControl: api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 						groupCompute: api.PlanStatusWaiting,
@@ -291,7 +291,7 @@ func TestReconcile(t *testing.T) {
 				constants.NodeKubernetesVersion: "v1.30.4",
 				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 			},
-			ExpectedSummary: api.PlanStatusProgressing + ": Upgrading groups [control]",
+			ExpectedSummary: api.PlanStatusProgressing + ": Upgrading groups [control-plane]",
 			ExpectedGroupStatus: map[string]string{
 				groupControl: api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 				groupCompute: api.PlanStatusWaiting,
@@ -324,7 +324,7 @@ func TestReconcile(t *testing.T) {
 					},
 				},
 				Status: api.KubeUpgradeStatus{
-					Summary: api.PlanStatusProgressing + ": Upgrading groups [control]",
+					Summary: api.PlanStatusProgressing + ": Upgrading groups [control-plane]",
 					Groups: map[string]string{
 						groupControl: api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 						groupCompute: api.PlanStatusWaiting,
@@ -424,7 +424,7 @@ func TestReconcile(t *testing.T) {
 					},
 				},
 			},
-			ExpectedSummary: api.PlanStatusProgressing + ": Upgrading groups [control]",
+			ExpectedSummary: api.PlanStatusProgressing + ": Upgrading groups [control-plane]",
 			ExpectedGroupStatus: map[string]string{
 				groupControl: api.PlanStatusProgressing + ": 0/1 nodes upgraded",
 				groupCompute: api.PlanStatusWaiting,
@@ -454,7 +454,7 @@ func TestReconcile(t *testing.T) {
 				constants.NodeKubernetesVersion: "v1.31.0",
 				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusError,
 			},
-			ExpectedSummary: api.PlanStatusError + ": Some groups encountered errors [control]",
+			ExpectedSummary: api.PlanStatusError + ": Some groups encountered errors [control-plane]",
 			ExpectedGroupStatus: map[string]string{
 				groupControl: api.PlanStatusError + ": The nodes [node-control] are reporting errors",
 			},
