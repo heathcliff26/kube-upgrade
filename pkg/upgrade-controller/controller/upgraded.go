@@ -2,6 +2,9 @@ package controller
 
 import (
 	"context"
+	"crypto/sha512"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"reflect"
@@ -12,6 +15,7 @@ import (
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/yaml"
 )
@@ -124,7 +128,7 @@ func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.K
 		return err
 	}
 
-	logger = logger.With("config", expectedCM.Name)
+	logger = logger.With("configmap", expectedCM.Name, "namespace", expectedCM.Namespace)
 
 	if cm == nil {
 		logger.Info("Creating upgraded ConfigMap for group")
@@ -136,16 +140,19 @@ func (c *controller) reconcileUpgradedConfigMap(ctx context.Context, plan *api.K
 	if !reflect.DeepEqual(expectedCM.OwnerReferences, cm.OwnerReferences) {
 		cm.OwnerReferences = expectedCM.OwnerReferences
 		updated = true
+		logger.Debug("Reconciling metadata.ownerReferences")
 	}
 
 	if !reflect.DeepEqual(expectedCM.Labels, cm.Labels) {
 		cm.Labels = expectedCM.Labels
 		updated = true
+		logger.Debug("Reconciling metadata.labels")
 	}
 
 	if !reflect.DeepEqual(expectedCM.Data, cm.Data) {
 		cm.Data = expectedCM.Data
 		updated = true
+		logger.Debug("Reconciling configmap data")
 	}
 
 	if updated {
@@ -165,11 +172,21 @@ func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.K
 		return err
 	}
 
-	logger = logger.With("daemon", expectedDS.Name)
+	logger = logger.With("daemonset", expectedDS.Name, "namespace", expectedDS.Namespace)
 
 	if ds == nil {
 		logger.Info("Creating upgraded DaemonSet for group")
-		return c.Create(ctx, expectedDS)
+		ds = expectedDS.DeepCopy()
+		err := c.Create(ctx, ds, client.DryRunAll)
+		if err != nil {
+			return err
+		}
+		hash, err := createHash(expectedDS.Spec, ds.Spec)
+		if err != nil {
+			return err
+		}
+		annotateUpgradedDaemonSetHash(ds, hash)
+		return c.Create(ctx, ds)
 	}
 
 	updated := false
@@ -177,16 +194,33 @@ func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.K
 	if !reflect.DeepEqual(expectedDS.OwnerReferences, ds.OwnerReferences) {
 		ds.OwnerReferences = expectedDS.OwnerReferences
 		updated = true
+		logger.Debug("Reconciling metadata.ownerReferences")
 	}
 
 	if !reflect.DeepEqual(expectedDS.Labels, ds.Labels) {
 		ds.Labels = expectedDS.Labels
 		updated = true
+		logger.Debug("Reconciling metadata.labels")
 	}
 
-	if !reflect.DeepEqual(expectedDS.Spec, ds.Spec) {
+	hash, err := createHash(expectedDS.Spec, ds.Spec)
+	if err != nil {
+		return err
+	}
+	if ds.Annotations == nil || ds.Annotations[constants.ControllerResourceHash] != hash {
 		ds.Spec = expectedDS.Spec
 		updated = true
+		logger.Debug("Reconciling spec")
+
+		err = c.Update(ctx, ds, client.DryRunAll)
+		if err != nil {
+			return err
+		}
+		hash, err = createHash(expectedDS.Spec, ds.Spec)
+		if err != nil {
+			return err
+		}
+		annotateUpgradedDaemonSetHash(ds, hash)
 	}
 
 	if updated {
@@ -216,4 +250,23 @@ func upgradedLabels(planName, groupName string) map[string]string {
 		constants.LabelPlanName:  planName,
 		constants.LabelNodeGroup: groupName,
 	}
+}
+
+// Create a hash from a list of objects by serializing them together as a JSON array and hashing the result.
+// All provided objects are marshaled as a single JSON array, so the hash depends on their order and content.
+func createHash(obj ...interface{}) (string, error) {
+	data, err := json.Marshal(obj)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal object for hashing: %v", err)
+	}
+	hash := sha512.Sum512(data)
+	return hex.EncodeToString(hash[:]), nil
+}
+
+// Annotate the given DaemonSet with the given hash.
+func annotateUpgradedDaemonSetHash(ds *appv1.DaemonSet, hash string) {
+	if ds.Annotations == nil {
+		ds.Annotations = make(map[string]string)
+	}
+	ds.Annotations[constants.ControllerResourceHash] = hash
 }
