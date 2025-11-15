@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/config.go (100.0%)</option>
 				
-				<option value="file4">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (61.6%)</option>
+				<option value="file4">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (63.4%)</option>
 				
 				<option value="file5">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/errors.go (50.0%)</option>
 				
@@ -73,9 +73,9 @@
 				
 				<option value="file8">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/upgraded.go (81.2%)</option>
 				
-				<option value="file9">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/utils.go (97.8%)</option>
+				<option value="file9">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/utils.go (94.3%)</option>
 				
-				<option value="file10">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/validatingwebhook.go (100.0%)</option>
+				<option value="file10">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/validatingwebhook.go (94.7%)</option>
 				
 				<option value="file11">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/root.go (21.1%)</option>
 				
@@ -210,7 +210,7 @@ func Resource(resource string) schema.GroupResource <span class="cov0" title="0"
 }</span>
 
 // Adds the list of known types to the given scheme.
-func AddKnownTypes(scheme *runtime.Scheme) error <span class="cov10" title="16">{
+func AddKnownTypes(scheme *runtime.Scheme) error <span class="cov10" title="17">{
         scheme.AddKnownTypes(
                 SchemeGroupVersion,
                 &amp;KubeUpgradePlan{},
@@ -375,8 +375,6 @@ import (
         "golang.org/x/mod/semver"
         appv1 "k8s.io/api/apps/v1"
         corev1 "k8s.io/api/core/v1"
-        "k8s.io/apimachinery/pkg/runtime"
-        clientgoscheme "k8s.io/client-go/kubernetes/scheme"
         "k8s.io/client-go/rest"
         ctrl "sigs.k8s.io/controller-runtime"
         "sigs.k8s.io/controller-runtime/pkg/cache"
@@ -420,12 +418,7 @@ func NewController(name string) (*controller, error) <span class="cov1" title="1
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">scheme := runtime.NewScheme()
-        err = api.AddToScheme(scheme)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov0" title="0">err = clientgoscheme.AddToScheme(scheme)
+        <span class="cov0" title="0">scheme, err := newScheme()
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
@@ -477,7 +470,9 @@ func (c *controller) Run() error <span class="cov0" title="0">{
         <span class="cov0" title="0">err = ctrl.NewWebhookManagedBy(c.manager).
                 For(&amp;api.KubeUpgradePlan{}).
                 WithDefaulter(&amp;planMutatingHook{}).
-                WithValidator(&amp;planValidatingHook{}).
+                WithValidator(&amp;planValidatingHook{
+                        Client: c.Client,
+                }).
                 Complete()
         if err != nil </span><span class="cov0" title="0">{
                 return err
@@ -1069,6 +1064,8 @@ import (
 
         api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
         "github.com/heathcliff26/kube-upgrade/pkg/version"
+        "k8s.io/apimachinery/pkg/runtime"
+        clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 )
 
 var serviceAccountNamespaceFile = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
@@ -1161,6 +1158,20 @@ func GetUpgradedImage() string <span class="cov4" title="4">{
         }</span>
         <span class="cov4" title="4">return fmt.Sprintf("%s:%s", image, tag)</span>
 }
+
+// Return a new scheme with already registered standard types and kube-upgrade types
+func newScheme() (*runtime.Scheme, error) <span class="cov7" title="17">{
+        scheme := runtime.NewScheme()
+        err := api.AddToScheme(scheme)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov7" title="17">err = clientgoscheme.AddToScheme(scheme)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov7" title="17">return scheme, nil</span>
+}
 </pre>
 		
 		<pre class="file" id="file10" style="display: none">package controller
@@ -1168,16 +1179,20 @@ func GetUpgradedImage() string <span class="cov4" title="4">{
 import (
         "context"
         "fmt"
+        "log/slog"
 
         api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
         "k8s.io/apimachinery/pkg/runtime"
+        "sigs.k8s.io/controller-runtime/pkg/client"
         "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
 
 // +kubebuilder:webhook:path=/validate-kubeupgrade-heathcliff-eu-v1alpha3-kubeupgradeplan,mutating=false,failurePolicy=fail,groups=kubeupgrade.heathcliff.eu,resources=kubeupgradeplans,verbs=create;update,versions=v1alpha3,name=kubeupgrade.heathcliff.eu,admissionReviewVersions=v1,sideEffects=None
 
 // planValidatingHook validates the plan
-type planValidatingHook struct{}
+type planValidatingHook struct {
+        client.Client
+}
 
 // Validate all values of the plan and check if they are sensible
 func (*planValidatingHook) validate(obj runtime.Object) (admission.Warnings, error) <span class="cov10" title="22">{
@@ -1197,9 +1212,23 @@ func (*planValidatingHook) validate(obj runtime.Object) (admission.Warnings, err
 // ValidateCreate validates the object on creation.
 // The optional warnings will be added to the response as warning messages.
 // Return an error if the object is invalid.
-func (p *planValidatingHook) ValidateCreate(_ context.Context, obj runtime.Object) (admission.Warnings, error) <span class="cov3" title="2">{
-        return p.validate(obj)
-}</span>
+func (p *planValidatingHook) ValidateCreate(ctx context.Context, obj runtime.Object) (admission.Warnings, error) <span class="cov5" title="4">{
+        if p.Client == nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("no client provided for validating webhook, please report a bug")
+        }</span>
+
+        <span class="cov4" title="3">planList := &amp;api.KubeUpgradePlanList{}
+        err := p.List(ctx, planList)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("failed to list KubeUpgradePlans: %v", err)
+        }</span>
+        <span class="cov4" title="3">if len(planList.Items) &gt; 0 </span><span class="cov1" title="1">{
+                slog.With("existing-plan", planList.Items[0].Name).Warn("Attempted to create a KubeUpgradePlan, but one already exists")
+                return nil, fmt.Errorf("KubeUpgradePlan already exists")
+        }</span>
+
+        <span class="cov3" title="2">return p.validate(obj)</span>
+}
 
 // ValidateUpdate validates the object on update.
 // The optional warnings will be added to the response as warning messages.
