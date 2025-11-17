@@ -252,15 +252,21 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: upgrade-controller
+  name: kube-upgrade
   namespace: kube-upgrade
   labels:
-    app: upgrade-controller
+    app.kubernetes.io/name: kube-upgrade
+    app.kubernetes.io/instance: kube-upgrade
+    app.kubernetes.io/version: "latest"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: upgrade-controller
+  name: kube-upgrade
+  labels:
+    app.kubernetes.io/name: kube-upgrade
+    app.kubernetes.io/instance: kube-upgrade
+    app.kubernetes.io/version: "latest"
 rules:
 - apiGroups:
   - ""
@@ -292,9 +298,30 @@ rules:
   - update
 ---
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kube-upgrade
+  labels:
+    app.kubernetes.io/name: kube-upgrade
+    app.kubernetes.io/instance: kube-upgrade
+    app.kubernetes.io/version: "latest"
+subjects:
+  - kind: ServiceAccount
+    name: kube-upgrade
+    namespace: kube-upgrade
+roleRef:
+  kind: ClusterRole
+  name: kube-upgrade
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: upgrade-controller
+  name: kube-upgrade
+  labels:
+    app.kubernetes.io/name: kube-upgrade
+    app.kubernetes.io/instance: kube-upgrade
+    app.kubernetes.io/version: "latest"
   namespace: kube-upgrade
 rules:
 - apiGroups:
@@ -334,139 +361,67 @@ rules:
   - update
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: upgrade-controller
-  namespace: kube-upgrade
-  labels:
-    app: upgrade-controller
-subjects:
-  - kind: ServiceAccount
-    name: upgrade-controller
-    namespace: kube-upgrade
-roleRef:
-  kind: ClusterRole
-  name: upgrade-controller
-  apiGroup: rbac.authorization.k8s.io
----
-apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: upgrade-controller
+  name: kube-upgrade
   namespace: kube-upgrade
+  labels:
+    app.kubernetes.io/name: kube-upgrade
+    app.kubernetes.io/instance: kube-upgrade
+    app.kubernetes.io/version: "latest"
 subjects:
   - kind: ServiceAccount
-    name: upgrade-controller
+    name: kube-upgrade
 roleRef:
   kind: Role
-  name: upgrade-controller
+  name: kube-upgrade
   apiGroup: rbac.authorization.k8s.io
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.heathcliff.eu/cert-manager.io/issuer_v1.json
-apiVersion: cert-manager.io/v1
-kind: Issuer
+apiVersion: v1
+kind: Service
 metadata:
-  name: selfsigned
+  name: kube-upgrade-webhooks
   namespace: kube-upgrade
   labels:
-    app: upgrade-controller
+    app.kubernetes.io/name: kube-upgrade
+    app.kubernetes.io/instance: kube-upgrade
+    app.kubernetes.io/version: "latest"
 spec:
-  selfSigned: {}
----
-# yaml-language-server: $schema=https://kubernetes-schemas.heathcliff.eu/cert-manager.io/certificate_v1.json
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: webhook-server-cert
-  namespace: kube-upgrade
-  labels:
-    app: upgrade-controller
-spec:
-  dnsNames:
-  - upgrade-controller-webhooks.kube-upgrade.svc
-  - upgrade-controller-webhooks.kube-upgrade.svc.cluster.local
-  issuerRef:
-    kind: Issuer
-    name: selfsigned
-  secretName: webhook-server-cert
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: MutatingWebhookConfiguration
-metadata:
-  name: kube-upgrade-webhook
-  annotations:
-    cert-manager.io/inject-ca-from: kube-upgrade/webhook-server-cert
-webhooks:
-  - admissionReviewVersions:
-      - v1
-    clientConfig:
-      service:
-        name: upgrade-controller-webhooks
-        namespace: kube-upgrade
-        path: /mutate-kubeupgrade-heathcliff-eu-v1alpha3-kubeupgradeplan
-    failurePolicy: Fail
-    name: kubeupgrade.heathcliff.eu
-    rules:
-      - apiGroups:
-          - kubeupgrade.heathcliff.eu
-        apiVersions:
-          - v1alpha3
-        operations:
-          - CREATE
-          - UPDATE
-        resources:
-          - kubeupgradeplans
-    sideEffects: None
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingWebhookConfiguration
-metadata:
-  name: kube-upgrade-webhook
-  annotations:
-    cert-manager.io/inject-ca-from: kube-upgrade/webhook-server-cert
-webhooks:
-  - admissionReviewVersions:
-      - v1
-    clientConfig:
-      service:
-        name: upgrade-controller-webhooks
-        namespace: kube-upgrade
-        path: /validate-kubeupgrade-heathcliff-eu-v1alpha3-kubeupgradeplan
-    failurePolicy: Fail
-    name: kubeupgrade.heathcliff.eu
-    rules:
-      - apiGroups:
-          - kubeupgrade.heathcliff.eu
-        apiVersions:
-          - v1alpha3
-        operations:
-          - CREATE
-          - UPDATE
-        resources:
-          - kubeupgradeplans
-    sideEffects: None
+  ports:
+    - port: 443
+      protocol: TCP
+      targetPort: 9443
+  selector:
+    app.kubernetes.io/name: kube-upgrade
+    app.kubernetes.io/instance: kube-upgrade
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: upgrade-controller
+  name: kube-upgrade
   namespace: kube-upgrade
   labels:
-    app: upgrade-controller
+    app.kubernetes.io/name: kube-upgrade
+    app.kubernetes.io/instance: kube-upgrade
+    app.kubernetes.io/version: "latest"
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: upgrade-controller
+      app.kubernetes.io/name: kube-upgrade
+      app.kubernetes.io/instance: kube-upgrade
   template:
     metadata:
       labels:
-        app: upgrade-controller
+        app.kubernetes.io/name: kube-upgrade
+        app.kubernetes.io/instance: kube-upgrade
+        app.kubernetes.io/version: "latest"
     spec:
-      serviceAccountName: upgrade-controller
+      serviceAccountName: kube-upgrade
       containers:
         - name: upgrade-controller
-          image: ghcr.io/heathcliff26/kube-upgrade-controller:latest
+          image: "ghcr.io/heathcliff26/kube-upgrade-controller:latest"
+          imagePullPolicy: IfNotPresent
           env:
             - name: POD_NAME
               valueFrom:
@@ -505,19 +460,100 @@ spec:
         - name: cert
           secret:
             defaultMode: 420
-            secretName: webhook-server-cert
+            secretName: kube-upgrade-webhook-cert
 ---
-apiVersion: v1
-kind: Service
+# yaml-language-server: $schema=https://kubernetes-schemas.heathcliff.eu/cert-manager.io/certificate_v1.json
+apiVersion: cert-manager.io/v1
+kind: Certificate
 metadata:
-  name: upgrade-controller-webhooks
+  name: kube-upgrade-webhook-cert
   namespace: kube-upgrade
   labels:
-    app: upgrade-controller
+    app.kubernetes.io/name: kube-upgrade
+    app.kubernetes.io/instance: kube-upgrade
+    app.kubernetes.io/version: "latest"
 spec:
-  ports:
-    - port: 443
-      protocol: TCP
-      targetPort: 9443
-  selector:
-    app: upgrade-controller
+  dnsNames:
+  - "kube-upgrade-webhooks.kube-upgrade.svc"
+  - "kube-upgrade-webhooks.kube-upgrade.svc.cluster.local"
+  issuerRef:
+    kind: Issuer
+    name: kube-upgrade-selfsigned
+  secretName: kube-upgrade-webhook-cert
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.heathcliff.eu/cert-manager.io/issuer_v1.json
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: kube-upgrade-selfsigned
+  namespace: kube-upgrade
+  labels:
+    app.kubernetes.io/name: kube-upgrade
+    app.kubernetes.io/instance: kube-upgrade
+    app.kubernetes.io/version: "latest"
+spec:
+  selfSigned: {}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: kube-upgrade-webhook
+  annotations:
+    cert-manager.io/inject-ca-from: kube-upgrade/kube-upgrade-webhook-cert
+  labels:
+    app.kubernetes.io/name: kube-upgrade
+    app.kubernetes.io/instance: kube-upgrade
+    app.kubernetes.io/version: "latest"
+webhooks:
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: kube-upgrade-webhooks
+        namespace: kube-upgrade
+        path: /mutate-kubeupgrade-heathcliff-eu-v1alpha3-kubeupgradeplan
+    failurePolicy: Fail
+    name: kubeupgrade.heathcliff.eu
+    rules:
+      - apiGroups:
+          - kubeupgrade.heathcliff.eu
+        apiVersions:
+          - v1alpha3
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - kubeupgradeplans
+    sideEffects: None
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: kube-upgrade-webhook
+  annotations:
+    cert-manager.io/inject-ca-from: kube-upgrade/kube-upgrade-webhook-cert
+  labels:
+    app.kubernetes.io/name: kube-upgrade
+    app.kubernetes.io/instance: kube-upgrade
+    app.kubernetes.io/version: "latest"
+webhooks:
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: kube-upgrade-webhooks
+        namespace: kube-upgrade
+        path: /validate-kubeupgrade-heathcliff-eu-v1alpha3-kubeupgradeplan
+    failurePolicy: Fail
+    name: kubeupgrade.heathcliff.eu
+    rules:
+      - apiGroups:
+          - kubeupgrade.heathcliff.eu
+        apiVersions:
+          - v1alpha3
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - kubeupgradeplans
+    sideEffects: None

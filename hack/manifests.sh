@@ -9,7 +9,7 @@ export TAG="${TAG:-latest}"
 export KUBE_UPGRADE_NAMESPACE="${KUBE_UPGRADE_NAMESPACE:-kube-upgrade}"
 
 output_dir="${base_dir}/manifests/release"
-upgrade_controller_file="${output_dir}/upgrade-controller-helm.yaml"
+upgrade_controller_file="${output_dir}/upgrade-controller.yaml"
 
 if [[ "${RELEASE_VERSION}" != "" ]] && [[ "${TAG}" == "latest" ]]; then
     TAG="${RELEASE_VERSION}"
@@ -19,19 +19,9 @@ fi
 # shellcheck disable=SC2016
 export schema='$schema'
 
-# shellcheck disable=SC2155
-export kube_upgrade_crd=$(cat "${base_dir}/manifests/generated/kubeupgrade.heathcliff.eu_kubeupgradeplans.yaml")
-# shellcheck disable=SC2155
-export kube_upgrade_rbac_cluster_role=$(envsubst <"${base_dir}/manifests/generated/role.yaml")
-# shellcheck disable=SC2155
-export kube_upgrade_webhooks=$(envsubst <"${base_dir}/manifests/generated/manifests.yaml")
-
 [ ! -d "${output_dir}" ] && mkdir "${output_dir}"
 
-echo "Creating upgrade-controller deployment"
-envsubst <"${base_dir}/manifests/base/upgrade-controller.yaml.template" >"${output_dir}/upgrade-controller.yaml"
-
-echo "Creating manifest from helm chart"
+echo "Creating upgrade-controller deployment from helm chart"
 cat > "${upgrade_controller_file}" <<EOF
 ---
 apiVersion: v1
@@ -67,6 +57,4 @@ echo "Wrote manifests to ${output_dir}"
 if [ "${TAG}" == "latest" ]; then
     echo "Tag is latest, syncing manifests with examples"
     cp "${output_dir}"/*.yaml "${base_dir}/examples/"
-    # TODO Remove: This should be removed when switching manifest generation to helm only
-    rm "${base_dir}/examples/upgrade-controller-helm.yaml"
 fi

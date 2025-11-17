@@ -68,7 +68,7 @@ func TestE2E(t *testing.T) {
 		}).
 		Assess("available", func(ctx context.Context, t *testing.T, c *envconf.Config) context.Context {
 			var dep appsv1.Deployment
-			if err := c.Client().Resources().Get(ctx, "upgrade-controller", namespace, &dep); err != nil {
+			if err := c.Client().Resources().Get(ctx, "kube-upgrade", namespace, &dep); err != nil {
 				t.Fatalf("Failed to get upgrade-controller-deployment: %v", err)
 			}
 
