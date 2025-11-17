@@ -2,16 +2,18 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: kube-upgrade-webhook
+  name: PLACEHOLDER_FULLNAME-webhook
   annotations:
-    cert-manager.io/inject-ca-from: ${KUBE_UPGRADE_NAMESPACE}/webhook-server-cert
+    cert-manager.io/inject-ca-from: PLACEHOLDER_NAMESPACE/PLACEHOLDER_FULLNAME-webhook-cert
+  labels:
+    PLACEHOLDER_LABELS: "true"
 webhooks:
   - admissionReviewVersions:
       - v1
     clientConfig:
       service:
-        name: upgrade-controller-webhooks
-        namespace: ${KUBE_UPGRADE_NAMESPACE}
+        name: PLACEHOLDER_FULLNAME-webhooks
+        namespace: PLACEHOLDER_NAMESPACE
         path: /mutate-kubeupgrade-heathcliff-eu-v1alpha3-kubeupgradeplan
     failurePolicy: Fail
     name: kubeupgrade.heathcliff.eu
@@ -30,16 +32,18 @@ webhooks:
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: kube-upgrade-webhook
+  name: PLACEHOLDER_FULLNAME-webhook
   annotations:
-    cert-manager.io/inject-ca-from: ${KUBE_UPGRADE_NAMESPACE}/webhook-server-cert
+    cert-manager.io/inject-ca-from: PLACEHOLDER_NAMESPACE/PLACEHOLDER_FULLNAME-webhook-cert
+  labels:
+    PLACEHOLDER_LABELS: "true"
 webhooks:
   - admissionReviewVersions:
       - v1
     clientConfig:
       service:
-        name: upgrade-controller-webhooks
-        namespace: ${KUBE_UPGRADE_NAMESPACE}
+        name: PLACEHOLDER_FULLNAME-webhooks
+        namespace: PLACEHOLDER_NAMESPACE
         path: /validate-kubeupgrade-heathcliff-eu-v1alpha3-kubeupgradeplan
     failurePolicy: Fail
     name: kubeupgrade.heathcliff.eu
