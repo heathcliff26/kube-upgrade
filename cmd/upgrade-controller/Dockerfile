@@ -21,6 +21,8 @@ RUN GOOS=linux GOARCH="${TARGETARCH}" hack/build.sh upgrade-controller
 # Create final docker image
 FROM scratch AS final-stage
 
+LABEL   org.opencontainers.image.authors="heathcliff@heathcliff.eu"
+
 WORKDIR /
 
 COPY --from=build-stage /app/bin/upgrade-controller /

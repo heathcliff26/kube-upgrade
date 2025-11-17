@@ -21,6 +21,8 @@ RUN GOOS=linux GOARCH="${TARGETARCH}" hack/build.sh upgraded
 # Create final docker image
 FROM quay.io/fedora/fedora:43 AS final-stage
 
+LABEL   org.opencontainers.image.authors="heathcliff@heathcliff.eu"
+
 # Force systemd to connect via the system dbus socket, instead of PID 1 socket
 ENV SYSTEMCTL_FORCE_BUS=1
 
