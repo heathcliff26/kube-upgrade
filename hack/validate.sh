@@ -55,3 +55,6 @@ git checkout examples/upgrade-cr.yaml
 
 echo "Check if the generated example plan is conform"
 "${bin_dir}/kubeconform" -schema-location manifests/generated/kubeupgradeplan_v1alpha3.json -verbose -strict examples/upgrade-cr.yaml
+
+echo "Linting helm chart"
+make lint-helm

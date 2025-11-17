@@ -1,0 +1,62 @@
+{{- if .Values.webhooks.enabled -}}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ include "kube-upgrade.fullname" . }}-webhook
+  annotations:
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "kube-upgrade.fullname" . }}-webhook-cert
+  labels:
+    {{- include "kube-upgrade.labels" . | nindent 4 }}
+webhooks:
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: {{ include "kube-upgrade.fullname" . }}-webhooks
+        namespace: {{ .Release.Namespace }}
+        path: /mutate-kubeupgrade-heathcliff-eu-v1alpha3-kubeupgradeplan
+    failurePolicy: Fail
+    name: kubeupgrade.heathcliff.eu
+    rules:
+      - apiGroups:
+          - kubeupgrade.heathcliff.eu
+        apiVersions:
+          - v1alpha3
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - kubeupgradeplans
+    sideEffects: None
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: {{ include "kube-upgrade.fullname" . }}-webhook
+  annotations:
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "kube-upgrade.fullname" . }}-webhook-cert
+  labels:
+    {{- include "kube-upgrade.labels" . | nindent 4 }}
+webhooks:
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: {{ include "kube-upgrade.fullname" . }}-webhooks
+        namespace: {{ .Release.Namespace }}
+        path: /validate-kubeupgrade-heathcliff-eu-v1alpha3-kubeupgradeplan
+    failurePolicy: Fail
+    name: kubeupgrade.heathcliff.eu
+    rules:
+      - apiGroups:
+          - kubeupgrade.heathcliff.eu
+        apiVersions:
+          - v1alpha3
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - kubeupgradeplans
+    sideEffects: None
+{{- end }}

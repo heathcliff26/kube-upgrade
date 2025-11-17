@@ -1,0 +1,17 @@
+{{- if .Values.webhooks.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kube-upgrade.fullname" . }}-webhooks
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kube-upgrade.labels" . | nindent 4 }}
+spec:
+  ports:
+    - port: 443
+      protocol: TCP
+      targetPort: 9443
+  selector:
+    {{- include "kube-upgrade.selectorLabels" . | nindent 4 }}
+{{- end }}

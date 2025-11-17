@@ -1,0 +1,30 @@
+{{- if .Values.webhooks.enabled }}
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.heathcliff.eu/cert-manager.io/issuer_v1.json
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ include "kube-upgrade.fullname" . }}-selfsigned
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kube-upgrade.labels" . | nindent 4 }}
+spec:
+  selfSigned: {}
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.heathcliff.eu/cert-manager.io/certificate_v1.json
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "kube-upgrade.fullname" . }}-webhook-cert
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kube-upgrade.labels" . | nindent 4 }}
+spec:
+  dnsNames:
+  - "{{ include "kube-upgrade.fullname" . }}-webhooks.{{ .Release.Namespace }}.svc"
+  - "{{ include "kube-upgrade.fullname" . }}-webhooks.{{ .Release.Namespace }}.svc.cluster.local"
+  issuerRef:
+    kind: Issuer
+    name: {{ include "kube-upgrade.fullname" . }}-selfsigned
+  secretName: {{ include "kube-upgrade.fullname" . }}-webhook-cert
+{{- end }}

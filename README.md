@@ -37,12 +37,12 @@ Kubernetes controller and daemon for managing cluster updates.
 
 To install kube-upgrade, follow these steps:
 1. Deploy **upgrade-controller**
-```
+```bash
 kubectl apply -f https://raw.githubusercontent.com/heathcliff26/kube-upgrade/main/examples/upgrade-controller.yaml
 ```
 2. Create the upgrade-plan
-```
-https://raw.githubusercontent.com/heathcliff26/kube-upgrade/main/examples/upgrade-cr.yaml
+```bash
+kubectl apply -f https://raw.githubusercontent.com/heathcliff26/kube-upgrade/main/examples/upgrade-cr.yaml
 ```
 
 ## Container Images

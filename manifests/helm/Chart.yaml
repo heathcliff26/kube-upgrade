@@ -1,0 +1,22 @@
+apiVersion: v2
+name: kube-upgrade
+description: A Helm chart for kube-upgrade - Kubernetes Operator for managing cluster updates
+type: application
+version: 0.1.0
+appVersion: "v0.0.0"
+home: https://github.com/heathcliff26/kube-upgrade
+maintainers:
+  - name: heathcliff26
+    email: heathcliff@heathcliff.eu
+keywords:
+  - kube-upgrade
+  - coreos
+  - updates
+  - fleet
+  - zincati
+  - kubernetes
+  - operator
+sources:
+  - https://github.com/heathcliff26/kube-upgrade
+
+kubeVersion: ">= 1.32.0"

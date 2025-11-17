@@ -133,3 +133,19 @@ jobs:
       cmd: "make manifests"
       cache: false
     secrets: inherit
+
+  push-helm:
+    uses: heathcliff26/ci/.github/workflows/push-helm-chart.yaml@main
+    if: ${{ inputs.tag != '' && inputs.tag != 'rolling' }}
+    permissions:
+      contents: read
+      packages: write
+    needs:
+      - lint
+      - unit-tests
+      - e2e
+      - validate
+    with:
+      tag: "${{ inputs.tag }}"
+      dry-run: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' || inputs.dry-run == 'true' }}
+    secrets: inherit

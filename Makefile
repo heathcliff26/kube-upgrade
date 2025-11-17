@@ -45,6 +45,10 @@ coverprofile:
 lint:
 	golangci-lint run -v
 
+# Lint the helm charts
+lint-helm:
+	helm lint manifests/helm/
+
 # Generate code and artifacts
 generate: tools
 	hack/generate.sh
@@ -97,6 +101,7 @@ help:
 	update-external-scripts \
 	coverprofile \
 	lint \
+	lint-helm \
 	generate \
 	manifests \
 	validate \

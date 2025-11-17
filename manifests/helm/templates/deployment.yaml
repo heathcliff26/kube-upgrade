@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kube-upgrade.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kube-upgrade.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.upgradeController.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "kube-upgrade.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.upgradeController.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "kube-upgrade.labels" . | nindent 8 }}
+        {{- with .Values.upgradeController.labels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ include "kube-upgrade.serviceAccountName" . }}
+      {{- with .Values.upgradeController.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: upgrade-controller
+          {{- with .Values.upgradeController.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.upgradeController.repository }}:{{ .Values.upgradeController.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.upgradeController.pullPolicy }}
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: UPGRADED_IMAGE
+              value: {{ .Values.upgraded.repository }}
+            - name: UPGRADED_TAG
+              value: {{ .Values.upgraded.tag | default .Chart.AppVersion }}
+          ports:
+            - name: probe
+              containerPort: 9090
+              protocol: TCP
+            - name: webhook-server
+              containerPort: 9443
+              protocol: TCP
+          {{- if .Values.upgradeController.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: probe
+            initialDelaySeconds: {{ .Values.upgradeController.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.upgradeController.livenessProbe.periodSeconds }}
+            successThreshold: {{ .Values.upgradeController.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.upgradeController.livenessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.upgradeController.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: probe
+            initialDelaySeconds: {{ .Values.upgradeController.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.upgradeController.readinessProbe.periodSeconds }}
+          {{- end }}
+          {{- with .Values.upgradeController.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.webhooks.enabled }}
+          volumeMounts:
+            - name: cert
+              mountPath: /tmp/k8s-webhook-server/serving-certs
+              readOnly: true
+          {{- end }}
+      {{- if .Values.webhooks.enabled }}
+      volumes:
+        - name: cert
+          secret:
+            defaultMode: 420
+            secretName: {{ include "kube-upgrade.fullname" . }}-webhook-cert
+      {{- end }}
+      {{- with .Values.upgradeController.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.upgradeController.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.upgradeController.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

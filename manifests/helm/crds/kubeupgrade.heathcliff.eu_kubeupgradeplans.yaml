@@ -1,0 +1,245 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.19.0
+  name: kubeupgradeplans.kubeupgrade.heathcliff.eu
+spec:
+  group: kubeupgrade.heathcliff.eu
+  names:
+    kind: KubeUpgradePlan
+    listKind: KubeUpgradePlanList
+    plural: kubeupgradeplans
+    shortNames:
+    - plan
+    singular: kubeupgradeplan
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - description: The targeted kubernetes version
+      jsonPath: .spec.kubernetesVersion
+      name: Version
+      type: string
+    - description: A summary of the overall status of the cluster
+      jsonPath: .status.summary
+      name: Status
+      type: string
+    name: v1alpha3
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              allowDowngrade:
+                default: false
+                description: |-
+                  Allow downgrading to older kubernetes versions.
+                  Only enable if you know what you are doing.
+                type: boolean
+              groups:
+                additionalProperties:
+                  properties:
+                    dependsOn:
+                      description: |-
+                        Specify group(s) that should be upgraded first.
+                        Should be used to ensure control-plane nodes are upgraded first.
+                      example: control-plane
+                      items:
+                        type: string
+                      type: array
+                      x-kubernetes-list-type: atomic
+                    labels:
+                      additionalProperties:
+                        type: string
+                      description: The labels by which to filter nodes for this group
+                      example: node-role.kubernetes.io/control-plane;node-role.kubernetes.io/compute
+                      type: object
+                    tolerations:
+                      description: Enable the upgraded pods to be scheduled on tainted
+                        nodes like control-planes.
+                      items:
+                        description: |-
+                          The pod this Toleration is attached to tolerates any taint that matches
+                          the triple <key,value,effect> using the matching operator <operator>.
+                        properties:
+                          effect:
+                            description: |-
+                              Effect indicates the taint effect to match. Empty means match all taint effects.
+                              When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.
+                            type: string
+                          key:
+                            description: |-
+                              Key is the taint key that the toleration applies to. Empty means match all taint keys.
+                              If the key is empty, operator must be Exists; this combination means to match all values and all keys.
+                            type: string
+                          operator:
+                            description: |-
+                              Operator represents a key's relationship to the value.
+                              Valid operators are Exists and Equal. Defaults to Equal.
+                              Exists is equivalent to wildcard for value, so that a pod can
+                              tolerate all taints of a particular category.
+                            type: string
+                          tolerationSeconds:
+                            description: |-
+                              TolerationSeconds represents the period of time the toleration (which must be
+                              of effect NoExecute, otherwise this field is ignored) tolerates the taint. By default,
+                              it is not set, which means tolerate the taint forever (do not evict). Zero and
+                              negative values will be treated as 0 (evict immediately) by the system.
+                            format: int64
+                            type: integer
+                          value:
+                            description: |-
+                              Value is the taint value the toleration matches to.
+                              If the operator is Exists, the value should be empty, otherwise just a regular string.
+                            type: string
+                        type: object
+                      type: array
+                      x-kubernetes-list-type: atomic
+                    upgraded:
+                      description: The configuration for all upgraded daemons in the
+                        group. Overwrites global parameters.
+                      nullable: true
+                      properties:
+                        checkInterval:
+                          description: The interval between regular checks
+                          example: 3h;24h;30m
+                          format: go-duration
+                          type: string
+                        fleetlockGroup:
+                          description: The group to use for fleetlock
+                          example: control-plane;compute
+                          type: string
+                        fleetlockUrl:
+                          description: URL for the fleetlock server. Is required to
+                            be set globally.
+                          example: https://fleetlock.example.com
+                          type: string
+                        kubeadmPath:
+                          description: The path to the kubeadm binary on the node
+                          example: /usr/bin/kubeadm
+                          type: string
+                        kubeletConfig:
+                          description: The path to the kubelet config file on the
+                            node
+                          example: /etc/kubernetes/kubelet.conf
+                          type: string
+                        logLevel:
+                          description: The log level used by slog, default "info"
+                          enum:
+                          - debug
+                          - info
+                          - warn
+                          - error
+                          example: debug;info;warn;error
+                          type: string
+                        retryInterval:
+                          description: The interval between retries when an operation
+                            fails
+                          example: 5m;1m;30s
+                          format: go-duration
+                          type: string
+                        stream:
+                          description: The container image repository for os rebases
+                          example: ghcr.io/heathcliff26/fcos-k8s
+                          type: string
+                      type: object
+                  required:
+                  - labels
+                  type: object
+                description: |-
+                  The different groups in which the nodes will be upgraded.
+                  At minimum needs to separate control-plane from compute nodes, to ensure that control-plane nodes will be upgraded first.
+                minProperties: 1
+                type: object
+              kubernetesVersion:
+                description: |-
+                  The kubernetes version the cluster should be at.
+                  If the actual version differs, the cluster will be upgraded.
+                example: v1.31.0
+                type: string
+              upgraded:
+                description: The configuration for all upgraded daemons. Can be overwritten
+                  by group specific config.
+                properties:
+                  checkInterval:
+                    description: The interval between regular checks
+                    example: 3h;24h;30m
+                    format: go-duration
+                    type: string
+                  fleetlockGroup:
+                    description: The group to use for fleetlock
+                    example: control-plane;compute
+                    type: string
+                  fleetlockUrl:
+                    description: URL for the fleetlock server. Is required to be set
+                      globally.
+                    example: https://fleetlock.example.com
+                    type: string
+                  kubeadmPath:
+                    description: The path to the kubeadm binary on the node
+                    example: /usr/bin/kubeadm
+                    type: string
+                  kubeletConfig:
+                    description: The path to the kubelet config file on the node
+                    example: /etc/kubernetes/kubelet.conf
+                    type: string
+                  logLevel:
+                    description: The log level used by slog, default "info"
+                    enum:
+                    - debug
+                    - info
+                    - warn
+                    - error
+                    example: debug;info;warn;error
+                    type: string
+                  retryInterval:
+                    description: The interval between retries when an operation fails
+                    example: 5m;1m;30s
+                    format: go-duration
+                    type: string
+                  stream:
+                    description: The container image repository for os rebases
+                    example: ghcr.io/heathcliff26/fcos-k8s
+                    type: string
+                type: object
+            required:
+            - groups
+            - kubernetesVersion
+            - upgraded
+            type: object
+          status:
+            properties:
+              groups:
+                additionalProperties:
+                  type: string
+                description: The current status of each group
+                type: object
+              summary:
+                description: A summary of the overall status of the cluster
+                type: string
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
