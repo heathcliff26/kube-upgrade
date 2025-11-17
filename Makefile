@@ -29,6 +29,10 @@ push-upgrade-controller: build-upgrade-controller
 test:
 	hack/unit-test.sh
 
+# Run end-to-end tests
+test-e2e:
+	go test -count=1 -v ./tests/...
+
 # Update project dependencies
 update-deps:
 	hack/update-deps.sh
@@ -65,10 +69,6 @@ validate:
 fmt:
 	gofmt -s -w ./cmd ./pkg
 
-# Run end-to-end tests
-e2e:
-	go test -count=1 -v ./tests/...
-
 # Scan code for vulnerabilities using gosec
 gosec:
 	gosec -exclude-generated ./...
@@ -97,6 +97,7 @@ help:
 	push-upgraded \
 	push-upgrade-controller \
 	test \
+	test-e2e \
 	update-deps \
 	update-external-scripts \
 	coverprofile \
