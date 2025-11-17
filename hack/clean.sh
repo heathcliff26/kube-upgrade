@@ -4,7 +4,7 @@ set -e
 
 base_dir="$(dirname "${BASH_SOURCE[0]}" | xargs realpath)/.."
 
-folders=("bin" "manifests/release" "coverprofiles" "logs")
+folders=("bin" "manifests/release" "coverprofiles" "logs" "manifests/helm/charts")
 files=("coverprofile.out")
 
 for folder in "${folders[@]}"; do

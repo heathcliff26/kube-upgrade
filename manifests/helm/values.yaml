@@ -80,3 +80,8 @@ webhooks:
 # RBAC configuration
 rbac:
   create: true
+
+# Fleetlock dependency configuration
+fleetlock:
+  # Deploy fleetlock server
+  enabled: false

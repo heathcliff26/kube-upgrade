@@ -35,7 +35,9 @@ Kubernetes controller and daemon for managing cluster updates.
 
 ### Installation
 
-To install kube-upgrade, follow these steps:
+You can install kube-upgrade using the [helm chart](manifests/helm/).
+
+To install kube-upgrade using kubectl, follow these steps:
 1. Deploy **upgrade-controller**
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/heathcliff26/kube-upgrade/main/examples/upgrade-controller.yaml
