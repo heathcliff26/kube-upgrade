@@ -19,3 +19,4 @@ tmp_image_kube-upgrade-e2e-*.tar
 
 # Ignore helm chart packages
 /kube-upgrade-*.tgz
+/manifests/helm/charts

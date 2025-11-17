@@ -31,6 +31,8 @@ EOF
 echo "  name: ${KUBE_UPGRADE_NAMESPACE}" >> "${upgrade_controller_file}"
 cat "${base_dir}/manifests/generated/kubeupgrade.heathcliff.eu_kubeupgradeplans.yaml" >> "${upgrade_controller_file}"
 
+helm dependency build "${base_dir}/manifests/helm"
+
 helm template "${base_dir}/manifests/helm" \
     --debug \
     --set fullnameOverride=kube-upgrade \
