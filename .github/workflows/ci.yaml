@@ -82,16 +82,15 @@ jobs:
     uses: heathcliff26/ci/.github/workflows/golang-unit-tests.yaml@main
     permissions:
       contents: read
-    needs:
-      - lint
-      - unit-tests
-      - validate
     with:
-      cmd: "make e2e"
+      cmd: "make test-e2e"
 
   build-daemon:
     uses: heathcliff26/ci/.github/workflows/build-container.yaml@main
     needs:
+      - lint
+      - unit-tests
+      - validate
       - e2e
     permissions:
       contents: read
@@ -107,6 +106,9 @@ jobs:
   build-controller:
     uses: heathcliff26/ci/.github/workflows/build-container.yaml@main
     needs:
+      - lint
+      - unit-tests
+      - validate
       - e2e
     permissions:
       contents: read
@@ -143,8 +145,8 @@ jobs:
     needs:
       - lint
       - unit-tests
-      - e2e
       - validate
+      - e2e
     with:
       tag: "${{ inputs.tag }}"
       dry-run: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' || inputs.dry-run == 'true' }}
