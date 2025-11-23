@@ -1,6 +1,6 @@
 dependencies:
 - name: fleetlock
   repository: oci://ghcr.io/heathcliff26/manifests
-  version: v1.8.0
-digest: sha256:c65751481bfce0ea23bab80d2943f5016fb70430454b82d74b86880110c23955
-generated: "2025-11-17T19:38:18.959700925+01:00"
+  version: v1.8.1
+digest: sha256:0a5af6d04658eea85677ac3e682bed8c60bae876c84235c63dd75eb5fc9a40fa
+generated: "2025-11-23T19:18:22.865219711Z"
