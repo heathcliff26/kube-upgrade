@@ -256,18 +256,18 @@ func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error <span class="cov
         <span class="cov9" title="15">if len(spec.Groups) &lt; 1 </span><span class="cov1" title="1">{
                 return fmt.Errorf("need at least one node group for upgrades")
         }</span>
-        <span class="cov8" title="14">for name, group := range spec.Groups </span><span class="cov9" title="19">{
+        <span class="cov8" title="14">for name, group := range spec.Groups </span><span class="cov9" title="18">{
                 for _, dependency := range group.DependsOn </span><span class="cov6" title="6">{
                         if _, ok := spec.Groups[dependency]; !ok </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" depends on non-existing group \"%s\"", name, dependency)
                         }</span>
                 }
 
-                <span class="cov9" title="18">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
+                <span class="cov9" title="17">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
                         return fmt.Errorf("group \"%s\" needs at least one label selector", name)
                 }</span>
 
-                <span class="cov9" title="17">if group.Upgraded != nil </span><span class="cov3" title="2">{
+                <span class="cov9" title="16">if group.Upgraded != nil </span><span class="cov3" title="2">{
                         err := ValidateObject_UpgradedConfig(*group.Upgraded)
                         if err != nil </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" has an invalid upgraded config: %v", name, err)
@@ -1576,7 +1576,7 @@ func (d *daemon) CheckInterval() time.Duration <span class="cov6" title="5">{
 }</span>
 
 // Get the retry interval
-func (d *daemon) RetryInterval() time.Duration <span class="cov10" title="14">{
+func (d *daemon) RetryInterval() time.Duration <span class="cov9" title="13">{
         d.configLock.RLock()
         defer d.configLock.RUnlock()
 
@@ -1655,7 +1655,7 @@ func NewDaemon(cfgPath string) (*daemon, error) <span class="cov5" title="3">{
                 return nil, fmt.Errorf("failed to create kubeadm cmd wrapper: %v", err)
         }</span>
 
-        <span class="cov3" title="2">config, err := clientcmd.BuildConfigFromFlags("", hostPrefix+cfg.KubeletConfig)
+        <span class="cov4" title="2">config, err := clientcmd.BuildConfigFromFlags("", hostPrefix+cfg.KubeletConfig)
         if err != nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("failed to read kubeconfig: %v", err)
         }</span>
@@ -1699,11 +1699,11 @@ func NewDaemon(cfgPath string) (*daemon, error) <span class="cov5" title="3">{
 
 // Retries the given function until it succeeds
 func (d *daemon) retry(f func() bool) <span class="cov5" title="3">{
-        for !f() </span><span class="cov10" title="9">{
+        for !f() </span><span class="cov10" title="8">{
                 select </span>{
                 case &lt;-d.ctx.Done():<span class="cov1" title="1">
                         return</span>
-                case &lt;-time.After(d.RetryInterval()):<span class="cov9" title="8"></span>
+                case &lt;-time.After(d.RetryInterval()):<span class="cov9" title="7"></span>
                 }
         }
 }
@@ -1722,31 +1722,31 @@ func (d *daemon) releaseLock() <span class="cov1" title="1">{
 }
 
 // Run the main daemon loop
-func (d *daemon) Run() error <span class="cov3" title="2">{
+func (d *daemon) Run() error <span class="cov4" title="2">{
         stop := make(chan os.Signal, 1)
         signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
         ctx, cancel := context.WithCancel(context.Background())
         d.ctx = ctx
         d.cancel = cancel
-        go func() </span><span class="cov3" title="2">{
+        go func() </span><span class="cov4" title="2">{
                 &lt;-stop
                 cancel()
         }</span>()
-        <span class="cov3" title="2">var wg sync.WaitGroup
+        <span class="cov4" title="2">var wg sync.WaitGroup
         wg.Add(3)
 
         err := d.NewConfigFileWatcher()
         if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to create config file watcher: %v", err)
         }</span>
-        <span class="cov3" title="2">defer d.configWatcher.Close()
-        go func() </span><span class="cov3" title="2">{
+        <span class="cov4" title="2">defer d.configWatcher.Close()
+        go func() </span><span class="cov4" title="2">{
                 defer wg.Done()
                 d.WatchConfigFile()
                 slog.Info("Stopped watching config file")
         }</span>()
 
-        <span class="cov3" title="2">err = d.rpmostree.RegisterAsDriver()
+        <span class="cov4" title="2">err = d.rpmostree.RegisterAsDriver()
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to register upgraded as driver for rpm-ostree: %v", err)
         }</span>
@@ -1850,26 +1850,26 @@ func (d *daemon) checkNodeStatus(node *corev1.Node) <span class="cov0" title="0"
 
 // Update the node until it succeeds
 func (d *daemon) doNodeUpgradeWithRetry(node *corev1.Node) <span class="cov1" title="1">{
-        d.retry(func() bool </span><span class="cov6" title="4">{
+        d.retry(func() bool </span><span class="cov5" title="3">{
                 err := d.doNodeUpgrade(node)
                 if err == nil </span><span class="cov0" title="0">{
                         return true
                 }</span>
-                <span class="cov6" title="4">slog.Error("Failed to upgrade node", "err", err, slog.String("node", d.node))
+                <span class="cov5" title="3">slog.Error("Failed to upgrade node", "err", err, slog.String("node", d.node))
                 return false</span>
         })
 }
 
 // Update the node by first rebasing to a new version and then upgrading kubernetes
-func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title="7">{
+func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title="6">{
         d.upgrade.Lock()
         defer d.upgrade.Unlock()
 
         var err error
-        if node == nil </span><span class="cov6" title="4">{
+        if node == nil </span><span class="cov5" title="3">{
                 // Need to fetch fresh data here, as the informer might called with a stale node version
                 node, err = d.getNode()
-                if err != nil </span><span class="cov6" title="4">{
+                if err != nil </span><span class="cov5" title="3">{
                         return fmt.Errorf("failed to get node data from server: %v", err)
                 }</span>
                 <span class="cov0" title="0">if !nodeNeedsUpgrade(node) </span><span class="cov0" title="0">{
@@ -1948,7 +1948,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
 }
 
 // Update the kube-upgrade node status annotation with the given status
-func (d *daemon) updateNodeStatus(status string) error <span class="cov7" title="6">{
+func (d *daemon) updateNodeStatus(status string) error <span class="cov8" title="6">{
         node, err := d.getNode()
         if err != nil </span><span class="cov1" title="1">{
                 return err
@@ -1966,7 +1966,7 @@ func (d *daemon) updateNodeStatus(status string) error <span class="cov7" title=
 }
 
 // Retrieve the node from the API
-func (d *daemon) getNode() (*corev1.Node, error) <span class="cov10" title="11">{
+func (d *daemon) getNode() (*corev1.Node, error) <span class="cov10" title="10">{
         return d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
 }</span>
 
