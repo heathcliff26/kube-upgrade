@@ -452,6 +452,10 @@ spec:
               port: probe
             initialDelaySeconds: 5
             periodSeconds: 1
+          resources:
+            requests:
+              cpu: 2m
+              memory: 32Mi
           volumeMounts:
             - name: cert
               mountPath: /tmp/k8s-webhook-server/serving-certs
