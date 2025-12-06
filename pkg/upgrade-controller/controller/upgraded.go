@@ -14,6 +14,7 @@ import (
 	upgradedconfig "github.com/heathcliff26/kube-upgrade/pkg/upgraded/config"
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -64,6 +65,12 @@ func (c *controller) NewUpgradedDaemonSet(plan, group string) *appv1.DaemonSet {
 								{
 									Name:      "config",
 									MountPath: upgradedconfig.DefaultConfigDir,
+								},
+							},
+							Resources: corev1.ResourceRequirements{
+								Requests: corev1.ResourceList{
+									corev1.ResourceCPU:    resource.MustParse("1m"),
+									corev1.ResourceMemory: resource.MustParse("200Mi"),
 								},
 							},
 						},
