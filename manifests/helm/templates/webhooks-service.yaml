@@ -8,6 +8,12 @@ metadata:
   labels:
     {{- include "kube-upgrade.labels" . | nindent 4 }}
 spec:
+  type: {{ .Values.webhooks.service.type }}
+  ipFamilyPolicy: {{ .Values.webhooks.service.ipFamilyPolicy }}
+  {{- with .Values.webhooks.service.ipFamilies }}
+  ipFamilies:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   ports:
     - port: 443
       protocol: TCP

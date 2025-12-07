@@ -387,6 +387,8 @@ metadata:
     app.kubernetes.io/instance: kube-upgrade
     app.kubernetes.io/version: "latest"
 spec:
+  type: ClusterIP
+  ipFamilyPolicy: PreferDualStack
   ports:
     - port: 443
       protocol: TCP
