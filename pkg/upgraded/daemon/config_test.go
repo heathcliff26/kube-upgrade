@@ -99,7 +99,7 @@ func TestUpdateFromConfig(t *testing.T) {
 		})
 	}
 
-	t.Run("ShouldLockDemonOnUpdate", func(t *testing.T) {
+	t.Run("ShouldLockDaemonOnUpdate", func(t *testing.T) {
 		assert := assert.New(t)
 
 		d := &daemon{}

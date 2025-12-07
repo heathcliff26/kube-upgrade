@@ -69,7 +69,9 @@ func (c *controller) NewUpgradedDaemonSet(plan, group string) *appv1.DaemonSet {
 							},
 							Resources: corev1.ResourceRequirements{
 								Requests: corev1.ResourceList{
-									corev1.ResourceCPU:    resource.MustParse("1m"),
+									corev1.ResourceCPU: resource.MustParse("1m"),
+									// The daemon alone only needs about 10Mi of memory. However when performing upgrades, it usually goes up to about 165Mi.
+									// As such the request is a bit above that to ensure it has enough memory.
 									corev1.ResourceMemory: resource.MustParse("200Mi"),
 								},
 							},
