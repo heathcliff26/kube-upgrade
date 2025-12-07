@@ -23,6 +23,6 @@ kubeVersion: ">= 1.32.0"
 
 dependencies:
   - name: fleetlock
-    version: v1.8.1
+    version: v1.9.0
     repository: oci://ghcr.io/heathcliff26/manifests
     condition: fleetlock.enabled
