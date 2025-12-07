@@ -73,6 +73,15 @@ webhooks:
   # Enable or disable the webhook server.
   # Requires cert-manager for the certificates.
   enabled: true
+  # Settings for the webhook service.
+  service:
+    # This sets the service type.
+    type: ClusterIP
+    ipFamilyPolicy: PreferDualStack
+    # Configure service IP families
+    ipFamilies:
+      # - IPv4
+      # - IPv6
 
 # RBAC configuration
 rbac:
