@@ -3,10 +3,9 @@ package kubeadm
 import (
 	"fmt"
 	"os/exec"
+	"runtime"
 	"strings"
 	"sync"
-
-	"github.com/sigstore/sigstore-go/pkg/bundle"
 
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils"
 )
@@ -46,8 +45,19 @@ func NewFromPath(chroot, path string) (*KubeadmCMD, error) {
 
 // Download kubeadm and create a launch wrapper for it.
 func NewFromVersion(chroot, version string) (*KubeadmCMD, error) {
-	bundlePath := chroot + tmpDir + "/kubeadm-" + version + "-bundle.json"
-	kubeadmBundle, err := bundle.LoadJSONFromPath(bundlePath)
+
+	kubeadmPath := chroot + tmpDir + "/kubeadm-" + version
+	baseURL := fmt.Sprintf("https://dl.k8s.io/release/%s/bin/linux/%s/kubeadm", version, runtime.GOARCH)
+
+	err := downloadFile(baseURL, kubeadmPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to download kubeadm binary: %v", err)
+	}
+	err = verifySigstoreSignature(kubeadmPath, baseURL+".sig", baseURL+".cert")
+	if err != nil {
+		return nil, fmt.Errorf("failed to verify kubeadm signature: %v", err)
+	}
+	return NewFromPath(chroot, kubeadmPath)
 }
 
 // Run kubeadm upgrade apply
