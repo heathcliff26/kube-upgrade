@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils"
+	"github.com/sigstore/sigstore-go/pkg/root"
+	"github.com/sigstore/sigstore-go/pkg/verify"
 )
 
 func downloadFile(url, dest string) error {
@@ -36,6 +38,19 @@ func downloadFile(url, dest string) error {
 	return nil
 }
 
-func verifySigstoreSignature(blob, sig, cert string) error {
+func verifySigstoreSignatureCLI(blob, sig, cert string) error {
 	return utils.CreateCMDWithStdout("cosign", "verify-blob", blob, "--signature", sig, "--certificate", cert, "--certificate-identity", "krel-staging@k8s-releng-prod.iam.gserviceaccount.com", "--certificate-oidc-issuer", "https://accounts.google.com").Run()
+}
+
+func verifyArtifactWithSigstore(blob, sig, cert string) error {
+	// This bundle uses public good instance with an added signing key
+	trustedRoot, err := root.FetchTrustedRoot()
+	if err != nil {
+		panic(err)
+	}
+	sev, err := verify.NewVerifier(trustedRoot, verify.WithSignedCertificateTimestamps(1), verify.WithTransparencyLog(1), verify.WithObserverTimestamps(1))
+	if err != nil {
+		panic(err)
+	}
+	return nil
 }

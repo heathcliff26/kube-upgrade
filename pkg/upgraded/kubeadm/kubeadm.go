@@ -53,7 +53,7 @@ func NewFromVersion(chroot, version string) (*KubeadmCMD, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to download kubeadm binary: %v", err)
 	}
-	err = verifySigstoreSignature(kubeadmPath, baseURL+".sig", baseURL+".cert")
+	err = verifyArtifactWithSigstore(kubeadmPath, baseURL+".sig", baseURL+".cert")
 	if err != nil {
 		return nil, fmt.Errorf("failed to verify kubeadm signature: %v", err)
 	}
