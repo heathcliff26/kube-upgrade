@@ -1,4 +1,0 @@
----
-fleetlockUrl: "https://fleetlock.example.com"
-logLevel: debug
-kubeadmPath: ""

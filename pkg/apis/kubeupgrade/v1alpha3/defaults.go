@@ -8,7 +8,6 @@ const (
 	DefaultUpgradedRetryInterval  = "1m"
 	DefaultUpgradedLogLevel       = "info"
 	DefaultUpgradedKubeletConfig  = "/etc/kubernetes/kubelet.conf"
-	DefaultUpgradedKubeadmPath    = "/usr/bin/kubeadm"
 )
 
 func SetObjectDefaults_KubeUpgradeSpec(spec *KubeUpgradeSpec) {
@@ -42,8 +41,5 @@ func SetObjectDefaults_UpgradedConfig(cfg *UpgradedConfig) {
 	}
 	if cfg.KubeletConfig == "" {
 		cfg.KubeletConfig = DefaultUpgradedKubeletConfig
-	}
-	if cfg.KubeadmPath == "" {
-		cfg.KubeadmPath = DefaultUpgradedKubeadmPath
 	}
 }

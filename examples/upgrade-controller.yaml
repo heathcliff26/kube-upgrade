@@ -138,7 +138,8 @@ spec:
                           example: https://fleetlock.example.com
                           type: string
                         kubeadmPath:
-                          description: The path to the kubeadm binary on the node
+                          description: The path to the kubeadm binary on the node.
+                            Upgraded will download kubeadm if no path is provided.
                           example: /usr/bin/kubeadm
                           type: string
                         kubeletConfig:
@@ -199,7 +200,8 @@ spec:
                     example: https://fleetlock.example.com
                     type: string
                   kubeadmPath:
-                    description: The path to the kubeadm binary on the node
+                    description: The path to the kubeadm binary on the node. Upgraded
+                      will download kubeadm if no path is provided.
                     example: /usr/bin/kubeadm
                     type: string
                   kubeletConfig:

@@ -74,7 +74,7 @@ func TestDefaultConfig(t *testing.T) {
 	assert.Equal(api.DefaultUpgradedRetryInterval, c.RetryInterval)
 	assert.Equal(api.DefaultUpgradedLogLevel, c.LogLevel)
 	assert.Equal(api.DefaultUpgradedKubeletConfig, c.KubeletConfig)
-	assert.Equal(api.DefaultUpgradedKubeadmPath, c.KubeadmPath)
+	assert.Equal("", c.KubeadmPath)
 }
 
 func TestLoadConfigError(t *testing.T) {
@@ -85,7 +85,6 @@ func TestLoadConfigError(t *testing.T) {
 		"EmptyStream":            "testdata/empty-stream.yaml",
 		"EmptyFleetlockURL":      "testdata/empty-fleetlockUrl.yaml",
 		"EmptyFleetlockGroup":    "testdata/empty-fleetlockGroup.yaml",
-		"EmptyKubeadmPath":       "testdata/empty-kubeadmPath.yaml",
 		"EmptyKubeletConfig":     "testdata/empty-kubeletConfig.yaml",
 	}
 

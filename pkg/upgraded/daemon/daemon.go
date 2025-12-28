@@ -64,9 +64,12 @@ func NewDaemon(cfgPath string) (*daemon, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create rpm-ostree cmd wrapper: %v", err)
 	}
-	kubeadmCMD, err := kubeadm.New(hostPrefix, cfg.KubeadmPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create kubeadm cmd wrapper: %v", err)
+	var kubeadmCMD *kubeadm.KubeadmCMD
+	if cfg.KubeadmPath != "" {
+		kubeadmCMD, err = kubeadm.NewFromPath(hostPrefix, cfg.KubeadmPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create kubeadm cmd wrapper: %v", err)
+		}
 	}
 
 	config, err := clientcmd.BuildConfigFromFlags("", hostPrefix+cfg.KubeletConfig)

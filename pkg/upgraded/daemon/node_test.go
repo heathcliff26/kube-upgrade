@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
-	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm"
 	rpmostree "github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree"
 	"github.com/heathcliff26/kube-upgrade/pkg/version"
 	"github.com/stretchr/testify/assert"
@@ -86,11 +85,6 @@ func TestDoNodeUpgrade(t *testing.T) {
 				t.FailNow()
 			}
 
-			kubeadmCMD, err := kubeadm.New("", "testdata/fake-kubeadm.sh")
-			if !assert.NoError(err, "Failed to create kubeadm command") {
-				t.FailNow()
-			}
-
 			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 			t.Cleanup(cancel)
 
@@ -98,7 +92,6 @@ func TestDoNodeUpgrade(t *testing.T) {
 				ctx:       ctx,
 				fleetlock: client,
 				rpmostree: rpmOstreeCMD,
-				kubeadm:   kubeadmCMD,
 				client:    fake.NewSimpleClientset(),
 				node:      "testnode",
 			}
@@ -108,6 +101,7 @@ func TestDoNodeUpgrade(t *testing.T) {
 					Name: d.node,
 					Annotations: map[string]string{
 						constants.NodeKubernetesVersion: "v1.31.0",
+						constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusRebasing,
 					},
 				},
 			}
@@ -126,6 +120,45 @@ func TestDoNodeUpgrade(t *testing.T) {
 			}
 		})
 	}
+	t.Run("FailedKubeadmUpgrade", func(t *testing.T) {
+		assert := assert.New(t)
+
+		oldHostPrefix := hostPrefix
+		hostPrefix = ""
+		client, srv := NewFakeFleetlockServer(t, http.StatusOK)
+		t.Cleanup(func() {
+			hostPrefix = oldHostPrefix
+			srv.Close()
+		})
+
+		ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
+		t.Cleanup(cancel)
+
+		d := &daemon{
+			ctx:       ctx,
+			fleetlock: client,
+			client:    fake.NewSimpleClientset(),
+			node:      "testnode",
+		}
+
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: d.node,
+				Annotations: map[string]string{
+					constants.NodeKubernetesVersion: "v1.35.0",
+					constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusPending,
+				},
+			},
+		}
+		node, _ = d.client.CoreV1().Nodes().Create(ctx, node, metav1.CreateOptions{})
+
+		err := d.doNodeUpgrade(node)
+
+		node, _ = d.client.CoreV1().Nodes().Get(ctx, node.GetName(), metav1.GetOptions{})
+
+		assert.ErrorContains(err, "failed to fetch kubeadm-config", "Should fail to fetch kubeadm config map")
+		assert.Equal(constants.NodeUpgradeStatusError, node.Annotations[constants.NodeUpgradeStatus], "Should have set correct node status")
+	})
 }
 
 func TestUpdateNodeStatus(t *testing.T) {
