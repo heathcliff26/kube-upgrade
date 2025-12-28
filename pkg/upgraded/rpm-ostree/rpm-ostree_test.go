@@ -65,23 +65,38 @@ func TestCheckForUpgrade(t *testing.T) {
 }
 
 func TestRebase(t *testing.T) {
-	assert := assert.New(t)
+	tMatrix := map[string]bool{
+		"Verified":   false,
+		"Unverified": true,
+	}
 
-	cmd, err := New("testdata/print-args.sh")
-	require.NoError(t, err, "Should create a command")
+	for name, unverified := range tMatrix {
+		t.Run(name, func(t *testing.T) {
+			assert := assert.New(t)
 
-	actualStdout := os.Stdout
-	rOut, wOut, _ := os.Pipe()
-	os.Stdout = wOut
+			cmd, err := New("testdata/print-args.sh")
+			require.NoError(t, err, "Should create a command")
 
-	err = cmd.Rebase("test-image")
+			actualStdout := os.Stdout
+			rOut, wOut, _ := os.Pipe()
+			os.Stdout = wOut
 
-	wOut.Close()
-	stdout, _ := io.ReadAll(rOut)
-	os.Stdout = actualStdout
+			err = cmd.Rebase("test-image", unverified)
 
-	assert.NoError(err, "Command should succeed")
-	assert.Equal("rebase --reboot ostree-unverified-registry:test-image\n", string(stdout), "Should have added image to command args")
+			wOut.Close()
+			stdout, _ := io.ReadAll(rOut)
+			os.Stdout = actualStdout
+
+			assert.NoError(err, "Command should succeed")
+			if unverified {
+				assert.Equal("rebase --reboot ostree-unverified-registry:test-image\n", string(stdout), "Should have added image to command args")
+			} else {
+				assert.Equal("rebase --reboot ostree-image-signed:docker://test-image\n", string(stdout), "Should have added image to command args")
+			}
+
+		})
+	}
+
 }
 
 func TestGetBootedImageRef(t *testing.T) {

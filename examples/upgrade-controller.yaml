@@ -123,6 +123,10 @@ spec:
                         group. Overwrites global parameters.
                       nullable: true
                       properties:
+                        allowUnsignedOstreeImages:
+                          description: Allow unsigned ostree images for rebase. It
+                            is recommended to use signed images instead.
+                          type: boolean
                         checkInterval:
                           description: The interval between regular checks
                           example: 3h;24h;30m
@@ -185,6 +189,10 @@ spec:
                 description: The configuration for all upgraded daemons. Can be overwritten
                   by group specific config.
                 properties:
+                  allowUnsignedOstreeImages:
+                    description: Allow unsigned ostree images for rebase. It is recommended
+                      to use signed images instead.
+                    type: boolean
                   checkInterval:
                     description: The interval between regular checks
                     example: 3h;24h;30m

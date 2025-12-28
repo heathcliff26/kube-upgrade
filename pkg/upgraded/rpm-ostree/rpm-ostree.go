@@ -66,11 +66,15 @@ func (r *RPMOStreeCMD) Upgrade() error {
 // Rebases the system to the given container image
 //
 // WARNING: Will reboot the system when successful.
-func (r *RPMOStreeCMD) Rebase(image string) error {
+func (r *RPMOStreeCMD) Rebase(image string, unverified bool) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	return utils.CreateCMDWithStdout(r.binary, "rebase", "--reboot", "ostree-unverified-registry:"+image).Run()
+	prefix := "ostree-image-signed:docker://"
+	if unverified {
+		prefix = "ostree-unverified-registry:"
+	}
+	return utils.CreateCMDWithStdout(r.binary, "rebase", "--reboot", prefix+image).Run()
 }
 
 // Register upgraded as the driver for updates with rpm-ostree.

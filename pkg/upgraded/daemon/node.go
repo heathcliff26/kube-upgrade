@@ -116,7 +116,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 		if err != nil {
 			return fmt.Errorf("failed to update node status: %v", err)
 		}
-		err = d.rpmostree.Rebase(d.Stream() + ":" + version)
+		err = d.rpmostree.Rebase(d.Stream()+":"+version, d.allowUnsignedOstreeImages)
 		if err != nil {
 			return d.returnNodeUpgradeError(fmt.Errorf("failed to rebase node: %v", err))
 		}
