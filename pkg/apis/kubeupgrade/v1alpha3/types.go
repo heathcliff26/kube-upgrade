@@ -127,7 +127,7 @@ type UpgradedConfig struct {
 	// +kubebuilder:example="/etc/kubernetes/kubelet.conf"
 	KubeletConfig string `json:"kubeletConfig,omitempty"`
 
-	// The path to the kubeadm binary on the node
+	// The path to the kubeadm binary on the node. Upgraded will download kubeadm if no path is provided.
 	// +optional
 	// +kubebuilder:example="/usr/bin/kubeadm"
 	KubeadmPath string `json:"kubeadmPath,omitempty"`

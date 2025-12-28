@@ -103,8 +103,5 @@ func ValidateConfig(cfg *api.UpgradedConfig) error {
 	if cfg.KubeletConfig == "" {
 		return fmt.Errorf("invalid config, missing kubeletConfig")
 	}
-	if cfg.KubeadmPath == "" {
-		return fmt.Errorf("invalid config, missing kubeadmPath")
-	}
 	return nil
 }

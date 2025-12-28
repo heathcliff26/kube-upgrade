@@ -86,15 +86,32 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 	}
 
 	version := node.Annotations[constants.NodeKubernetesVersion]
-	slog.Info("Attempting node upgrade to new kubernetes version", slog.String("node", node.GetName()), slog.String("version", version))
+	phase := node.Annotations[constants.NodeUpgradeStatus]
+	slog.Info("Attempting node upgrade to new kubernetes version", slog.String("node", node.GetName()), slog.String("version", version), slog.String("phase", phase))
 
 	err = d.Fleetlock().Lock()
 	if err != nil {
 		return fmt.Errorf("failed to acquire lock: %v", err)
 	}
 
-	if version != d.kubeadm.Version() || !d.nodeHasCorrectStream(node) {
-		slog.Info("Rebasing os to new kubernetes version", slog.String("version", version), slog.String("current", d.kubeadm.Version()))
+	if phase != constants.NodeUpgradeStatusRebasing {
+		if d.kubeadm == nil {
+			d.kubeadm, err = kubeadm.NewFromVersion(hostPrefix, version)
+			if err != nil {
+				return d.returnNodeUpgradeError(fmt.Errorf("failed to download kubeadm: %v", err))
+			}
+		}
+
+		err = d.nodeKubeadmUpgrade(version)
+		if err != nil {
+			return fmt.Errorf("failed to run kubeadm upgrade: %v", err)
+		}
+	} else {
+		slog.Debug("Skipping kubeadm upgrade since it already succeeded")
+	}
+
+	if !d.nodeHasCorrectStream(node) {
+		slog.Info("Rebasing os to new kubernetes version", slog.String("version", version))
 		err := d.updateNodeStatus(constants.NodeUpgradeStatusRebasing)
 		if err != nil {
 			return fmt.Errorf("failed to update node status: %v", err)
@@ -107,9 +124,21 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 		return nil
 	}
 
+	err = d.updateNodeStatus(constants.NodeUpgradeStatusCompleted)
+	if err != nil {
+		return fmt.Errorf("failed to update node status: %v", err)
+	}
+
+	slog.Info("Finished node upgrade, releasing lock")
+	d.releaseLock()
+	return nil
+}
+
+// Run kubeadm upgrade for the node
+func (d *daemon) nodeKubeadmUpgrade(version string) error {
 	slog.Info("Updating node via kubeadm")
 
-	err = d.updateNodeStatus(constants.NodeUpgradeStatusUpgrading)
+	err := d.updateNodeStatus(constants.NodeUpgradeStatusUpgrading)
 	if err != nil {
 		return fmt.Errorf("failed to update node status: %v", err)
 	}
@@ -138,20 +167,12 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 		return d.returnNodeUpgradeError(fmt.Errorf("failed run kubeadm: %v", err))
 	}
 
-	err = d.updateNodeStatus(constants.NodeUpgradeStatusCompleted)
-	if err != nil {
-		return fmt.Errorf("failed to update node status: %v", err)
-	}
-
 	// Cleanup tmp directory created by kubeadm.
 	// If not deleted it may grow to large sizes over multiple upgrades.
 	err = deleteDir(kubernetesTMPDir)
 	if err != nil {
 		slog.Warn("Failed to delete temporary kubernetes directory", slog.String("path", kubernetesTMPDir), slog.Any("error", err))
 	}
-
-	slog.Info("Finished node upgrade, releasing lock")
-	d.releaseLock()
 	return nil
 }
 

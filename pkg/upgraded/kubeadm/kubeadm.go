@@ -2,11 +2,17 @@ package kubeadm
 
 import (
 	"fmt"
+	"log/slog"
 	"os/exec"
+	"runtime"
 	"strings"
 	"sync"
 
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils"
+)
+
+const (
+	tmpDir = "/tmp/upgraded"
 )
 
 type KubeadmCMD struct {
@@ -18,7 +24,7 @@ type KubeadmCMD struct {
 
 // Create a new wrapper for kubeadm.
 // The binary will run in the provided chroot.
-func New(chroot, path string) (*KubeadmCMD, error) {
+func NewFromPath(chroot, path string) (*KubeadmCMD, error) {
 	err := utils.CheckExistsAndIsExecutable(chroot + path)
 	if err != nil {
 		return nil, err
@@ -36,6 +42,21 @@ func New(chroot, path string) (*KubeadmCMD, error) {
 	k.version, _ = strings.CutSuffix(k.version, "\n")
 
 	return k, nil
+}
+
+// Download kubeadm and create a launch wrapper for it.
+func NewFromVersion(chroot, version string) (*KubeadmCMD, error) {
+	slog.Info("Downloading kubeadm", slog.String("version", version))
+
+	kubeadmPath := tmpDir + "/kubeadm-" + version
+	kubeadmPathWithChroot := chroot + kubeadmPath
+	baseURL := fmt.Sprintf("https://dl.k8s.io/release/%s/bin/linux/%s/kubeadm", version, runtime.GOARCH)
+
+	err := downloadFile(baseURL, kubeadmPathWithChroot)
+	if err != nil {
+		return nil, fmt.Errorf("failed to download kubeadm binary: %v", err)
+	}
+	return NewFromPath(chroot, kubeadmPath)
 }
 
 // Run kubeadm upgrade apply
