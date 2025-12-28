@@ -79,31 +79,33 @@
 				
 				<option value="file11">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/root.go (21.1%)</option>
 				
-				<option value="file12">github.com/heathcliff26/kube-upgrade/pkg/upgraded/config/config.go (97.7%)</option>
+				<option value="file12">github.com/heathcliff26/kube-upgrade/pkg/upgraded/config/config.go (97.6%)</option>
 				
 				<option value="file13">github.com/heathcliff26/kube-upgrade/pkg/upgraded/config/errors.go (50.0%)</option>
 				
 				<option value="file14">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/config.go (90.0%)</option>
 				
-				<option value="file15">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (55.8%)</option>
+				<option value="file15">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (56.8%)</option>
 				
-				<option value="file16">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/node.go (46.7%)</option>
+				<option value="file16">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/node.go (55.2%)</option>
 				
 				<option value="file17">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/stream.go (32.3%)</option>
 				
 				<option value="file18">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/utils.go (100.0%)</option>
 				
-				<option value="file19">github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm/kubeadm.go (75.0%)</option>
+				<option value="file19">github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm/kubeadm.go (82.1%)</option>
 				
-				<option value="file20">github.com/heathcliff26/kube-upgrade/pkg/upgraded/root.go (16.1%)</option>
+				<option value="file20">github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm/utils.go (77.8%)</option>
 				
-				<option value="file21">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/rpm-ostree.go (87.8%)</option>
+				<option value="file21">github.com/heathcliff26/kube-upgrade/pkg/upgraded/root.go (16.1%)</option>
 				
-				<option value="file22">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/utils.go (100.0%)</option>
+				<option value="file22">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/rpm-ostree.go (87.8%)</option>
 				
-				<option value="file23">github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils/utils.go (94.4%)</option>
+				<option value="file23">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/utils.go (100.0%)</option>
 				
-				<option value="file24">github.com/heathcliff26/kube-upgrade/pkg/version/version.go (81.0%)</option>
+				<option value="file24">github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils/utils.go (94.4%)</option>
+				
+				<option value="file25">github.com/heathcliff26/kube-upgrade/pkg/version/version.go (81.0%)</option>
 				
 				</select>
 			</div>
@@ -136,7 +138,6 @@ const (
         DefaultUpgradedRetryInterval  = "1m"
         DefaultUpgradedLogLevel       = "info"
         DefaultUpgradedKubeletConfig  = "/etc/kubernetes/kubelet.conf"
-        DefaultUpgradedKubeadmPath    = "/usr/bin/kubeadm"
 )
 
 func SetObjectDefaults_KubeUpgradeSpec(spec *KubeUpgradeSpec) <span class="cov7" title="20">{
@@ -152,27 +153,24 @@ func SetObjectDefaults_KubeUpgradeSpec(spec *KubeUpgradeSpec) <span class="cov7"
         <span class="cov7" title="20">SetObjectDefaults_UpgradedConfig(&amp;spec.Upgraded)</span>
 }
 
-func SetObjectDefaults_UpgradedConfig(cfg *UpgradedConfig) <span class="cov10" title="55">{
-        if cfg.Stream == "" </span><span class="cov9" title="52">{
+func SetObjectDefaults_UpgradedConfig(cfg *UpgradedConfig) <span class="cov10" title="54">{
+        if cfg.Stream == "" </span><span class="cov9" title="51">{
                 cfg.Stream = DefaultUpgradedStream
         }</span>
-        <span class="cov10" title="55">if cfg.FleetlockGroup == "" </span><span class="cov10" title="55">{
+        <span class="cov10" title="54">if cfg.FleetlockGroup == "" </span><span class="cov10" title="54">{
                 cfg.FleetlockGroup = DefaultUpgradedFleetlockGroup
         }</span>
-        <span class="cov10" title="55">if cfg.CheckInterval == "" </span><span class="cov9" title="53">{
+        <span class="cov10" title="54">if cfg.CheckInterval == "" </span><span class="cov9" title="52">{
                 cfg.CheckInterval = DefaultUpgradedCheckInterval
         }</span>
-        <span class="cov10" title="55">if cfg.RetryInterval == "" </span><span class="cov9" title="53">{
+        <span class="cov10" title="54">if cfg.RetryInterval == "" </span><span class="cov9" title="52">{
                 cfg.RetryInterval = DefaultUpgradedRetryInterval
         }</span>
-        <span class="cov10" title="55">if cfg.LogLevel == "" </span><span class="cov10" title="55">{
+        <span class="cov10" title="54">if cfg.LogLevel == "" </span><span class="cov10" title="54">{
                 cfg.LogLevel = DefaultUpgradedLogLevel
         }</span>
-        <span class="cov10" title="55">if cfg.KubeletConfig == "" </span><span class="cov10" title="55">{
+        <span class="cov10" title="54">if cfg.KubeletConfig == "" </span><span class="cov10" title="54">{
                 cfg.KubeletConfig = DefaultUpgradedKubeletConfig
-        }</span>
-        <span class="cov10" title="55">if cfg.KubeadmPath == "" </span><span class="cov10" title="55">{
-                cfg.KubeadmPath = DefaultUpgradedKubeadmPath
         }</span>
 }
 </pre>
@@ -256,18 +254,18 @@ func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error <span class="cov
         <span class="cov9" title="15">if len(spec.Groups) &lt; 1 </span><span class="cov1" title="1">{
                 return fmt.Errorf("need at least one node group for upgrades")
         }</span>
-        <span class="cov8" title="14">for name, group := range spec.Groups </span><span class="cov9" title="18">{
+        <span class="cov8" title="14">for name, group := range spec.Groups </span><span class="cov9" title="19">{
                 for _, dependency := range group.DependsOn </span><span class="cov6" title="6">{
                         if _, ok := spec.Groups[dependency]; !ok </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" depends on non-existing group \"%s\"", name, dependency)
                         }</span>
                 }
 
-                <span class="cov9" title="17">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
+                <span class="cov9" title="18">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
                         return fmt.Errorf("group \"%s\" needs at least one label selector", name)
                 }</span>
 
-                <span class="cov9" title="16">if group.Upgraded != nil </span><span class="cov3" title="2">{
+                <span class="cov9" title="17">if group.Upgraded != nil </span><span class="cov3" title="2">{
                         err := ValidateObject_UpgradedConfig(*group.Upgraded)
                         if err != nil </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" has an invalid upgraded config: %v", name, err)
@@ -354,7 +352,7 @@ func combineConfig(global api.UpgradedConfig, group *api.UpgradedConfig) *api.Up
         <span class="cov4" title="5">if group.KubeletConfig != "" </span><span class="cov4" title="4">{
                 cfg.KubeletConfig = group.KubeletConfig
         }</span>
-        <span class="cov4" title="5">if group.KubeadmPath != "" </span><span class="cov4" title="4">{
+        <span class="cov4" title="5">if group.KubeadmPath != "" </span><span class="cov3" title="3">{
                 cfg.KubeadmPath = group.KubeadmPath
         }</span>
 
@@ -1348,7 +1346,7 @@ func init() <span class="cov5" title="5">{
 }</span>
 
 // Parse a given string and set the resulting log level
-func setLogLevel(level string) error <span class="cov9" title="20">{
+func setLogLevel(level string) error <span class="cov10" title="20">{
         switch strings.ToLower(level) </span>{
         case "debug":<span class="cov4" title="3">
                 logLevel.Set(slog.LevelDebug)</span>
@@ -1364,7 +1362,7 @@ func setLogLevel(level string) error <span class="cov9" title="20">{
         <span class="cov9" title="18">return nil</span>
 }
 
-func DefaultConfig() *api.UpgradedConfig <span class="cov10" title="21">{
+func DefaultConfig() *api.UpgradedConfig <span class="cov10" title="20">{
         cfg := &amp;api.UpgradedConfig{}
         api.SetObjectDefaults_UpgradedConfig(cfg)
         return cfg
@@ -1374,7 +1372,7 @@ func DefaultConfig() *api.UpgradedConfig <span class="cov10" title="21">{
 // When path is empty, it checks the default path "/etc/kube-upgraded/config.yaml".
 // When no config is found in the default path, it returns the default config.
 // Returns error when the given config is invalid.
-func LoadConfig(path string) (*api.UpgradedConfig, error) <span class="cov9" title="19">{
+func LoadConfig(path string) (*api.UpgradedConfig, error) <span class="cov9" title="18">{
         c := DefaultConfig()
 
         if path == "" </span><span class="cov0" title="0">{
@@ -1382,18 +1380,18 @@ func LoadConfig(path string) (*api.UpgradedConfig, error) <span class="cov9" tit
         }</span>
 
         // #nosec G304: File will be passed by controller
-        <span class="cov9" title="19">f, err := os.ReadFile(path)
+        <span class="cov9" title="18">f, err := os.ReadFile(path)
         if err != nil </span><span class="cov3" title="2">{
                 return nil, err
         }</span>
 
-        <span class="cov9" title="17">err = yaml.Unmarshal(f, &amp;c)
+        <span class="cov9" title="16">err = yaml.Unmarshal(f, &amp;c)
         if err != nil </span><span class="cov1" title="1">{
                 return nil, err
         }</span>
 
-        <span class="cov9" title="16">err = ValidateConfig(c)
-        if err != nil </span><span class="cov6" title="6">{
+        <span class="cov9" title="15">err = ValidateConfig(c)
+        if err != nil </span><span class="cov5" title="5">{
                 return nil, err
         }</span>
 
@@ -1406,24 +1404,21 @@ func LoadConfig(path string) (*api.UpgradedConfig, error) <span class="cov9" tit
 }
 
 // Validates the given config to ensure all required fields are set.
-func ValidateConfig(cfg *api.UpgradedConfig) error <span class="cov9" title="16">{
+func ValidateConfig(cfg *api.UpgradedConfig) error <span class="cov9" title="15">{
         if cfg == nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("invalid config, config is nil")
         }</span>
-        <span class="cov9" title="15">if cfg.Stream == "" </span><span class="cov1" title="1">{
+        <span class="cov8" title="14">if cfg.Stream == "" </span><span class="cov1" title="1">{
                 return fmt.Errorf("invalid config, missing stream")
         }</span>
-        <span class="cov8" title="14">if cfg.FleetlockURL == "" </span><span class="cov1" title="1">{
+        <span class="cov8" title="13">if cfg.FleetlockURL == "" </span><span class="cov1" title="1">{
                 return fmt.Errorf("invalid config, missing fleetlockUrl")
         }</span>
-        <span class="cov8" title="13">if cfg.FleetlockGroup == "" </span><span class="cov1" title="1">{
+        <span class="cov8" title="12">if cfg.FleetlockGroup == "" </span><span class="cov1" title="1">{
                 return fmt.Errorf("invalid config, missing fleetlockGroup")
         }</span>
-        <span class="cov8" title="12">if cfg.KubeletConfig == "" </span><span class="cov1" title="1">{
+        <span class="cov8" title="11">if cfg.KubeletConfig == "" </span><span class="cov1" title="1">{
                 return fmt.Errorf("invalid config, missing kubeletConfig")
-        }</span>
-        <span class="cov8" title="11">if cfg.KubeadmPath == "" </span><span class="cov1" title="1">{
-                return fmt.Errorf("invalid config, missing kubeadmPath")
         }</span>
         <span class="cov7" title="10">return nil</span>
 }
@@ -1479,7 +1474,7 @@ func (d *daemon) updateFromConfig(cfg *api.UpgradedConfig) error <span class="co
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to parse check interval \"%s\": %v", cfg.CheckInterval, err)
         }</span>
-        <span class="cov8" title="8">retryInterval, err := time.ParseDuration(cfg.RetryInterval)
+        <span class="cov7" title="8">retryInterval, err := time.ParseDuration(cfg.RetryInterval)
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to parse retry interval \"%s\": %v", cfg.RetryInterval, err)
         }</span>
@@ -1489,7 +1484,7 @@ func (d *daemon) updateFromConfig(cfg *api.UpgradedConfig) error <span class="co
                 return fmt.Errorf("failed to create fleetlock client with url '%s' and group '%s': %v", cfg.FleetlockURL, cfg.FleetlockGroup, err)
         }</span>
 
-        <span class="cov7" title="6">d.configLock.Lock()
+        <span class="cov6" title="6">d.configLock.Lock()
         defer d.configLock.Unlock()
 
         d.stream = cfg.Stream
@@ -1554,7 +1549,7 @@ func (d *daemon) WatchConfigFile() <span class="cov4" title="3">{
 }
 
 // Get the current stream
-func (d *daemon) Stream() string <span class="cov10" title="14">{
+func (d *daemon) Stream() string <span class="cov10" title="16">{
         d.configLock.RLock()
         defer d.configLock.RUnlock()
 
@@ -1562,7 +1557,7 @@ func (d *daemon) Stream() string <span class="cov10" title="14">{
 }</span>
 
 // Get the fleetlock client
-func (d *daemon) Fleetlock() *fleetlock.FleetlockClient <span class="cov10" title="14">{
+func (d *daemon) Fleetlock() *fleetlock.FleetlockClient <span class="cov9" title="15">{
         d.configLock.RLock()
         defer d.configLock.RUnlock()
 
@@ -1652,10 +1647,13 @@ func NewDaemon(cfgPath string) (*daemon, error) <span class="cov5" title="3">{
         if err != nil </span><span class="cov0" title="0">{
                 return nil, fmt.Errorf("failed to create rpm-ostree cmd wrapper: %v", err)
         }</span>
-        <span class="cov5" title="3">kubeadmCMD, err := kubeadm.New(hostPrefix, cfg.KubeadmPath)
-        if err != nil </span><span class="cov1" title="1">{
-                return nil, fmt.Errorf("failed to create kubeadm cmd wrapper: %v", err)
-        }</span>
+        <span class="cov5" title="3">var kubeadmCMD *kubeadm.KubeadmCMD
+        if cfg.KubeadmPath != "" </span><span class="cov5" title="3">{
+                kubeadmCMD, err = kubeadm.NewFromPath(hostPrefix, cfg.KubeadmPath)
+                if err != nil </span><span class="cov1" title="1">{
+                        return nil, fmt.Errorf("failed to create kubeadm cmd wrapper: %v", err)
+                }</span>
+        }
 
         <span class="cov4" title="2">config, err := clientcmd.BuildConfigFromFlags("", hostPrefix+cfg.KubeletConfig)
         if err != nil </span><span class="cov1" title="1">{
@@ -1852,26 +1850,26 @@ func (d *daemon) checkNodeStatus(node *corev1.Node) <span class="cov0" title="0"
 
 // Update the node until it succeeds
 func (d *daemon) doNodeUpgradeWithRetry(node *corev1.Node) <span class="cov1" title="1">{
-        d.retry(func() bool </span><span class="cov5" title="3">{
+        d.retry(func() bool </span><span class="cov4" title="3">{
                 err := d.doNodeUpgrade(node)
                 if err == nil </span><span class="cov0" title="0">{
                         return true
                 }</span>
-                <span class="cov5" title="3">slog.Error("Failed to upgrade node", "err", err, slog.String("node", d.node))
+                <span class="cov4" title="3">slog.Error("Failed to upgrade node", "err", err, slog.String("node", d.node))
                 return false</span>
         })
 }
 
 // Update the node by first rebasing to a new version and then upgrading kubernetes
-func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title="6">{
+func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title="7">{
         d.upgrade.Lock()
         defer d.upgrade.Unlock()
 
         var err error
-        if node == nil </span><span class="cov5" title="3">{
+        if node == nil </span><span class="cov4" title="3">{
                 // Need to fetch fresh data here, as the informer might called with a stale node version
                 node, err = d.getNode()
-                if err != nil </span><span class="cov5" title="3">{
+                if err != nil </span><span class="cov4" title="3">{
                         return fmt.Errorf("failed to get node data from server: %v", err)
                 }</span>
                 <span class="cov0" title="0">if !nodeNeedsUpgrade(node) </span><span class="cov0" title="0">{
@@ -1879,16 +1877,33 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
                 }</span>
         }
 
-        <span class="cov5" title="3">version := node.Annotations[constants.NodeKubernetesVersion]
-        slog.Info("Attempting node upgrade to new kubernetes version", slog.String("node", node.GetName()), slog.String("version", version))
+        <span class="cov6" title="4">version := node.Annotations[constants.NodeKubernetesVersion]
+        phase := node.Annotations[constants.NodeUpgradeStatus]
+        slog.Info("Attempting node upgrade to new kubernetes version", slog.String("node", node.GetName()), slog.String("version", version), slog.String("phase", phase))
 
         err = d.Fleetlock().Lock()
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to acquire lock: %v", err)
         }</span>
 
-        <span class="cov3" title="2">if version != d.kubeadm.Version() || !d.nodeHasCorrectStream(node) </span><span class="cov3" title="2">{
-                slog.Info("Rebasing os to new kubernetes version", slog.String("version", version), slog.String("current", d.kubeadm.Version()))
+        <span class="cov4" title="3">if phase != constants.NodeUpgradeStatusRebasing </span><span class="cov1" title="1">{
+                if d.kubeadm == nil </span><span class="cov1" title="1">{
+                        d.kubeadm, err = kubeadm.NewFromVersion(hostPrefix, version)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return d.returnNodeUpgradeError(fmt.Errorf("failed to download kubeadm: %v", err))
+                        }</span>
+                }
+
+                <span class="cov1" title="1">err = d.nodeKubeadmUpgrade(version)
+                if err != nil </span><span class="cov1" title="1">{
+                        return fmt.Errorf("failed to run kubeadm upgrade: %v", err)
+                }</span>
+        } else<span class="cov3" title="2"> {
+                slog.Debug("Skipping kubeadm upgrade since it already succeeded")
+        }</span>
+
+        <span class="cov3" title="2">if !d.nodeHasCorrectStream(node) </span><span class="cov3" title="2">{
+                slog.Info("Rebasing os to new kubernetes version", slog.String("version", version))
                 err := d.updateNodeStatus(constants.NodeUpgradeStatusRebasing)
                 if err != nil </span><span class="cov0" title="0">{
                         return fmt.Errorf("failed to update node status: %v", err)
@@ -1901,15 +1916,27 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
                 <span class="cov1" title="1">return nil</span>
         }
 
-        <span class="cov0" title="0">slog.Info("Updating node via kubeadm")
-
-        err = d.updateNodeStatus(constants.NodeUpgradeStatusUpgrading)
+        <span class="cov0" title="0">err = d.updateNodeStatus(constants.NodeUpgradeStatusCompleted)
         if err != nil </span><span class="cov0" title="0">{
                 return fmt.Errorf("failed to update node status: %v", err)
         }</span>
 
-        <span class="cov0" title="0">kubeadmConfigMap, err := d.client.CoreV1().ConfigMaps("kube-system").Get(d.ctx, "kubeadm-config", metav1.GetOptions{})
+        <span class="cov0" title="0">slog.Info("Finished node upgrade, releasing lock")
+        d.releaseLock()
+        return nil</span>
+}
+
+// Run kubeadm upgrade for the node
+func (d *daemon) nodeKubeadmUpgrade(version string) error <span class="cov1" title="1">{
+        slog.Info("Updating node via kubeadm")
+
+        err := d.updateNodeStatus(constants.NodeUpgradeStatusUpgrading)
         if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to update node status: %v", err)
+        }</span>
+
+        <span class="cov1" title="1">kubeadmConfigMap, err := d.client.CoreV1().ConfigMaps("kube-system").Get(d.ctx, "kubeadm-config", metav1.GetOptions{})
+        if err != nil </span><span class="cov1" title="1">{
                 return d.returnNodeUpgradeError(fmt.Errorf("failed to fetch kubeadm-config: %v", err))
         }</span>
         <span class="cov0" title="0">if kubeadmConfigMap.Data == nil </span><span class="cov0" title="0">{
@@ -1932,62 +1959,54 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
                 return d.returnNodeUpgradeError(fmt.Errorf("failed run kubeadm: %v", err))
         }</span>
 
-        <span class="cov0" title="0">err = d.updateNodeStatus(constants.NodeUpgradeStatusCompleted)
-        if err != nil </span><span class="cov0" title="0">{
-                return fmt.Errorf("failed to update node status: %v", err)
-        }</span>
-
         // Cleanup tmp directory created by kubeadm.
         // If not deleted it may grow to large sizes over multiple upgrades.
         <span class="cov0" title="0">err = deleteDir(kubernetesTMPDir)
         if err != nil </span><span class="cov0" title="0">{
                 slog.Warn("Failed to delete temporary kubernetes directory", slog.String("path", kubernetesTMPDir), slog.Any("error", err))
         }</span>
-
-        <span class="cov0" title="0">slog.Info("Finished node upgrade, releasing lock")
-        d.releaseLock()
-        return nil</span>
+        <span class="cov0" title="0">return nil</span>
 }
 
 // Update the kube-upgrade node status annotation with the given status
-func (d *daemon) updateNodeStatus(status string) error <span class="cov8" title="6">{
+func (d *daemon) updateNodeStatus(status string) error <span class="cov8" title="8">{
         node, err := d.getNode()
         if err != nil </span><span class="cov1" title="1">{
                 return err
         }</span>
-        <span class="cov7" title="5">if node.Annotations == nil </span><span class="cov1" title="1">{
+        <span class="cov8" title="7">if node.Annotations == nil </span><span class="cov1" title="1">{
                 node.Annotations = make(map[string]string)
         }</span>
-        <span class="cov7" title="5">node.Annotations[constants.NodeUpgradeStatus] = status
+        <span class="cov8" title="7">node.Annotations[constants.NodeUpgradeStatus] = status
 
         _, err = d.client.CoreV1().Nodes().Update(d.ctx, node, metav1.UpdateOptions{})
-        if err == nil </span><span class="cov7" title="5">{
+        if err == nil </span><span class="cov8" title="7">{
                 slog.Debug("Set node status", slog.String("status", status))
         }</span>
-        <span class="cov7" title="5">return err</span>
+        <span class="cov8" title="7">return err</span>
 }
 
 // Retrieve the node from the API
-func (d *daemon) getNode() (*corev1.Node, error) <span class="cov10" title="10">{
+func (d *daemon) getNode() (*corev1.Node, error) <span class="cov10" title="12">{
         return d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
 }</span>
 
 // Return the given error, but also set the node status to error
-func (d *daemon) returnNodeUpgradeError(err error) error <span class="cov1" title="1">{
+func (d *daemon) returnNodeUpgradeError(err error) error <span class="cov3" title="2">{
         statusErr := d.updateNodeStatus(constants.NodeUpgradeStatusError)
         if statusErr != nil </span><span class="cov0" title="0">{
                 slog.Error("Failed to set node to error status", slog.Any("error", statusErr))
         }</span>
-        <span class="cov1" title="1">return err</span>
+        <span class="cov3" title="2">return err</span>
 }
 
 // Annotate the node with the current upgraded version
-func (d *daemon) annotateNodeWithUpgradedVersion(node *corev1.Node) (*corev1.Node, error) <span class="cov5" title="3">{
+func (d *daemon) annotateNodeWithUpgradedVersion(node *corev1.Node) (*corev1.Node, error) <span class="cov4" title="3">{
         if node.Annotations == nil </span><span class="cov1" title="1">{
                 node.Annotations = make(map[string]string)
         }</span>
 
-        <span class="cov5" title="3">if node.Annotations[constants.NodeUpgradedVersion] == version.Version() </span><span class="cov1" title="1">{
+        <span class="cov4" title="3">if node.Annotations[constants.NodeUpgradedVersion] == version.Version() </span><span class="cov1" title="1">{
                 return node, nil
         }</span>
 
@@ -1996,17 +2015,17 @@ func (d *daemon) annotateNodeWithUpgradedVersion(node *corev1.Node) (*corev1.Nod
 }
 
 // Check if the current image stream matches the requested one
-func (d *daemon) nodeHasCorrectStream(node *corev1.Node) bool <span class="cov6" title="4">{
+func (d *daemon) nodeHasCorrectStream(node *corev1.Node) bool <span class="cov7" title="6">{
         if node.Annotations == nil </span><span class="cov0" title="0">{
                 return true
         }</span>
 
-        <span class="cov6" title="4">version := node.Annotations[constants.NodeKubernetesVersion]
+        <span class="cov7" title="6">version := node.Annotations[constants.NodeKubernetesVersion]
         if version == "" </span><span class="cov0" title="0">{
                 return true
         }</span>
 
-        <span class="cov6" title="4">return strings.HasSuffix(d.bootedImageRef, d.Stream()+":"+version)</span>
+        <span class="cov7" title="6">return strings.HasSuffix(d.bootedImageRef, d.Stream()+":"+version)</span>
 }
 </pre>
 		
@@ -2144,11 +2163,17 @@ func deleteDir(path string) error <span class="cov4" title="2">{
 
 import (
         "fmt"
+        "log/slog"
         "os/exec"
+        "runtime"
         "strings"
         "sync"
 
         "github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils"
+)
+
+const (
+        tmpDir = "/tmp/upgraded"
 )
 
 type KubeadmCMD struct {
@@ -2160,7 +2185,7 @@ type KubeadmCMD struct {
 
 // Create a new wrapper for kubeadm.
 // The binary will run in the provided chroot.
-func New(chroot, path string) (*KubeadmCMD, error) <span class="cov10" title="8">{
+func NewFromPath(chroot, path string) (*KubeadmCMD, error) <span class="cov10" title="8">{
         err := utils.CheckExistsAndIsExecutable(chroot + path)
         if err != nil </span><span class="cov4" title="2">{
                 return nil, err
@@ -2180,6 +2205,21 @@ func New(chroot, path string) (*KubeadmCMD, error) <span class="cov10" title="8"
         return k, nil</span>
 }
 
+// Download kubeadm and create a launch wrapper for it.
+func NewFromVersion(chroot, version string) (*KubeadmCMD, error) <span class="cov5" title="3">{
+        slog.Info("Downloading kubeadm", slog.String("version", version))
+
+        kubeadmPath := tmpDir + "/kubeadm-" + version
+        kubeadmPathWithChroot := chroot + kubeadmPath
+        baseURL := fmt.Sprintf("https://dl.k8s.io/release/%s/bin/linux/%s/kubeadm", version, runtime.GOARCH)
+
+        err := downloadFile(baseURL, kubeadmPathWithChroot)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("failed to download kubeadm binary: %v", err)
+        }</span>
+        <span class="cov4" title="2">return NewFromPath(chroot, kubeadmPath)</span>
+}
+
 // Run kubeadm upgrade apply
 func (k *KubeadmCMD) Apply(version string) error <span class="cov1" title="1">{
         k.mutex.Lock()
@@ -2196,7 +2236,7 @@ func (k *KubeadmCMD) Node() error <span class="cov0" title="0">{
         return utils.CreateChrootCMDWithStdout(k.chroot, k.binary, "upgrade", "node").Run()
 }</span>
 
-func (k *KubeadmCMD) Version() string <span class="cov7" title="4">{
+func (k *KubeadmCMD) Version() string <span class="cov1" title="1">{
         return k.version
 }</span>
 
@@ -2210,7 +2250,52 @@ func (k *KubeadmCMD) getVersion() (string, error) <span class="cov8" title="6">{
 }
 </pre>
 		
-		<pre class="file" id="file20" style="display: none">package upgraded
+		<pre class="file" id="file20" style="display: none">package kubeadm
+
+import (
+        "fmt"
+        "io"
+        "net/http"
+        "os"
+        "path/filepath"
+)
+
+func downloadFile(url, dest string) error <span class="cov10" title="3">{
+        dir := filepath.Dir(dest)
+        // #nosec G301: The binary is no secret, can be world readable/executable
+        err := os.MkdirAll(dir, 0755)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create directory '%s': %v", dir, err)
+        }</span>
+
+        // #nosec G107: Yes, the url is variable, that is indeed intended.
+        <span class="cov10" title="3">res, err := http.Get(url)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov10" title="3">defer res.Body.Close()
+
+        if res.StatusCode != http.StatusOK </span><span class="cov1" title="1">{
+                return fmt.Errorf("failed to download '%s', received status code %d", url, res.StatusCode)
+        }</span>
+
+        // #nosec G304: The path is variable, that is indeed intended.
+        // #nosec G302: The binary is no secret, can be world readable/executable
+        <span class="cov6" title="2">f, err := os.OpenFile(dest, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to create file '%s': %v", dest, err)
+        }</span>
+        <span class="cov6" title="2">defer f.Close()
+
+        _, err = io.Copy(f, res.Body)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("failed to download '%s' from '%s': %v", dest, url, err)
+        }</span>
+        <span class="cov6" title="2">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file21" style="display: none">package upgraded
 
 import (
         "log/slog"
@@ -2288,7 +2373,7 @@ func run(cfgPath string) <span class="cov0" title="0">{
 }
 </pre>
 		
-		<pre class="file" id="file21" style="display: none">package rpmostree
+		<pre class="file" id="file22" style="display: none">package rpmostree
 
 import (
         "encoding/json"
@@ -2398,7 +2483,7 @@ func (r *RPMOStreeCMD) GetBootedImageRef() (string, error) <span class="cov1" ti
 }
 </pre>
 		
-		<pre class="file" id="file22" style="display: none">package rpmostree
+		<pre class="file" id="file23" style="display: none">package rpmostree
 
 import (
         "os/exec"
@@ -2413,7 +2498,7 @@ func getExitCode(err error) (int, bool) <span class="cov10" title="3">{
 }
 </pre>
 		
-		<pre class="file" id="file23" style="display: none">package utils
+		<pre class="file" id="file24" style="display: none">package utils
 
 import (
         "fmt"
@@ -2463,7 +2548,7 @@ func CheckExistsAndIsExecutable(path string) error <span class="cov10" title="28
 }
 </pre>
 		
-		<pre class="file" id="file24" style="display: none">package version
+		<pre class="file" id="file25" style="display: none">package version
 
 import (
         "runtime"
