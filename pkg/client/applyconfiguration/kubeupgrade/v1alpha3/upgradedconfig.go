@@ -5,14 +5,15 @@ package v1alpha3
 // UpgradedConfigApplyConfiguration represents a declarative configuration of the UpgradedConfig type for use
 // with apply.
 type UpgradedConfigApplyConfiguration struct {
-	Stream         *string `json:"stream,omitempty"`
-	FleetlockURL   *string `json:"fleetlockUrl,omitempty"`
-	FleetlockGroup *string `json:"fleetlockGroup,omitempty"`
-	CheckInterval  *string `json:"checkInterval,omitempty"`
-	RetryInterval  *string `json:"retryInterval,omitempty"`
-	LogLevel       *string `json:"logLevel,omitempty"`
-	KubeletConfig  *string `json:"kubeletConfig,omitempty"`
-	KubeadmPath    *string `json:"kubeadmPath,omitempty"`
+	Stream                    *string `json:"stream,omitempty"`
+	FleetlockURL              *string `json:"fleetlockUrl,omitempty"`
+	FleetlockGroup            *string `json:"fleetlockGroup,omitempty"`
+	CheckInterval             *string `json:"checkInterval,omitempty"`
+	RetryInterval             *string `json:"retryInterval,omitempty"`
+	LogLevel                  *string `json:"logLevel,omitempty"`
+	KubeletConfig             *string `json:"kubeletConfig,omitempty"`
+	KubeadmPath               *string `json:"kubeadmPath,omitempty"`
+	AllowUnsignedOstreeImages *bool   `json:"allowUnsignedOstreeImages,omitempty"`
 }
 
 // UpgradedConfigApplyConfiguration constructs a declarative configuration of the UpgradedConfig type for use with
@@ -82,5 +83,13 @@ func (b *UpgradedConfigApplyConfiguration) WithKubeletConfig(value string) *Upgr
 // If called multiple times, the KubeadmPath field is set to the value of the last call.
 func (b *UpgradedConfigApplyConfiguration) WithKubeadmPath(value string) *UpgradedConfigApplyConfiguration {
 	b.KubeadmPath = &value
+	return b
+}
+
+// WithAllowUnsignedOstreeImages sets the AllowUnsignedOstreeImages field in the declarative configuration to the given value
+// and returns the receiver, so that objects can be built by chaining "With" function invocations.
+// If called multiple times, the AllowUnsignedOstreeImages field is set to the value of the last call.
+func (b *UpgradedConfigApplyConfiguration) WithAllowUnsignedOstreeImages(value bool) *UpgradedConfigApplyConfiguration {
+	b.AllowUnsignedOstreeImages = &value
 	return b
 }

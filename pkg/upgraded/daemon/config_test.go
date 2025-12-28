@@ -34,6 +34,7 @@ func TestUpdateFromConfigFile(t *testing.T) {
 		assert.Equal("compute", d.Fleetlock().GetGroup(), "Fleetlock group should match")
 		assert.Equal(10*time.Minute, d.CheckInterval(), "Check interval should match")
 		assert.Equal(2*time.Minute, d.RetryInterval(), "Retry interval should match")
+		assert.True(d.allowUnsignedOstreeImages, "Allow unsigned ostree images should match")
 	})
 }
 
@@ -43,8 +44,9 @@ func TestUpdateFromConfig(t *testing.T) {
 
 		d := &daemon{}
 		cfg := &api.UpgradedConfig{
-			Stream:       "registry.example.com/fcos-k8s",
-			FleetlockURL: "https://fleetlock.example.com",
+			Stream:                    "registry.example.com/fcos-k8s",
+			FleetlockURL:              "https://fleetlock.example.com",
+			AllowUnsignedOstreeImages: true,
 		}
 		api.SetObjectDefaults_UpgradedConfig(cfg)
 
@@ -57,6 +59,7 @@ func TestUpdateFromConfig(t *testing.T) {
 		retryInterval, _ := time.ParseDuration(cfg.RetryInterval)
 		assert.Equal(checkInterval, d.CheckInterval(), "Check interval should match")
 		assert.Equal(retryInterval, d.RetryInterval(), "Retry interval should match")
+		assert.Equal(cfg.AllowUnsignedOstreeImages, d.allowUnsignedOstreeImages, "Allow unsigned ostree images should match")
 	})
 	tMatrix := []struct {
 		Name string
@@ -96,6 +99,7 @@ func TestUpdateFromConfig(t *testing.T) {
 			assert.Nil(d.Fleetlock(), "Should not update fleetlock client")
 			assert.Zero(d.CheckInterval(), "Should not update check interval")
 			assert.Zero(d.RetryInterval(), "Should not update retry interval")
+			assert.False(d.allowUnsignedOstreeImages, "Should not update allow unsigned ostree images")
 		})
 	}
 

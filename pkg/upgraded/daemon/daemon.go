@@ -28,10 +28,11 @@ var (
 type daemon struct {
 	cfgPath string
 
-	stream        string
-	fleetlock     *fleetlock.FleetlockClient
-	checkInterval time.Duration
-	retryInterval time.Duration
+	stream                    string
+	fleetlock                 *fleetlock.FleetlockClient
+	checkInterval             time.Duration
+	retryInterval             time.Duration
+	allowUnsignedOstreeImages bool
 
 	rpmostree *rpmostree.RPMOStreeCMD
 	kubeadm   *kubeadm.KubeadmCMD

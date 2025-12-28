@@ -48,6 +48,7 @@ func (d *daemon) updateFromConfig(cfg *api.UpgradedConfig) error {
 	d.fleetlock = fleetlockClient
 	d.checkInterval = checkInterval
 	d.retryInterval = retryInterval
+	d.allowUnsignedOstreeImages = cfg.AllowUnsignedOstreeImages
 
 	slog.Info("Finished updating configuration")
 	return nil

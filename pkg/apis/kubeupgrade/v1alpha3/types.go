@@ -131,6 +131,10 @@ type UpgradedConfig struct {
 	// +optional
 	// +kubebuilder:example="/usr/bin/kubeadm"
 	KubeadmPath string `json:"kubeadmPath,omitempty"`
+
+	// Allow unsigned ostree images for rebase. It is recommended to use signed images instead.
+	// +optional
+	AllowUnsignedOstreeImages bool `json:"allowUnsignedOstreeImages,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
