@@ -83,7 +83,7 @@
 				
 				<option value="file13">github.com/heathcliff26/kube-upgrade/pkg/upgraded/config/errors.go (50.0%)</option>
 				
-				<option value="file14">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/config.go (90.0%)</option>
+				<option value="file14">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/config.go (90.2%)</option>
 				
 				<option value="file15">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (56.8%)</option>
 				
@@ -99,7 +99,7 @@
 				
 				<option value="file21">github.com/heathcliff26/kube-upgrade/pkg/upgraded/root.go (16.1%)</option>
 				
-				<option value="file22">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/rpm-ostree.go (87.8%)</option>
+				<option value="file22">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/rpm-ostree.go (88.6%)</option>
 				
 				<option value="file23">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/utils.go (100.0%)</option>
 				
@@ -254,18 +254,18 @@ func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error <span class="cov
         <span class="cov9" title="15">if len(spec.Groups) &lt; 1 </span><span class="cov1" title="1">{
                 return fmt.Errorf("need at least one node group for upgrades")
         }</span>
-        <span class="cov8" title="14">for name, group := range spec.Groups </span><span class="cov9" title="18">{
+        <span class="cov8" title="14">for name, group := range spec.Groups </span><span class="cov9" title="19">{
                 for _, dependency := range group.DependsOn </span><span class="cov6" title="6">{
                         if _, ok := spec.Groups[dependency]; !ok </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" depends on non-existing group \"%s\"", name, dependency)
                         }</span>
                 }
 
-                <span class="cov9" title="17">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
+                <span class="cov9" title="18">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
                         return fmt.Errorf("group \"%s\" needs at least one label selector", name)
                 }</span>
 
-                <span class="cov9" title="16">if group.Upgraded != nil </span><span class="cov3" title="2">{
+                <span class="cov9" title="17">if group.Upgraded != nil </span><span class="cov3" title="2">{
                         err := ValidateObject_UpgradedConfig(*group.Upgraded)
                         if err != nil </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" has an invalid upgraded config: %v", name, err)
@@ -1491,6 +1491,7 @@ func (d *daemon) updateFromConfig(cfg *api.UpgradedConfig) error <span class="co
         d.fleetlock = fleetlockClient
         d.checkInterval = checkInterval
         d.retryInterval = retryInterval
+        d.allowUnsignedOstreeImages = cfg.AllowUnsignedOstreeImages
 
         slog.Info("Finished updating configuration")
         return nil</span>
@@ -1611,10 +1612,11 @@ var (
 type daemon struct {
         cfgPath string
 
-        stream        string
-        fleetlock     *fleetlock.FleetlockClient
-        checkInterval time.Duration
-        retryInterval time.Duration
+        stream                    string
+        fleetlock                 *fleetlock.FleetlockClient
+        checkInterval             time.Duration
+        retryInterval             time.Duration
+        allowUnsignedOstreeImages bool
 
         rpmostree *rpmostree.RPMOStreeCMD
         kubeadm   *kubeadm.KubeadmCMD
@@ -1908,7 +1910,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error <span class="cov8" title
                 if err != nil </span><span class="cov0" title="0">{
                         return fmt.Errorf("failed to update node status: %v", err)
                 }</span>
-                <span class="cov3" title="2">err = d.rpmostree.Rebase(d.Stream() + ":" + version)
+                <span class="cov3" title="2">err = d.rpmostree.Rebase(d.Stream()+":"+version, d.allowUnsignedOstreeImages)
                 if err != nil </span><span class="cov1" title="1">{
                         return d.returnNodeUpgradeError(fmt.Errorf("failed to rebase node: %v", err))
                 }</span>
@@ -2390,13 +2392,13 @@ type RPMOStreeCMD struct {
 }
 
 // Create a new wrapper for rpm-ostree
-func New(path string) (*RPMOStreeCMD, error) <span class="cov10" title="17">{
+func New(path string) (*RPMOStreeCMD, error) <span class="cov10" title="18">{
         err := utils.CheckExistsAndIsExecutable(path)
         if err != nil </span><span class="cov1" title="1">{
                 return nil, err
         }</span>
 
-        <span class="cov9" title="16">return &amp;RPMOStreeCMD{
+        <span class="cov9" title="17">return &amp;RPMOStreeCMD{
                 binary: path,
         }, nil</span>
 }
@@ -2441,12 +2443,16 @@ func (r *RPMOStreeCMD) Upgrade() error <span class="cov3" title="2">{
 // Rebases the system to the given container image
 //
 // WARNING: Will reboot the system when successful.
-func (r *RPMOStreeCMD) Rebase(image string) error <span class="cov4" title="3">{
+func (r *RPMOStreeCMD) Rebase(image string, unverified bool) error <span class="cov5" title="4">{
         r.mutex.Lock()
         defer r.mutex.Unlock()
 
-        return utils.CreateCMDWithStdout(r.binary, "rebase", "--reboot", "ostree-unverified-registry:"+image).Run()
-}</span>
+        prefix := "ostree-image-signed:docker://"
+        if unverified </span><span class="cov1" title="1">{
+                prefix = "ostree-unverified-registry:"
+        }</span>
+        <span class="cov5" title="4">return utils.CreateCMDWithStdout(r.binary, "rebase", "--reboot", prefix+image).Run()</span>
+}
 
 // Register upgraded as the driver for updates with rpm-ostree.
 // This will prevent the user from calling rpm-ostree directly, unless they bypass the check.
@@ -2519,7 +2525,7 @@ func GetMachineID() (string, error) <span class="cov2" title="2">{
 }
 
 // Create a command that writes to stdout/stderr
-func CreateCMDWithStdout(name string, arg ...string) *exec.Cmd <span class="cov7" title="10">{
+func CreateCMDWithStdout(name string, arg ...string) *exec.Cmd <span class="cov7" title="11">{
         cmd := exec.Command(name, arg...)
         cmd.Stderr = os.Stderr
         cmd.Stdout = os.Stdout
@@ -2536,15 +2542,15 @@ func CreateChrootCMDWithStdout(chrootPath string, name string, arg ...string) *e
 }</span>
 
 // Check if the given file exists and is executable
-func CheckExistsAndIsExecutable(path string) error <span class="cov10" title="28">{
+func CheckExistsAndIsExecutable(path string) error <span class="cov10" title="29">{
         f, err := os.Stat(path)
         if err != nil </span><span class="cov4" title="4">{
                 return err
         }</span>
-        <span class="cov9" title="24">if f.Mode().Perm()&amp;0100 == 0 </span><span class="cov1" title="1">{
+        <span class="cov9" title="25">if f.Mode().Perm()&amp;0100 == 0 </span><span class="cov1" title="1">{
                 return fmt.Errorf("%s is not an executable", path)
         }</span>
-        <span class="cov9" title="23">return nil</span>
+        <span class="cov9" title="24">return nil</span>
 }
 </pre>
 		
