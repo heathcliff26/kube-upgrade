@@ -7,6 +7,7 @@ import (
 	fleetlock "github.com/heathcliff26/fleetlock/pkg/client"
 	rpmostree "github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
@@ -33,15 +34,14 @@ func TestDoUpgrade(t *testing.T) {
 
 	t.Run("LockAlreadyReserved", func(t *testing.T) {
 		assert := assert.New(t)
+		require := require.New(t)
 
 		client, srv := NewFakeFleetlockServer(t, http.StatusLocked)
 		t.Cleanup(func() {
 			srv.Close()
 		})
 		rpmOstreeCMD, err := rpmostree.New("testdata/exit-0.sh")
-		if !assert.NoError(err, "Failed to create rpm-ostree command") {
-			t.FailNow()
-		}
+		require.NoError(err, "Failed to create rpm-ostree command")
 
 		d := fakeDaemon(client, rpmOstreeCMD)
 
@@ -51,15 +51,14 @@ func TestDoUpgrade(t *testing.T) {
 	})
 	t.Run("FailedOstreeUpgrade", func(t *testing.T) {
 		assert := assert.New(t)
+		require := require.New(t)
 
 		client, srv := NewFakeFleetlockServer(t, http.StatusOK)
 		t.Cleanup(func() {
 			srv.Close()
 		})
 		rpmOstreeCMD, err := rpmostree.New("testdata/exit-1.sh")
-		if !assert.NoError(err, "Failed to create rpm-ostree command") {
-			t.FailNow()
-		}
+		require.NoError(err, "Failed to create rpm-ostree command")
 
 		d := fakeDaemon(client, rpmOstreeCMD)
 
@@ -70,15 +69,14 @@ func TestDoUpgrade(t *testing.T) {
 	// This case is kinda sketchy, as in reality the system would reboot on success, thus the method should never return
 	t.Run("Success", func(t *testing.T) {
 		assert := assert.New(t)
+		require := require.New(t)
 
 		client, srv := NewFakeFleetlockServer(t, http.StatusOK)
 		t.Cleanup(func() {
 			srv.Close()
 		})
 		rpmOstreeCMD, err := rpmostree.New("testdata/exit-0.sh")
-		if !assert.NoError(err, "Failed to create rpm-ostree command") {
-			t.FailNow()
-		}
+		require.NoError(err, "Failed to create rpm-ostree command")
 
 		d := fakeDaemon(client, rpmOstreeCMD)
 

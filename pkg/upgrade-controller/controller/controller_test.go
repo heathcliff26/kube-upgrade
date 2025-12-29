@@ -8,6 +8,7 @@ import (
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 	upgradedconfig "github.com/heathcliff26/kube-upgrade/pkg/upgraded/config"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -468,21 +469,15 @@ func TestReconcile(t *testing.T) {
 			c := createFakeController(tCase.AnnotationsControl, tCase.AnnotationsCompute, tCase.AnnotationsInfra, &tCase.Plan)
 
 			assert := assert.New(t)
+			require := require.New(t)
 
 			ctx := t.Context()
 
 			err := c.reconcile(ctx, &tCase.Plan, slog.Default())
 
-			if !assert.NoError(err, "Reconcile should succeed") {
-				t.FailNow()
-			}
-
+			require.NoError(err, "Reconcile should succeed")
 			assert.Equal(tCase.ExpectedSummary, tCase.Plan.Status.Summary, "Summary should be correct")
-
-			if !assert.Equal(len(tCase.Plan.Spec.Groups), len(tCase.Plan.Status.Groups), "Group lengths should match") {
-				t.FailNow()
-			}
-
+			require.Equal(len(tCase.Plan.Spec.Groups), len(tCase.Plan.Status.Groups), "Group lengths should match")
 			assert.Equal(tCase.ExpectedGroupStatus, tCase.Plan.Status.Groups, "Group status should match")
 
 			nodeControl, nodeCompute, nodeInfra := &corev1.Node{}, &corev1.Node{}, &corev1.Node{}
