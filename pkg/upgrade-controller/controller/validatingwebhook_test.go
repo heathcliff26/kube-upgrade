@@ -5,6 +5,7 @@ import (
 
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -181,10 +182,9 @@ func TestValidate(t *testing.T) {
 	for _, tCase := range tMatrix {
 		t.Run(tCase.Name, func(t *testing.T) {
 			assert := assert.New(t)
+			require := require.New(t)
 
-			if !assert.NoError((&planMutatingHook{}).Default(t.Context(), tCase.Plan), "Should add defaults to plan") {
-				t.FailNow()
-			}
+			require.NoError((&planMutatingHook{}).Default(t.Context(), tCase.Plan), "Should add defaults to plan")
 
 			warn, err := (&planValidatingHook{}).validate(tCase.Plan)
 

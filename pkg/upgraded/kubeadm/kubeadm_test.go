@@ -68,11 +68,10 @@ func TestNewFromVersion(t *testing.T) {
 
 func TestApply(t *testing.T) {
 	assert := assert.New(t)
+	require := require.New(t)
 
 	cmd, err := NewFromPath("", "testdata/print-args.sh")
-	if !assert.NoError(err, "Should create a command") {
-		t.FailNow()
-	}
+	require.NoError(err, "Should create a command")
 
 	actualStdout := os.Stdout
 	rOut, wOut, _ := os.Pipe()

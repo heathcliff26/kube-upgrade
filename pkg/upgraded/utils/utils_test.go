@@ -77,14 +77,13 @@ func TestCheckExistsAndIsExecutable(t *testing.T) {
 	for _, tCase := range tMatrix {
 		t.Run(tCase.Name, func(t *testing.T) {
 			assert := assert.New(t)
+			require := require.New(t)
 
 			testfilePath := "/tmp/kube-upgrade-testfile." + tCase.Name
 
 			if tCase.Perms != 0 {
 				err := os.WriteFile(testfilePath, []byte("#!/bin/bash"), tCase.Perms)
-				if !assert.NoError(err, "Should create test file") {
-					t.FailNow()
-				}
+				require.NoError(err, "Should create test file")
 				t.Cleanup(func() {
 					err := os.Remove(testfilePath)
 					if err != nil {
