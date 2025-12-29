@@ -17,6 +17,15 @@ RUN GOOS=linux GOARCH="${TARGETARCH}" hack/build.sh upgraded
 ###############################################################################
 
 ###############################################################################
+# BEGIN cosign-bin
+# Compile the binary
+FROM ghcr.io/sigstore/cosign/cosign:v3.0.3 as cosign-bin
+
+#
+# END cosign-bin
+###############################################################################
+
+###############################################################################
 # BEGIN final-stage
 # Create final docker image
 FROM quay.io/fedora/fedora:43 AS final-stage
@@ -32,6 +41,8 @@ RUN dnf install -y --setopt=install_weak_deps=False \
     dnf clean -y all
 
 WORKDIR /
+
+COPY --from=cosign-bin /ko-app/cosign /usr/local/bin/cosign
 
 COPY --from=build-stage /app/bin/upgraded /app/cmd/upgraded/start-upgraded.sh /
 

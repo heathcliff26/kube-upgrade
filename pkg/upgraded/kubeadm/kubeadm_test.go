@@ -20,20 +20,50 @@ func TestNewFromPath(t *testing.T) {
 	assert.NoError(err, "Should succeed")
 	assert.NotNil(cmd, "Should return a command")
 	assert.Equal("version --output short", cmd.version, "Should have set the version without newline")
+
+	cmd, err = NewFromPath("", "testdata/exit-1.sh")
+	assert.Error(err, "Should not succeed")
+	assert.Nil(cmd, "Should not return a command")
 }
 
 func TestNewFromVersion(t *testing.T) {
-	require := require.New(t)
+	oldCosignBinary := CosignBinary
+	CosignBinary = "../../../bin/cosign"
+	t.Cleanup(func() {
+		CosignBinary = oldCosignBinary
+	})
 
-	tmpDir := t.TempDir()
+	t.Run("Download", func(t *testing.T) {
+		t.Parallel()
+		require := require.New(t)
+		tmpDir := t.TempDir()
 
-	cmd, err := NewFromVersion(tmpDir, "v1.35.0")
-	require.NoError(err, "Should create a command")
-	require.Equal("v1.35.0", cmd.Version(), "Downloaded version should match")
+		cmd, err := NewFromVersion(tmpDir, "v1.35.0")
+		require.NoError(err, "Should create a command")
+		require.Equal("v1.35.0", cmd.Version(), "Downloaded version should match")
+	})
+	t.Run("DownloadFails", func(t *testing.T) {
+		t.Parallel()
+		require := require.New(t)
+		tmpDir := t.TempDir()
 
-	cmd, err = NewFromVersion(tmpDir, "invalid-version")
-	require.Error(err, "Should fail to download invalid version")
-	require.Nil(cmd, "Should not return a command")
+		cmd, err := NewFromVersion(tmpDir, "invalid-version")
+		require.Error(err, "Should fail to download invalid version")
+		require.Nil(cmd, "Should not return a command")
+	})
+	t.Run("CosignError", func(t *testing.T) {
+		oldCosignBinary := CosignBinary
+		CosignBinary = "testdata/exit-1.sh"
+		t.Cleanup(func() {
+			CosignBinary = oldCosignBinary
+		})
+		assert := assert.New(t)
+		tmpDir := t.TempDir()
+
+		cmd, err := NewFromVersion(tmpDir, "v1.35.0")
+		assert.ErrorContains(err, "invalid kubeadm binary:", "Should fail due to cosign error")
+		assert.Nil(cmd, "Should not return a command")
+	})
 }
 
 func TestApply(t *testing.T) {

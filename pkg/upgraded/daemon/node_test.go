@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
+	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm"
 	rpmostree "github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree"
 	"github.com/heathcliff26/kube-upgrade/pkg/version"
 	"github.com/stretchr/testify/assert"
@@ -125,9 +126,12 @@ func TestDoNodeUpgrade(t *testing.T) {
 
 		oldHostPrefix := hostPrefix
 		hostPrefix = ""
+		oldCosignBinary := kubeadm.CosignBinary
+		kubeadm.CosignBinary = "../../../bin/cosign"
 		client, srv := NewFakeFleetlockServer(t, http.StatusOK)
 		t.Cleanup(func() {
 			hostPrefix = oldHostPrefix
+			kubeadm.CosignBinary = oldCosignBinary
 			srv.Close()
 		})
 

@@ -56,6 +56,10 @@ func NewFromVersion(chroot, version string) (*KubeadmCMD, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to download kubeadm binary: %v", err)
 	}
+	err = verifyArtifactWithCosign(kubeadmPathWithChroot, baseURL+".sig", baseURL+".cert")
+	if err != nil {
+		return nil, fmt.Errorf("invalid kubeadm binary: %v", err)
+	}
 	return NewFromPath(chroot, kubeadmPath)
 }
 
