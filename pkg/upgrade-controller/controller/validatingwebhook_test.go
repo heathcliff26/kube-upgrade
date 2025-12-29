@@ -205,6 +205,39 @@ func TestValidate(t *testing.T) {
 		assert.Nil(warn, "Should not return a warning")
 		assert.Error(err, "Should return an error")
 	})
+	t.Run("AllowDowngrade", func(t *testing.T) {
+		assert := assert.New(t)
+		plan := minimumValidPlan.DeepCopy()
+		plan.Spec.AllowDowngrade = true
+
+		warn, err := (&planValidatingHook{}).validate(plan)
+
+		assert.NoError(err, "Plan should be valid")
+		assert.Contains(warn, "AllowDowngrade is set to true, downgrading a cluster is not supported by upstream Kubernetes and likely will cause issues. Use at your own risk.", "Should return downgrade warning")
+	})
+	t.Run("AllowUnsignedOstreeImages", func(t *testing.T) {
+		assert := assert.New(t)
+		msg := "AllowUnsignedOstreeImages is set to true, this lowers security. Consider signing your custom images with cosign."
+		plan := minimumValidPlan.DeepCopy()
+		plan.Spec.Upgraded.AllowUnsignedOstreeImages = true
+
+		warn, err := (&planValidatingHook{}).validate(plan)
+
+		assert.NoError(err, "Plan should be valid")
+		assert.Contains(warn, msg, "Should contain unsigned ostree images warning")
+
+		plan.Spec.Upgraded.AllowUnsignedOstreeImages = false
+		group := plan.Spec.Groups["control-plane"]
+		group.Upgraded = &api.UpgradedConfig{
+			AllowUnsignedOstreeImages: true,
+		}
+		plan.Spec.Groups["control-plane"] = group
+
+		warn, err = (&planValidatingHook{}).validate(plan)
+
+		assert.NoError(err, "Plan should be valid")
+		assert.Contains(warn, msg, "Should contain unsigned ostree images warning")
+	})
 }
 
 func TestValidateCreate(t *testing.T) {

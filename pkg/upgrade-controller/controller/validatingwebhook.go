@@ -30,7 +30,23 @@ func (*planValidatingHook) validate(obj runtime.Object) (admission.Warnings, err
 		return nil, err
 	}
 
-	return nil, nil
+	var warnings []string
+	if plan.Spec.AllowDowngrade {
+		warnings = append(warnings, "AllowDowngrade is set to true, downgrading a cluster is not supported by upstream Kubernetes and likely will cause issues. Use at your own risk.")
+	}
+
+	allowUnsignedOstreeImages := plan.Spec.Upgraded.AllowUnsignedOstreeImages
+	for _, group := range plan.Spec.Groups {
+		if group.Upgraded != nil && group.Upgraded.AllowUnsignedOstreeImages {
+			allowUnsignedOstreeImages = true
+			break
+		}
+	}
+	if allowUnsignedOstreeImages {
+		warnings = append(warnings, "AllowUnsignedOstreeImages is set to true, this lowers security. Consider signing your custom images with cosign.")
+	}
+
+	return warnings, nil
 }
 
 // ValidateCreate validates the object on creation.
