@@ -15,7 +15,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	controllerFake "sigs.k8s.io/controller-runtime/pkg/client/fake"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 const (
@@ -682,29 +681,6 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 		assert.NoError(err, "Should get daemonset without error")
 		assert.Contains(cm.Data[upgradedconfig.DefaultConfigFile], api.DefaultUpgradedStream, "ConfigMap data should be updated")
 	})
-}
-
-func TestFinalizerMigration(t *testing.T) {
-	assert := assert.New(t)
-
-	plan := &api.KubeUpgradePlan{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "upgrade-plan",
-		},
-		Spec: api.KubeUpgradeSpec{
-			KubernetesVersion: "v1.31.0",
-			Groups: map[string]api.KubeUpgradePlanGroup{
-				groupControl: {
-					Labels: map[string]string{labelControl: labelValue},
-				},
-			},
-		},
-	}
-	controllerutil.AddFinalizer(plan, constants.Finalizer)
-	c := createFakeController(nil, nil, nil, plan)
-
-	assert.NoError(c.reconcile(t.Context(), plan, slog.Default()), "First reconcile should succeed")
-	assert.NotContains(plan.GetFinalizers(), constants.Finalizer, "Plan should not have finalizer after first reconcile")
 }
 
 func createFakeController(annotationsControl, annotationsCompute, annotationsInfra map[string]string, plan *api.KubeUpgradePlan) *controller {

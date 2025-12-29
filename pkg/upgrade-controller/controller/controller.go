@@ -15,7 +15,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
@@ -147,16 +146,6 @@ func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, logger *slog.Logger) error {
 	if plan.Status.Groups == nil {
 		plan.Status.Groups = make(map[string]string, len(plan.Spec.Groups))
-	}
-
-	// Migration from v0.6.0: Remove the finalizer as it is not needed
-	// TODO: Remove in future release
-	if controllerutil.RemoveFinalizer(plan, constants.Finalizer) {
-		logger.Debug("Removing finalizer from plan")
-		err := c.Update(ctx, plan)
-		if err != nil {
-			return fmt.Errorf("failed to remove finalizer from plan %s: %v", plan.Name, err)
-		}
 	}
 
 	cmList := &corev1.ConfigMapList{}

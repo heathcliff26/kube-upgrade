@@ -28,6 +28,3 @@ const (
 const (
 	ControllerResourceHash = ControllerPrefix + "checksum"
 )
-
-// TODO: Remove in future release when migration code is removed
-const Finalizer = BaseDomain + "finalizer"
