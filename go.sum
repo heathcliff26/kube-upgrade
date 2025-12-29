@@ -79,8 +79,8 @@ github.com/hashicorp/go-hclog v1.6.3 h1:Qr2kF+eVWjTiYmU7Y31tYlP1h0q/X3Nl3tPGdaB1
 github.com/hashicorp/go-hclog v1.6.3/go.mod h1:W4Qnvbt70Wk/zYJryRzDRU/4r0kIg0PVHBcfoyhpF5M=
 github.com/hashicorp/go-retryablehttp v0.7.7 h1:C8hUCYzor8PIfXHa4UrZkU4VvK8o9ISHxT2Q8+VepXU=
 github.com/hashicorp/go-retryablehttp v0.7.7/go.mod h1:pkQpWZeYWskR+D1tR2O5OcBFOxfA7DoAO6xtkuQnHTk=
-github.com/heathcliff26/fleetlock v1.9.0 h1:SqVtM3DWXwB8UaHDmlyxyFdskx7T8IF09F1WhuzB0EI=
-github.com/heathcliff26/fleetlock v1.9.0/go.mod h1:/ZFKv1a8OupSFtTQ7KWv2j6l5DmjJc5O+v6f0Api+i4=
+github.com/heathcliff26/fleetlock v1.9.1 h1:WU6UL1lTHO0oZfqSKRyhU4PlmIFXcAlOiL7/T6C7+34=
+github.com/heathcliff26/fleetlock v1.9.1/go.mod h1:Vh9MnW7i8GnErpgotjy+cB/c1ynYVYJ1GMgKie7WfZg=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/josharian/intern v1.0.0 h1:vlS4z54oSdjm0bgjRigI+G1HpF+tI+9rE5LLzOg8HmY=

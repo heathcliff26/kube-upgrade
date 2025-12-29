@@ -77,7 +77,7 @@ github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-retryablehttp v0.7.7
 ## explicit; go 1.19
 github.com/hashicorp/go-retryablehttp
-# github.com/heathcliff26/fleetlock v1.9.0
+# github.com/heathcliff26/fleetlock v1.9.1
 ## explicit; go 1.24.0
 github.com/heathcliff26/fleetlock/pkg/api
 github.com/heathcliff26/fleetlock/pkg/client
