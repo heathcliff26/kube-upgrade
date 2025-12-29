@@ -5,8 +5,10 @@ package v1alpha3
 // KubeUpgradeStatusApplyConfiguration represents a declarative configuration of the KubeUpgradeStatus type for use
 // with apply.
 type KubeUpgradeStatusApplyConfiguration struct {
-	Summary *string           `json:"summary,omitempty"`
-	Groups  map[string]string `json:"groups,omitempty"`
+	// A summary of the overall status of the cluster
+	Summary *string `json:"summary,omitempty"`
+	// The current status of each group
+	Groups map[string]string `json:"groups,omitempty"`
 }
 
 // KubeUpgradeStatusApplyConfiguration constructs a declarative configuration of the KubeUpgradeStatus type for use with

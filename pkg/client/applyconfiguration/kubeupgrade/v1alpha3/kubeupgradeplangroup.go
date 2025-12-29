@@ -9,10 +9,15 @@ import (
 // KubeUpgradePlanGroupApplyConfiguration represents a declarative configuration of the KubeUpgradePlanGroup type for use
 // with apply.
 type KubeUpgradePlanGroupApplyConfiguration struct {
-	DependsOn   []string                          `json:"dependsOn,omitempty"`
-	Labels      map[string]string                 `json:"labels,omitempty"`
-	Tolerations []v1.Toleration                   `json:"tolerations,omitempty"`
-	Upgraded    *UpgradedConfigApplyConfiguration `json:"upgraded,omitempty"`
+	// Specify group(s) that should be upgraded first.
+	// Should be used to ensure control-plane nodes are upgraded first.
+	DependsOn []string `json:"dependsOn,omitempty"`
+	// The labels by which to filter nodes for this group
+	Labels map[string]string `json:"labels,omitempty"`
+	// Enable the upgraded pods to be scheduled on tainted nodes like control-planes.
+	Tolerations []v1.Toleration `json:"tolerations,omitempty"`
+	// The configuration for all upgraded daemons in the group. Overwrites global parameters.
+	Upgraded *UpgradedConfigApplyConfiguration `json:"upgraded,omitempty"`
 }
 
 // KubeUpgradePlanGroupApplyConfiguration constructs a declarative configuration of the KubeUpgradePlanGroup type for use with
