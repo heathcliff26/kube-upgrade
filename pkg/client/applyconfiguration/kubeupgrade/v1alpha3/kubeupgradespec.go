@@ -5,10 +5,17 @@ package v1alpha3
 // KubeUpgradeSpecApplyConfiguration represents a declarative configuration of the KubeUpgradeSpec type for use
 // with apply.
 type KubeUpgradeSpecApplyConfiguration struct {
-	KubernetesVersion *string                                           `json:"kubernetesVersion,omitempty"`
-	AllowDowngrade    *bool                                             `json:"allowDowngrade,omitempty"`
-	Groups            map[string]KubeUpgradePlanGroupApplyConfiguration `json:"groups,omitempty"`
-	Upgraded          *UpgradedConfigApplyConfiguration                 `json:"upgraded,omitempty"`
+	// The kubernetes version the cluster should be at.
+	// If the actual version differs, the cluster will be upgraded.
+	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
+	// Allow downgrading to older kubernetes versions.
+	// Only enable if you know what you are doing.
+	AllowDowngrade *bool `json:"allowDowngrade,omitempty"`
+	// The different groups in which the nodes will be upgraded.
+	// At minimum needs to separate control-plane from compute nodes, to ensure that control-plane nodes will be upgraded first.
+	Groups map[string]KubeUpgradePlanGroupApplyConfiguration `json:"groups,omitempty"`
+	// The configuration for all upgraded daemons. Can be overwritten by group specific config.
+	Upgraded *UpgradedConfigApplyConfiguration `json:"upgraded,omitempty"`
 }
 
 // KubeUpgradeSpecApplyConfiguration constructs a declarative configuration of the KubeUpgradeSpec type for use with

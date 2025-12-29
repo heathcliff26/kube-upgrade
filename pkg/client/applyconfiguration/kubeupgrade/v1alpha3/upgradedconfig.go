@@ -5,15 +5,24 @@ package v1alpha3
 // UpgradedConfigApplyConfiguration represents a declarative configuration of the UpgradedConfig type for use
 // with apply.
 type UpgradedConfigApplyConfiguration struct {
-	Stream                    *string `json:"stream,omitempty"`
-	FleetlockURL              *string `json:"fleetlockUrl,omitempty"`
-	FleetlockGroup            *string `json:"fleetlockGroup,omitempty"`
-	CheckInterval             *string `json:"checkInterval,omitempty"`
-	RetryInterval             *string `json:"retryInterval,omitempty"`
-	LogLevel                  *string `json:"logLevel,omitempty"`
-	KubeletConfig             *string `json:"kubeletConfig,omitempty"`
-	KubeadmPath               *string `json:"kubeadmPath,omitempty"`
-	AllowUnsignedOstreeImages *bool   `json:"allowUnsignedOstreeImages,omitempty"`
+	// The container image repository for os rebases
+	Stream *string `json:"stream,omitempty"`
+	// URL for the fleetlock server. Is required to be set globally.
+	FleetlockURL *string `json:"fleetlockUrl,omitempty"`
+	// The group to use for fleetlock
+	FleetlockGroup *string `json:"fleetlockGroup,omitempty"`
+	// The interval between regular checks
+	CheckInterval *string `json:"checkInterval,omitempty"`
+	// The interval between retries when an operation fails
+	RetryInterval *string `json:"retryInterval,omitempty"`
+	// The log level used by slog, default "info"
+	LogLevel *string `json:"logLevel,omitempty"`
+	// The path to the kubelet config file on the node
+	KubeletConfig *string `json:"kubeletConfig,omitempty"`
+	// The path to the kubeadm binary on the node. Upgraded will download kubeadm if no path is provided.
+	KubeadmPath *string `json:"kubeadmPath,omitempty"`
+	// Allow unsigned ostree images for rebase. It is recommended to use signed images instead.
+	AllowUnsignedOstreeImages *bool `json:"allowUnsignedOstreeImages,omitempty"`
 }
 
 // UpgradedConfigApplyConfiguration constructs a declarative configuration of the UpgradedConfig type for use with

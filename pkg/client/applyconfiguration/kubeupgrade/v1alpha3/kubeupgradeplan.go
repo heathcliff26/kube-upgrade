@@ -27,6 +27,7 @@ func KubeUpgradePlan(name, namespace string) *KubeUpgradePlanApplyConfiguration 
 	b.WithAPIVersion("kubeupgrade.heathcliff.eu/v1alpha3")
 	return b
 }
+
 func (b KubeUpgradePlanApplyConfiguration) IsApplyConfiguration() {}
 
 // WithKind sets the Kind field in the declarative configuration to the given value
