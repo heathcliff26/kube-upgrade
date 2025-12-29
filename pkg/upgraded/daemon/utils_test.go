@@ -17,7 +17,6 @@ func TestNodeName(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		assert := assert.New(t)
 
-		client := fake.NewSimpleClientset()
 		node := &corev1.Node{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "testnode",
@@ -28,8 +27,8 @@ func TestNodeName(t *testing.T) {
 				},
 			},
 		}
-		t.Setenv(NodeNameEnv, "testnode")
-		_, _ = client.CoreV1().Nodes().Create(t.Context(), node, metav1.CreateOptions{})
+		client := fake.NewClientset(node)
+		t.Setenv(NodeNameEnv, node.GetName())
 
 		res, err := nodeName(client, "1234567890")
 
@@ -39,7 +38,7 @@ func TestNodeName(t *testing.T) {
 	t.Run("EnviromentVariableEmpty", func(t *testing.T) {
 		assert := assert.New(t)
 
-		client := fake.NewSimpleClientset()
+		client := fake.NewClientset()
 		t.Setenv(NodeNameEnv, "")
 
 		res, err := nodeName(client, "1234567890")
@@ -50,7 +49,7 @@ func TestNodeName(t *testing.T) {
 	t.Run("NodeDoesNotExist", func(t *testing.T) {
 		assert := assert.New(t)
 
-		client := fake.NewSimpleClientset()
+		client := fake.NewClientset()
 		t.Setenv(NodeNameEnv, "testnode")
 
 		res, err := nodeName(client, "1234567890")
@@ -61,7 +60,6 @@ func TestNodeName(t *testing.T) {
 	t.Run("MachineIDDoesNotMatch", func(t *testing.T) {
 		assert := assert.New(t)
 
-		client := fake.NewSimpleClientset()
 		node := &corev1.Node{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "testnode",
@@ -72,8 +70,8 @@ func TestNodeName(t *testing.T) {
 				},
 			},
 		}
-		t.Setenv(NodeNameEnv, "testnode")
-		_, _ = client.CoreV1().Nodes().Create(t.Context(), node, metav1.CreateOptions{})
+		client := fake.NewClientset(node)
+		t.Setenv(NodeNameEnv, node.GetName())
 
 		res, err := nodeName(client, "1234567890")
 

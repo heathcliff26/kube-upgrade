@@ -1,7 +1,6 @@
 package daemon
 
 import (
-	"context"
 	"net/http"
 	"testing"
 	"time"
@@ -18,11 +17,10 @@ import (
 )
 
 func TestDoNodeUpgradeWithRetry(t *testing.T) {
-	ctx, cancel := context.WithCancel(t.Context())
 	d := &daemon{
-		client:        fake.NewSimpleClientset(),
+		client:        fake.NewClientset(),
 		node:          "not-a-node",
-		ctx:           ctx,
+		ctx:           t.Context(),
 		retryInterval: time.Second,
 	}
 
@@ -32,7 +30,6 @@ func TestDoNodeUpgradeWithRetry(t *testing.T) {
 		d.doNodeUpgradeWithRetry(nil)
 		done <- struct{}{}
 	}()
-	t.Cleanup(cancel)
 
 	select {
 	case <-done:
@@ -160,7 +157,7 @@ func TestUpdateNodeStatus(t *testing.T) {
 
 			ctx := t.Context()
 
-			c := fake.NewSimpleClientset()
+			c := fake.NewClientset()
 			d := &daemon{
 				client: c,
 				ctx:    ctx,
@@ -184,21 +181,17 @@ func TestUpdateNodeStatus(t *testing.T) {
 }
 
 func TestAnnotateNodeWithUpgradedVersion(t *testing.T) {
-	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
-	t.Cleanup(cancel)
-
-	d := &daemon{
-		ctx:    ctx,
-		client: fake.NewSimpleClientset(),
-		node:   "testnode",
-	}
-
+	ctx := t.Context()
 	node := &corev1.Node{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: d.node,
+			Name: "testnode",
 		},
 	}
-	node, _ = d.client.CoreV1().Nodes().Create(ctx, node, metav1.CreateOptions{})
+	d := &daemon{
+		ctx:    ctx,
+		client: fake.NewClientset(node),
+		node:   node.GetName(),
+	}
 
 	assert := assert.New(t)
 
@@ -300,11 +293,9 @@ func newTestDoNodeUpgradeSetup(t *testing.T, nodeStatus string) (*daemon, *corev
 	d := &daemon{
 		ctx:       t.Context(),
 		fleetlock: client,
-		client:    fake.NewSimpleClientset(),
+		client:    fake.NewClientset(node),
 		node:      node.GetName(),
 	}
-
-	node, _ = d.client.CoreV1().Nodes().Create(t.Context(), node, metav1.CreateOptions{})
 
 	return d, node
 }
