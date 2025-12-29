@@ -15,21 +15,17 @@ import (
 
 func TestDoUpgrade(t *testing.T) {
 	fakeDaemon := func(fleetlock *fleetlock.FleetlockClient, rpmostree *rpmostree.RPMOStreeCMD) *daemon {
-		d := &daemon{
-			fleetlock: fleetlock,
-			rpmostree: rpmostree,
-			node:      "testnode",
-			client:    fake.NewSimpleClientset(),
-		}
-
 		node := &corev1.Node{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: d.node,
+				Name: "testnode",
 			},
 		}
-		_, _ = d.client.CoreV1().Nodes().Create(t.Context(), node, metav1.CreateOptions{})
-
-		return d
+		return &daemon{
+			fleetlock: fleetlock,
+			rpmostree: rpmostree,
+			node:      node.GetName(),
+			client:    fake.NewClientset(node),
+		}
 	}
 
 	t.Run("LockAlreadyReserved", func(t *testing.T) {
