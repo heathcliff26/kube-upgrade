@@ -11,6 +11,7 @@ import (
 	rpmostree "github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree"
 	"github.com/heathcliff26/kube-upgrade/pkg/version"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
@@ -65,62 +66,40 @@ func TestDoNodeUpgrade(t *testing.T) {
 
 		assert.ErrorContains(err, "failed to acquire lock:")
 	})
-	for name, succeed := range map[string]bool{
-		"FailedOstreeRebase":    false,
-		"SucceededOstreeRebase": true,
-	} {
-		t.Run(name, func(t *testing.T) {
-			assert := assert.New(t)
+	t.Run("FailedOstreeRebase", func(t *testing.T) {
+		assert := assert.New(t)
+		require := require.New(t)
 
-			client, srv := NewFakeFleetlockServer(t, http.StatusOK)
-			t.Cleanup(func() {
-				srv.Close()
-			})
+		rpmOstreeCMD, err := rpmostree.New("testdata/exit-1.sh")
+		require.NoError(err, "Failed to create rpm-ostree command")
 
-			path := "testdata/exit-1.sh"
-			if succeed {
-				path = "testdata/exit-0.sh"
-			}
-			rpmOstreeCMD, err := rpmostree.New(path)
-			if !assert.NoError(err, "Failed to create rpm-ostree command") {
-				t.FailNow()
-			}
+		d, node := newTestDoNodeUpgradeSetup(t, constants.NodeUpgradeStatusRebasing)
+		d.rpmostree = rpmOstreeCMD
 
-			ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
-			t.Cleanup(cancel)
+		err = d.doNodeUpgrade(node)
 
-			d := &daemon{
-				ctx:       ctx,
-				fleetlock: client,
-				rpmostree: rpmOstreeCMD,
-				client:    fake.NewSimpleClientset(),
-				node:      "testnode",
-			}
+		node, _ = d.client.CoreV1().Nodes().Get(t.Context(), node.GetName(), metav1.GetOptions{})
 
-			node := &corev1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: d.node,
-					Annotations: map[string]string{
-						constants.NodeKubernetesVersion: "v1.31.0",
-						constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusRebasing,
-					},
-				},
-			}
-			node, _ = d.client.CoreV1().Nodes().Create(ctx, node, metav1.CreateOptions{})
+		assert.Error(err, "Should exit with error")
+		assert.Equal(constants.NodeUpgradeStatusError, node.Annotations[constants.NodeUpgradeStatus], "Should have set correct node status")
+	})
+	t.Run("SucceededOstreeRebase", func(t *testing.T) {
+		assert := assert.New(t)
+		require := require.New(t)
 
-			err = d.doNodeUpgrade(node)
+		rpmOstreeCMD, err := rpmostree.New("testdata/exit-0.sh")
+		require.NoError(err, "Failed to create rpm-ostree command")
 
-			node, _ = d.client.CoreV1().Nodes().Get(ctx, node.GetName(), metav1.GetOptions{})
+		d, node := newTestDoNodeUpgradeSetup(t, constants.NodeUpgradeStatusRebasing)
+		d.rpmostree = rpmOstreeCMD
 
-			if succeed {
-				assert.NoError(err, "Should exit without error")
-				assert.Equal(constants.NodeUpgradeStatusRebasing, node.Annotations[constants.NodeUpgradeStatus], "Should have set correct node status")
-			} else {
-				assert.Error(err, "Should exit with error")
-				assert.Equal(constants.NodeUpgradeStatusError, node.Annotations[constants.NodeUpgradeStatus], "Should have set correct node status")
-			}
-		})
-	}
+		err = d.doNodeUpgrade(node)
+
+		node, _ = d.client.CoreV1().Nodes().Get(t.Context(), node.GetName(), metav1.GetOptions{})
+
+		assert.NoError(err, "Should exit without error")
+		assert.Equal(constants.NodeUpgradeStatusRebasing, node.Annotations[constants.NodeUpgradeStatus], "Should have set correct node status")
+	})
 	t.Run("FailedKubeadmUpgrade", func(t *testing.T) {
 		assert := assert.New(t)
 
@@ -128,37 +107,16 @@ func TestDoNodeUpgrade(t *testing.T) {
 		hostPrefix = ""
 		oldCosignBinary := kubeadm.CosignBinary
 		kubeadm.CosignBinary = "../../../bin/cosign"
-		client, srv := NewFakeFleetlockServer(t, http.StatusOK)
 		t.Cleanup(func() {
 			hostPrefix = oldHostPrefix
 			kubeadm.CosignBinary = oldCosignBinary
-			srv.Close()
 		})
 
-		ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
-		t.Cleanup(cancel)
-
-		d := &daemon{
-			ctx:       ctx,
-			fleetlock: client,
-			client:    fake.NewSimpleClientset(),
-			node:      "testnode",
-		}
-
-		node := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: d.node,
-				Annotations: map[string]string{
-					constants.NodeKubernetesVersion: "v1.35.0",
-					constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusPending,
-				},
-			},
-		}
-		node, _ = d.client.CoreV1().Nodes().Create(ctx, node, metav1.CreateOptions{})
+		d, node := newTestDoNodeUpgradeSetup(t, constants.NodeUpgradeStatusPending)
 
 		err := d.doNodeUpgrade(node)
 
-		node, _ = d.client.CoreV1().Nodes().Get(ctx, node.GetName(), metav1.GetOptions{})
+		node, _ = d.client.CoreV1().Nodes().Get(t.Context(), node.GetName(), metav1.GetOptions{})
 
 		assert.ErrorContains(err, "failed to fetch kubeadm-config", "Should fail to fetch kubeadm config map")
 		assert.Equal(constants.NodeUpgradeStatusError, node.Annotations[constants.NodeUpgradeStatus], "Should have set correct node status")
@@ -319,4 +277,34 @@ func TestNodeHasCorrectStream(t *testing.T) {
 			assert.Equal(tCase.Result, d.nodeHasCorrectStream(node), "Should return correct result")
 		})
 	}
+}
+
+func newTestDoNodeUpgradeSetup(t *testing.T, nodeStatus string) (*daemon, *corev1.Node) {
+	t.Helper()
+
+	client, srv := NewFakeFleetlockServer(t, http.StatusOK)
+	t.Cleanup(func() {
+		srv.Close()
+	})
+
+	node := &corev1.Node{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "testnode",
+			Annotations: map[string]string{
+				constants.NodeKubernetesVersion: "v1.35.0",
+				constants.NodeUpgradeStatus:     nodeStatus,
+			},
+		},
+	}
+
+	d := &daemon{
+		ctx:       t.Context(),
+		fleetlock: client,
+		client:    fake.NewSimpleClientset(),
+		node:      node.GetName(),
+	}
+
+	node, _ = d.client.CoreV1().Nodes().Create(t.Context(), node, metav1.CreateOptions{})
+
+	return d, node
 }
