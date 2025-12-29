@@ -75,7 +75,7 @@
 				
 				<option value="file9">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/utils.go (94.3%)</option>
 				
-				<option value="file10">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/validatingwebhook.go (94.7%)</option>
+				<option value="file10">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/validatingwebhook.go (96.6%)</option>
 				
 				<option value="file11">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/root.go (21.1%)</option>
 				
@@ -239,33 +239,33 @@ import (
         "golang.org/x/mod/semver"
 )
 
-func ValidateObject_KubeUpgradePlan(plan *KubeUpgradePlan) error <span class="cov10" title="21">{
+func ValidateObject_KubeUpgradePlan(plan *KubeUpgradePlan) error <span class="cov10" title="24">{
         return ValidateObject_KubeUpgradeSpec(plan.Spec)
 }</span>
 
-func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error <span class="cov10" title="21">{
+func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error <span class="cov10" title="24">{
         if !semver.IsValid(spec.KubernetesVersion) </span><span class="cov5" title="5">{
                 return fmt.Errorf("invalid input for spec.kubernetesVersion, \"%s\" is not a valid semantic version", spec.KubernetesVersion)
         }</span>
-        <span class="cov9" title="16">if semver.Prerelease(spec.KubernetesVersion) == "" &amp;&amp; semver.Canonical(spec.KubernetesVersion) != spec.KubernetesVersion </span><span class="cov1" title="1">{
+        <span class="cov9" title="19">if semver.Prerelease(spec.KubernetesVersion) == "" &amp;&amp; semver.Canonical(spec.KubernetesVersion) != spec.KubernetesVersion </span><span class="cov1" title="1">{
                 return fmt.Errorf("invalid input for spec.kubernetesVersion, \"%s\" needs to be a full version like vX.Y.Z", spec.KubernetesVersion)
         }</span>
 
-        <span class="cov9" title="15">if len(spec.Groups) &lt; 1 </span><span class="cov1" title="1">{
+        <span class="cov9" title="18">if len(spec.Groups) &lt; 1 </span><span class="cov1" title="1">{
                 return fmt.Errorf("need at least one node group for upgrades")
         }</span>
-        <span class="cov8" title="14">for name, group := range spec.Groups </span><span class="cov9" title="19">{
+        <span class="cov9" title="17">for name, group := range spec.Groups </span><span class="cov9" title="22">{
                 for _, dependency := range group.DependsOn </span><span class="cov6" title="6">{
                         if _, ok := spec.Groups[dependency]; !ok </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" depends on non-existing group \"%s\"", name, dependency)
                         }</span>
                 }
 
-                <span class="cov9" title="18">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
+                <span class="cov9" title="21">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
                         return fmt.Errorf("group \"%s\" needs at least one label selector", name)
                 }</span>
 
-                <span class="cov9" title="17">if group.Upgraded != nil </span><span class="cov3" title="2">{
+                <span class="cov9" title="20">if group.Upgraded != nil </span><span class="cov4" title="3">{
                         err := ValidateObject_UpgradedConfig(*group.Upgraded)
                         if err != nil </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" has an invalid upgraded config: %v", name, err)
@@ -273,47 +273,47 @@ func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error <span class="cov
                 }
         }
 
-        <span class="cov8" title="11">err := ValidateObject_UpgradedConfig(spec.Upgraded)
-        if err != nil </span><span class="cov5" title="4">{
+        <span class="cov8" title="14">err := ValidateObject_UpgradedConfig(spec.Upgraded)
+        if err != nil </span><span class="cov4" title="4">{
                 return err
         }</span>
-        <span class="cov6" title="7">if spec.Upgraded.FleetlockURL == "" </span><span class="cov1" title="1">{
+        <span class="cov7" title="10">if spec.Upgraded.FleetlockURL == "" </span><span class="cov1" title="1">{
                 return fmt.Errorf("missing parameter spec.upgraded.fleetlockUrl")
         }</span>
 
-        <span class="cov6" title="6">return nil</span>
+        <span class="cov7" title="9">return nil</span>
 }
 
-func ValidateObject_UpgradedConfig(cfg UpgradedConfig) error <span class="cov8" title="13">{
-        if cfg.Stream != "" </span><span class="cov7" title="9">{
+func ValidateObject_UpgradedConfig(cfg UpgradedConfig) error <span class="cov9" title="17">{
+        if cfg.Stream != "" </span><span class="cov8" title="12">{
                 _, err := url.ParseRequestURI("http://" + cfg.Stream)
                 if err != nil </span><span class="cov1" title="1">{
                         return fmt.Errorf("invalid input \"%s\" for stream: %v", cfg.Stream, err)
                 }</span>
         }
 
-        <span class="cov8" title="12">if cfg.FleetlockURL != "" </span><span class="cov7" title="10">{
+        <span class="cov8" title="16">if cfg.FleetlockURL != "" </span><span class="cov8" title="13">{
                 _, err := url.ParseRequestURI(cfg.FleetlockURL)
-                if err != nil </span><span class="cov3" title="2">{
+                if err != nil </span><span class="cov2" title="2">{
                         return fmt.Errorf("invalid input \"%s\" for fleetlockUrl: %v", cfg.FleetlockURL, err)
                 }</span>
         }
 
-        <span class="cov7" title="10">if cfg.CheckInterval != "" </span><span class="cov6" title="7">{
+        <span class="cov8" title="14">if cfg.CheckInterval != "" </span><span class="cov7" title="10">{
                 _, err := time.ParseDuration(cfg.CheckInterval)
                 if err != nil </span><span class="cov1" title="1">{
                         return fmt.Errorf("invalid input \"%s\" for checkInterval: %v", cfg.CheckInterval, err)
                 }</span>
         }
 
-        <span class="cov7" title="9">if cfg.RetryInterval != "" </span><span class="cov6" title="6">{
+        <span class="cov8" title="13">if cfg.RetryInterval != "" </span><span class="cov7" title="9">{
                 _, err := time.ParseDuration(cfg.RetryInterval)
                 if err != nil </span><span class="cov1" title="1">{
                         return fmt.Errorf("invalid input \"%s\" for retryInterval: %v", cfg.RetryInterval, err)
                 }</span>
         }
 
-        <span class="cov7" title="8">return nil</span>
+        <span class="cov8" title="12">return nil</span>
 }
 </pre>
 		
@@ -1202,24 +1202,40 @@ type planValidatingHook struct {
 }
 
 // Validate all values of the plan and check if they are sensible
-func (*planValidatingHook) validate(obj runtime.Object) (admission.Warnings, error) <span class="cov10" title="22">{
+func (*planValidatingHook) validate(obj runtime.Object) (admission.Warnings, error) <span class="cov10" title="25">{
         plan, ok := obj.(*api.KubeUpgradePlan)
         if !ok </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("expected a KubeUpgradePlan but got a %T", obj)
         }</span>
 
-        <span class="cov9" title="21">err := api.ValidateObject_KubeUpgradePlan(plan)
+        <span class="cov9" title="24">err := api.ValidateObject_KubeUpgradePlan(plan)
         if err != nil </span><span class="cov8" title="15">{
                 return nil, err
         }</span>
 
-        <span class="cov6" title="6">return nil, nil</span>
+        <span class="cov7" title="9">var warnings []string
+        if plan.Spec.AllowDowngrade </span><span class="cov1" title="1">{
+                warnings = append(warnings, "AllowDowngrade is set to true, downgrading a cluster is not supported by upstream Kubernetes and likely will cause issues. Use at your own risk.")
+        }</span>
+
+        <span class="cov7" title="9">allowUnsignedOstreeImages := plan.Spec.Upgraded.AllowUnsignedOstreeImages
+        for _, group := range plan.Spec.Groups </span><span class="cov7" title="11">{
+                if group.Upgraded != nil &amp;&amp; group.Upgraded.AllowUnsignedOstreeImages </span><span class="cov1" title="1">{
+                        allowUnsignedOstreeImages = true
+                        break</span>
+                }
+        }
+        <span class="cov7" title="9">if allowUnsignedOstreeImages </span><span class="cov2" title="2">{
+                warnings = append(warnings, "AllowUnsignedOstreeImages is set to true, this lowers security. Consider signing your custom images with cosign.")
+        }</span>
+
+        <span class="cov7" title="9">return warnings, nil</span>
 }
 
 // ValidateCreate validates the object on creation.
 // The optional warnings will be added to the response as warning messages.
 // Return an error if the object is invalid.
-func (p *planValidatingHook) ValidateCreate(ctx context.Context, obj runtime.Object) (admission.Warnings, error) <span class="cov5" title="4">{
+func (p *planValidatingHook) ValidateCreate(ctx context.Context, obj runtime.Object) (admission.Warnings, error) <span class="cov4" title="4">{
         if p.Client == nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("no client provided for validating webhook, please report a bug")
         }</span>
@@ -1234,13 +1250,13 @@ func (p *planValidatingHook) ValidateCreate(ctx context.Context, obj runtime.Obj
                 return nil, fmt.Errorf("KubeUpgradePlan already exists")
         }</span>
 
-        <span class="cov3" title="2">return p.validate(obj)</span>
+        <span class="cov2" title="2">return p.validate(obj)</span>
 }
 
 // ValidateUpdate validates the object on update.
 // The optional warnings will be added to the response as warning messages.
 // Return an error if the object is invalid.
-func (p *planValidatingHook) ValidateUpdate(_ context.Context, _ runtime.Object, newObj runtime.Object) (admission.Warnings, error) <span class="cov3" title="2">{
+func (p *planValidatingHook) ValidateUpdate(_ context.Context, _ runtime.Object, newObj runtime.Object) (admission.Warnings, error) <span class="cov2" title="2">{
         return p.validate(newObj)
 }</span>
 
