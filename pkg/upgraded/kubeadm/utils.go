@@ -6,7 +6,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils"
 )
+
+var CosignBinary = "cosign"
 
 func downloadFile(url, dest string) error {
 	dir := filepath.Dir(dest)
@@ -40,4 +44,15 @@ func downloadFile(url, dest string) error {
 		return fmt.Errorf("failed to download '%s' from '%s': %v", dest, url, err)
 	}
 	return nil
+}
+
+func verifyArtifactWithCosign(blob, sig, cert string) error {
+	args := []string{
+		"verify-blob", blob,
+		"--signature", sig,
+		"--certificate", cert,
+		"--certificate-identity", "krel-staging@k8s-releng-prod.iam.gserviceaccount.com",
+		"--certificate-oidc-issuer", "https://accounts.google.com",
+	}
+	return utils.CreateCMDWithStdout(CosignBinary, args...).Run()
 }
