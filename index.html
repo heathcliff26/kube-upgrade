@@ -75,7 +75,7 @@
 				
 				<option value="file9">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/utils.go (94.3%)</option>
 				
-				<option value="file10">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/validatingwebhook.go (96.6%)</option>
+				<option value="file10">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/validatingwebhook.go (96.2%)</option>
 				
 				<option value="file11">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/root.go (21.1%)</option>
 				
@@ -464,8 +464,7 @@ func (c *controller) Run() error <span class="cov0" title="0">{
                 return err
         }</span>
 
-        <span class="cov0" title="0">err = ctrl.NewWebhookManagedBy(c.manager).
-                For(&amp;api.KubeUpgradePlan{}).
+        <span class="cov0" title="0">err = ctrl.NewWebhookManagedBy(c.manager, &amp;api.KubeUpgradePlan{}).
                 WithDefaulter(&amp;planMutatingHook{}).
                 WithValidator(&amp;planValidatingHook{
                         Client: c.Client,
@@ -742,9 +741,6 @@ func getLogLevel() slog.Level <span class="cov10" title="18">{
 
 import (
         "context"
-        "fmt"
-
-        "k8s.io/apimachinery/pkg/runtime"
 
         api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 )
@@ -754,16 +750,11 @@ import (
 // planMutatingHook sets the defaults for the plan
 type planMutatingHook struct{}
 
-func (*planMutatingHook) Default(_ context.Context, obj runtime.Object) error <span class="cov10" title="21">{
-        plan, ok := obj.(*api.KubeUpgradePlan)
-        if !ok </span><span class="cov1" title="1">{
-                return fmt.Errorf("expected a KubeUpgradePlan but got a %T", obj)
-        }</span>
+func (*planMutatingHook) Default(_ context.Context, plan *api.KubeUpgradePlan) error <span class="cov10" title="20">{
+        api.SetObjectDefaults_KubeUpgradePlan(plan)
 
-        <span class="cov9" title="20">api.SetObjectDefaults_KubeUpgradePlan(plan)
-
-        return nil</span>
-}
+        return nil
+}</span>
 </pre>
 		
 		<pre class="file" id="file8" style="display: none">package controller
@@ -1178,7 +1169,6 @@ import (
         "log/slog"
 
         api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
-        "k8s.io/apimachinery/pkg/runtime"
         "sigs.k8s.io/controller-runtime/pkg/client"
         "sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 )
@@ -1191,13 +1181,8 @@ type planValidatingHook struct {
 }
 
 // Validate all values of the plan and check if they are sensible
-func (*planValidatingHook) validate(obj runtime.Object) (admission.Warnings, error) <span class="cov10" title="25">{
-        plan, ok := obj.(*api.KubeUpgradePlan)
-        if !ok </span><span class="cov1" title="1">{
-                return nil, fmt.Errorf("expected a KubeUpgradePlan but got a %T", obj)
-        }</span>
-
-        <span class="cov9" title="24">err := api.ValidateObject_KubeUpgradePlan(plan)
+func (*planValidatingHook) validate(plan *api.KubeUpgradePlan) (admission.Warnings, error) <span class="cov10" title="24">{
+        err := api.ValidateObject_KubeUpgradePlan(plan)
         if err != nil </span><span class="cov8" title="15">{
                 return nil, err
         }</span>
@@ -1224,7 +1209,7 @@ func (*planValidatingHook) validate(obj runtime.Object) (admission.Warnings, err
 // ValidateCreate validates the object on creation.
 // The optional warnings will be added to the response as warning messages.
 // Return an error if the object is invalid.
-func (p *planValidatingHook) ValidateCreate(ctx context.Context, obj runtime.Object) (admission.Warnings, error) <span class="cov4" title="4">{
+func (p *planValidatingHook) ValidateCreate(ctx context.Context, plan *api.KubeUpgradePlan) (admission.Warnings, error) <span class="cov4" title="4">{
         if p.Client == nil </span><span class="cov1" title="1">{
                 return nil, fmt.Errorf("no client provided for validating webhook, please report a bug")
         }</span>
@@ -1239,20 +1224,20 @@ func (p *planValidatingHook) ValidateCreate(ctx context.Context, obj runtime.Obj
                 return nil, fmt.Errorf("KubeUpgradePlan already exists")
         }</span>
 
-        <span class="cov2" title="2">return p.validate(obj)</span>
+        <span class="cov2" title="2">return p.validate(plan)</span>
 }
 
 // ValidateUpdate validates the object on update.
 // The optional warnings will be added to the response as warning messages.
 // Return an error if the object is invalid.
-func (p *planValidatingHook) ValidateUpdate(_ context.Context, _ runtime.Object, newObj runtime.Object) (admission.Warnings, error) <span class="cov2" title="2">{
-        return p.validate(newObj)
+func (p *planValidatingHook) ValidateUpdate(_ context.Context, _ *api.KubeUpgradePlan, newPlan *api.KubeUpgradePlan) (admission.Warnings, error) <span class="cov2" title="2">{
+        return p.validate(newPlan)
 }</span>
 
 // ValidateDelete validates the object on deletion.
 // The optional warnings will be added to the response as warning messages.
 // Return an error if the object is invalid.
-func (*planValidatingHook) ValidateDelete(_ context.Context, _ runtime.Object) (admission.Warnings, error) <span class="cov1" title="1">{
+func (*planValidatingHook) ValidateDelete(_ context.Context, _ *api.KubeUpgradePlan) (admission.Warnings, error) <span class="cov1" title="1">{
         return nil, nil
 }</span>
 </pre>
