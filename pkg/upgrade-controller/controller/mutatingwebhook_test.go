@@ -5,7 +5,6 @@ import (
 
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"github.com/stretchr/testify/assert"
-	corev1 "k8s.io/api/core/v1"
 )
 
 func TestDefault(t *testing.T) {
@@ -120,7 +119,4 @@ func TestDefault(t *testing.T) {
 			assert.Equal(tCase.Result, tCase.Plan)
 		})
 	}
-	t.Run("InvalidObject", func(t *testing.T) {
-		assert.Error(t, (&planMutatingHook{}).Default(t.Context(), &corev1.Pod{}), "Should return an error")
-	})
 }

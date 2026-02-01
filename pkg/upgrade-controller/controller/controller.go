@@ -102,8 +102,7 @@ func (c *controller) Run() error {
 		return err
 	}
 
-	err = ctrl.NewWebhookManagedBy(c.manager).
-		For(&api.KubeUpgradePlan{}).
+	err = ctrl.NewWebhookManagedBy(c.manager, &api.KubeUpgradePlan{}).
 		WithDefaulter(&planMutatingHook{}).
 		WithValidator(&planValidatingHook{
 			Client: c.Client,
