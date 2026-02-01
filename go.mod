@@ -5,10 +5,10 @@ go 1.25.0
 require (
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-logr/logr v1.4.3
-	github.com/heathcliff26/fleetlock v1.9.1
+	github.com/heathcliff26/fleetlock v1.9.2
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
-	golang.org/x/mod v0.31.0
+	golang.org/x/mod v0.32.0
 	k8s.io/api v0.35.0
 	k8s.io/apimachinery v0.35.0
 	k8s.io/client-go v0.35.0
