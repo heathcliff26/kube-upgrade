@@ -18,14 +18,6 @@ kube::codegen::gen_helpers \
     --boilerplate /dev/null \
     "pkg/apis"
 
-kube::codegen::gen_client \
-    --with-watch \
-    --with-applyconfig \
-    --output-dir "pkg/client" \
-    --output-pkg "github.com/heathcliff26/kube-upgrade/pkg/client" \
-    --boilerplate /dev/null \
-    "pkg/apis"
-
 rm -rf "${generated_dir}"
 
 echo "Generating manifests"
