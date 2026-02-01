@@ -2,9 +2,6 @@ package controller
 
 import (
 	"context"
-	"fmt"
-
-	"k8s.io/apimachinery/pkg/runtime"
 
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 )
@@ -14,12 +11,7 @@ import (
 // planMutatingHook sets the defaults for the plan
 type planMutatingHook struct{}
 
-func (*planMutatingHook) Default(_ context.Context, obj runtime.Object) error {
-	plan, ok := obj.(*api.KubeUpgradePlan)
-	if !ok {
-		return fmt.Errorf("expected a KubeUpgradePlan but got a %T", obj)
-	}
-
+func (*planMutatingHook) Default(_ context.Context, plan *api.KubeUpgradePlan) error {
 	api.SetObjectDefaults_KubeUpgradePlan(plan)
 
 	return nil

@@ -6,7 +6,6 @@ import (
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -197,14 +196,6 @@ func TestValidate(t *testing.T) {
 			}
 		})
 	}
-	t.Run("InvalidObject", func(t *testing.T) {
-		assert := assert.New(t)
-
-		warn, err := (&planValidatingHook{}).validate(&corev1.Pod{})
-
-		assert.Nil(warn, "Should not return a warning")
-		assert.Error(err, "Should return an error")
-	})
 	t.Run("AllowDowngrade", func(t *testing.T) {
 		assert := assert.New(t)
 		plan := minimumValidPlan.DeepCopy()
