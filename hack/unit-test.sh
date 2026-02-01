@@ -9,7 +9,7 @@ COVERPROFILE_OUT="${base_dir}/coverprofile.out"
 
 # Paths/Patterns to exclude from coverage. Either because they are not relevant
 # or because they where auto-generated.
-excludes=("zz_generated" "github.com/heathcliff26/kube-upgrade/pkg/client")
+excludes=("zz_generated")
 
 go test -v -race -coverprofile=coverprofile.out.tmp -coverpkg "./pkg/..." ./cmd/... ./pkg/...
 
