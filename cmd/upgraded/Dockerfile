@@ -28,7 +28,7 @@ FROM ghcr.io/sigstore/cosign/cosign:v3.0.4 as cosign-bin
 ###############################################################################
 # BEGIN final-stage
 # Create final docker image
-FROM quay.io/fedora/fedora:43 AS final-stage
+FROM quay.io/fedora/fedora:45 AS final-stage
 
 LABEL   org.opencontainers.image.authors="heathcliff@heathcliff.eu"
 
