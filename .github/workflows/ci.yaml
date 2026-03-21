@@ -43,7 +43,7 @@ on:
       - "go.sum"
       - "*.go"
       - "**/*.go"
-      - "Dockerfile"
+      - "cmd/**/Dockerfile"
   pull_request:
     branches: ["main"]
   merge_group:
