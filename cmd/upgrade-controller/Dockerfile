@@ -27,7 +27,7 @@ WORKDIR /
 
 COPY --from=build-stage /app/bin/upgrade-controller /
 
-USER 1001
+USER 65534:65534
 
 ENTRYPOINT ["/upgrade-controller"]
 
