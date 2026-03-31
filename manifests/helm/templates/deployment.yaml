@@ -29,10 +29,15 @@ spec:
       {{- end }}
       containers:
         - name: upgrade-controller
-          {{- with .Values.upgradeController.securityContext }}
           securityContext:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
+            runAsUser: 65534
+            runAsGroup: 65534
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           image: "{{ .Values.upgradeController.repository }}:{{ .Values.upgradeController.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.upgradeController.pullPolicy }}
           env:

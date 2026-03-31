@@ -433,6 +433,15 @@ spec:
       serviceAccountName: kube-upgrade
       containers:
         - name: upgrade-controller
+          securityContext:
+            runAsUser: 65534
+            runAsGroup: 65534
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           image: "ghcr.io/heathcliff26/kube-upgrade-controller:latest"
           imagePullPolicy: IfNotPresent
           env:

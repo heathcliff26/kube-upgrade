@@ -21,14 +21,6 @@ upgradeController:
   labels: {}
   # This is for setting the pod security context.
   podSecurityContext: {}
-  # This is for setting the container security context.
-  securityContext: {}
-    # capabilities:
-    #   drop:
-    #   - ALL
-    # readOnlyRootFilesystem: true
-    # runAsNonRoot: true
-    # runAsUser: 1000
   # This is to setup resource requests and limits.
   resources:
     requests:
