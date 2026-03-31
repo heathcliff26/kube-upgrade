@@ -59,12 +59,17 @@ func (c *controller) NewUpgradedDaemonSet(plan, group string) *appv1.DaemonSet {
 								},
 							},
 							SecurityContext: &corev1.SecurityContext{
-								Privileged: Pointer(true),
+								Privileged:             Pointer(true),
+								ReadOnlyRootFilesystem: Pointer(true),
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      "config",
 									MountPath: upgradedconfig.DefaultConfigDir,
+								},
+								{
+									Name:      "tmp",
+									MountPath: "/tmp",
 								},
 							},
 							Resources: corev1.ResourceRequirements{
@@ -86,6 +91,12 @@ func (c *controller) NewUpgradedDaemonSet(plan, group string) *appv1.DaemonSet {
 										Name: fmt.Sprintf("upgraded-%s", group),
 									},
 								},
+							},
+						},
+						{
+							Name: "tmp",
+							VolumeSource: corev1.VolumeSource{
+								EmptyDir: &corev1.EmptyDirVolumeSource{},
 							},
 						},
 					},
