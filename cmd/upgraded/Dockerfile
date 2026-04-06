@@ -34,6 +34,8 @@ LABEL   org.opencontainers.image.authors="heathcliff@heathcliff.eu"
 
 # Force systemd to connect via the system dbus socket, instead of PID 1 socket
 ENV SYSTEMCTL_FORCE_BUS=1
+# Force home directory to /tmp, as the container should be running with readonly root filesystem
+ENV HOME=/tmp
 
 RUN dnf install -y --setopt=install_weak_deps=False \
         rpm-ostree \
