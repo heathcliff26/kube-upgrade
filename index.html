@@ -83,7 +83,7 @@
 				
 				<option value="file13">github.com/heathcliff26/kube-upgrade/pkg/upgraded/config/errors.go (50.0%)</option>
 				
-				<option value="file14">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/config.go (91.8%)</option>
+				<option value="file14">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/config.go (90.2%)</option>
 				
 				<option value="file15">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (56.8%)</option>
 				
@@ -254,18 +254,18 @@ func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error <span class="cov
         <span class="cov9" title="18">if len(spec.Groups) &lt; 1 </span><span class="cov1" title="1">{
                 return fmt.Errorf("need at least one node group for upgrades")
         }</span>
-        <span class="cov9" title="17">for name, group := range spec.Groups </span><span class="cov9" title="21">{
+        <span class="cov9" title="17">for name, group := range spec.Groups </span><span class="cov9" title="22">{
                 for _, dependency := range group.DependsOn </span><span class="cov6" title="6">{
                         if _, ok := spec.Groups[dependency]; !ok </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" depends on non-existing group \"%s\"", name, dependency)
                         }</span>
                 }
 
-                <span class="cov9" title="20">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
+                <span class="cov9" title="21">if len(group.Labels) &lt; 1 </span><span class="cov1" title="1">{
                         return fmt.Errorf("group \"%s\" needs at least one label selector", name)
                 }</span>
 
-                <span class="cov9" title="19">if group.Upgraded != nil </span><span class="cov4" title="3">{
+                <span class="cov9" title="20">if group.Upgraded != nil </span><span class="cov4" title="3">{
                         err := ValidateObject_UpgradedConfig(*group.Upgraded)
                         if err != nil </span><span class="cov1" title="1">{
                                 return fmt.Errorf("group \"%s\" has an invalid upgraded config: %v", name, err)
@@ -1347,11 +1347,11 @@ func init() <span class="cov5" title="5">{
 }</span>
 
 // Parse a given string and set the resulting log level
-func setLogLevel(level string) error <span class="cov9" title="19">{
+func setLogLevel(level string) error <span class="cov10" title="20">{
         switch strings.ToLower(level) </span>{
         case "debug":<span class="cov4" title="3">
                 logLevel.Set(slog.LevelDebug)</span>
-        case "info":<span class="cov7" title="10">
+        case "info":<span class="cov8" title="11">
                 logLevel.Set(slog.LevelInfo)</span>
         case "warn":<span class="cov3" title="2">
                 logLevel.Set(slog.LevelWarn)</span>
@@ -1360,7 +1360,7 @@ func setLogLevel(level string) error <span class="cov9" title="19">{
         default:<span class="cov3" title="2">
                 return NewErrUnknownLogLevel(level)</span>
         }
-        <span class="cov9" title="17">return nil</span>
+        <span class="cov9" title="18">return nil</span>
 }
 
 func DefaultConfig() *api.UpgradedConfig <span class="cov10" title="20">{
@@ -1392,36 +1392,36 @@ func LoadConfig(path string) (*api.UpgradedConfig, error) <span class="cov9" tit
         }</span>
 
         <span class="cov9" title="15">err = ValidateConfig(c)
-        if err != nil </span><span class="cov6" title="6">{
+        if err != nil </span><span class="cov5" title="5">{
                 return nil, err
         }</span>
 
-        <span class="cov7" title="9">err = setLogLevel(c.LogLevel)
+        <span class="cov7" title="10">err = setLogLevel(c.LogLevel)
         if err != nil </span><span class="cov1" title="1">{
                 return nil, err
         }</span>
 
-        <span class="cov7" title="8">return c, nil</span>
+        <span class="cov7" title="9">return c, nil</span>
 }
 
 // Validates the given config to ensure all required fields are set.
 func ValidateConfig(cfg *api.UpgradedConfig) error <span class="cov9" title="15">{
-        if cfg == nil </span><span class="cov3" title="2">{
+        if cfg == nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("invalid config, config is nil")
         }</span>
-        <span class="cov8" title="13">if cfg.Stream == "" </span><span class="cov1" title="1">{
+        <span class="cov8" title="14">if cfg.Stream == "" </span><span class="cov1" title="1">{
                 return fmt.Errorf("invalid config, missing stream")
         }</span>
-        <span class="cov8" title="12">if cfg.FleetlockURL == "" </span><span class="cov1" title="1">{
+        <span class="cov8" title="13">if cfg.FleetlockURL == "" </span><span class="cov1" title="1">{
                 return fmt.Errorf("invalid config, missing fleetlockUrl")
         }</span>
-        <span class="cov8" title="11">if cfg.FleetlockGroup == "" </span><span class="cov1" title="1">{
+        <span class="cov8" title="12">if cfg.FleetlockGroup == "" </span><span class="cov1" title="1">{
                 return fmt.Errorf("invalid config, missing fleetlockGroup")
         }</span>
-        <span class="cov7" title="10">if cfg.KubeletConfig == "" </span><span class="cov1" title="1">{
+        <span class="cov8" title="11">if cfg.KubeletConfig == "" </span><span class="cov1" title="1">{
                 return fmt.Errorf("invalid config, missing kubeletConfig")
         }</span>
-        <span class="cov7" title="9">return nil</span>
+        <span class="cov7" title="10">return nil</span>
 }
 </pre>
 		
@@ -1461,31 +1461,31 @@ func (d *daemon) UpdateFromConfigFile() error <span class="cov6" title="5">{
         slog.Info("Attempting to update daemon configuration from config file", slog.String("path", d.cfgPath))
 
         cfg, err := config.LoadConfig(d.cfgPath)
-        if err != nil </span><span class="cov3" title="2">{
+        if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to load config from file: %v", err)
         }</span>
 
-        <span class="cov4" title="3">return d.updateFromConfig(cfg)</span>
+        <span class="cov5" title="4">return d.updateFromConfig(cfg)</span>
 }
 
 // Update the daemon configuration from the provided config object.
 // Ensures that no changes will be made if there are errors in the config.
-func (d *daemon) updateFromConfig(cfg *api.UpgradedConfig) error <span class="cov7" title="8">{
+func (d *daemon) updateFromConfig(cfg *api.UpgradedConfig) error <span class="cov8" title="9">{
         checkInterval, err := time.ParseDuration(cfg.CheckInterval)
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to parse check interval \"%s\": %v", cfg.CheckInterval, err)
         }</span>
-        <span class="cov7" title="7">retryInterval, err := time.ParseDuration(cfg.RetryInterval)
+        <span class="cov7" title="8">retryInterval, err := time.ParseDuration(cfg.RetryInterval)
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to parse retry interval \"%s\": %v", cfg.RetryInterval, err)
         }</span>
 
-        <span class="cov6" title="6">fleetlockClient, err := fleetlock.NewClient(cfg.FleetlockURL, cfg.FleetlockGroup)
+        <span class="cov7" title="7">fleetlockClient, err := fleetlock.NewClient(cfg.FleetlockURL, cfg.FleetlockGroup)
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("failed to create fleetlock client with url '%s' and group '%s': %v", cfg.FleetlockURL, cfg.FleetlockGroup, err)
         }</span>
 
-        <span class="cov6" title="5">d.configLock.Lock()
+        <span class="cov6" title="6">d.configLock.Lock()
         defer d.configLock.Unlock()
 
         d.stream = cfg.Stream
@@ -1533,7 +1533,7 @@ func (d *daemon) WatchConfigFile() <span class="cov4" title="3">{
                         // Check if the event is for our config file or the ..data symlink
                         if event.Name == d.cfgPath || event.Name == filepath.Join(filepath.Dir(d.cfgPath), "..data") </span><span class="cov3" title="2">{
                                 err := d.UpdateFromConfigFile()
-                                if err != nil </span><span class="cov1" title="1">{
+                                if err != nil </span><span class="cov0" title="0">{
                                         slog.Error("Failed to update configuration from config file", slog.String("path", d.cfgPath), slog.String("error", err.Error()))
                                 }</span>
                         }
