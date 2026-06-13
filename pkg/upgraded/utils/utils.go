@@ -20,6 +20,7 @@ func GetMachineID() (string, error) {
 
 // Create a command that writes to stdout/stderr
 func CreateCMDWithStdout(name string, arg ...string) *exec.Cmd {
+	// #nosec G204: Intended design
 	cmd := exec.Command(name, arg...)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
