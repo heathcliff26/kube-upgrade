@@ -19,7 +19,7 @@ RUN GOOS=linux GOARCH="${TARGETARCH}" hack/build.sh upgraded
 ###############################################################################
 # BEGIN cosign-bin
 # Compile the binary
-FROM ghcr.io/sigstore/cosign/cosign:v3.1.1 AS cosign-bin
+FROM ghcr.io/sigstore/cosign/cosign:v3.1.3 AS cosign-bin
 
 #
 # END cosign-bin
