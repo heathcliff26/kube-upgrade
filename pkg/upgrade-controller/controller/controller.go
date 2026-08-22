@@ -115,31 +115,31 @@ func (c *controller) Run() error {
 	return c.manager.Start(signals.SetupSignalHandler())
 }
 
-func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (res ctrl.Result, err error) {
 	logger := slog.With("plan", req.Name)
 
 	var plan api.KubeUpgradePlan
-	err := c.Get(ctx, req.NamespacedName, &plan)
+	err = c.Get(ctx, req.NamespacedName, &plan)
 	if err != nil {
 		logger.Error("Failed to get Plan", "err", err)
-		return ctrl.Result{}, err
+		return
 	}
 
 	err = c.reconcile(ctx, &plan, logger)
 	if err != nil {
-		return ctrl.Result{}, err
+		return
 	}
 
 	err = c.Status().Update(ctx, &plan)
 	if err != nil {
 		logger.Error("Failed to update plan status", "err", err)
-		return ctrl.Result{}, err
+		return
 	}
 
-	return ctrl.Result{
-		Requeue:      plan.Status.Summary != api.PlanStatusComplete,
-		RequeueAfter: time.Minute,
-	}, nil
+	if plan.Status.Summary != api.PlanStatusComplete {
+		res.RequeueAfter = time.Minute
+	}
+	return
 }
 
 func (c *controller) reconcile(ctx context.Context, plan *api.KubeUpgradePlan, logger *slog.Logger) error {
