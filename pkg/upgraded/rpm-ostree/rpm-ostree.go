@@ -1,7 +1,7 @@
 package rpmostree
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"os/exec"
 	"sync"
