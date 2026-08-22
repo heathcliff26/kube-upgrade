@@ -21,7 +21,7 @@ func TestDoNodeUpgradeWithRetry(t *testing.T) {
 		client:        fake.NewClientset(),
 		node:          "not-a-node",
 		ctx:           t.Context(),
-		retryInterval: time.Second,
+		retryInterval: time.Millisecond,
 	}
 
 	done := make(chan struct{}, 1)
@@ -34,7 +34,7 @@ func TestDoNodeUpgradeWithRetry(t *testing.T) {
 	select {
 	case <-done:
 		t.Fatal("The upgrade should not succeed")
-	case <-time.After(time.Second * 3):
+	case <-time.After(time.Millisecond * 20):
 	}
 }
 

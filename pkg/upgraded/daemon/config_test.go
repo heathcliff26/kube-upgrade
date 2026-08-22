@@ -123,7 +123,7 @@ func TestUpdateFromConfig(t *testing.T) {
 		select {
 		case <-done:
 			t.Fatal("UpdateFromConfig should be blocked by lock")
-		case <-time.After(500 * time.Millisecond):
+		case <-time.After(100 * time.Millisecond):
 			// Expected case
 		}
 
