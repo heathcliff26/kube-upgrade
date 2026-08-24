@@ -6,7 +6,6 @@ import (
 	api "github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
@@ -238,9 +237,7 @@ func TestValidateCreate(t *testing.T) {
 		Client: fake.NewClientBuilder().WithScheme(scheme).Build(),
 	}
 	validPlan := &api.KubeUpgradePlan{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "valid-plan",
-		},
+		Name: "valid-plan",
 		Spec: api.KubeUpgradeSpec{
 			KubernetesVersion: "v1.31.0",
 			Groups: map[string]api.KubeUpgradePlanGroup{

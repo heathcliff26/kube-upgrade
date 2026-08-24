@@ -9,7 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
 )
 
@@ -18,9 +17,7 @@ func TestNodeName(t *testing.T) {
 		assert := assert.New(t)
 
 		node := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "testnode",
-			},
+			Name: "testnode",
 			Status: corev1.NodeStatus{
 				NodeInfo: corev1.NodeSystemInfo{
 					MachineID: "1234567890",
@@ -61,9 +58,7 @@ func TestNodeName(t *testing.T) {
 		assert := assert.New(t)
 
 		node := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "testnode",
-			},
+			Name: "testnode",
 			Status: corev1.NodeStatus{
 				NodeInfo: corev1.NodeSystemInfo{
 					MachineID: "abcdefghij",
@@ -94,11 +89,9 @@ func TestNodeNeedsUpgrade(t *testing.T) {
 		{
 			Name: "UpdateComplete",
 			Node: &corev1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Annotations: map[string]string{
-						constants.NodeKubernetesVersion: "v1.31.0",
-						constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
-					},
+				Annotations: map[string]string{
+					constants.NodeKubernetesVersion: "v1.31.0",
+					constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusCompleted,
 				},
 			},
 			Result: false,
@@ -106,10 +99,8 @@ func TestNodeNeedsUpgrade(t *testing.T) {
 		{
 			Name: "MissingVersionAnnotation",
 			Node: &corev1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Annotations: map[string]string{
-						constants.NodeUpgradeStatus: constants.NodeUpgradeStatusPending,
-					},
+				Annotations: map[string]string{
+					constants.NodeUpgradeStatus: constants.NodeUpgradeStatusPending,
 				},
 			},
 			Result: false,
@@ -117,11 +108,9 @@ func TestNodeNeedsUpgrade(t *testing.T) {
 		{
 			Name: "UpdatePending",
 			Node: &corev1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Annotations: map[string]string{
-						constants.NodeKubernetesVersion: "v1.31.0",
-						constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusPending,
-					},
+				Annotations: map[string]string{
+					constants.NodeKubernetesVersion: "v1.31.0",
+					constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusPending,
 				},
 			},
 			Result: true,

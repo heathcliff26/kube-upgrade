@@ -64,9 +64,9 @@ func NewController(name string) (*controller, error) {
 		LeaderElectionNamespace:       ns,
 		LeaderElectionID:              name,
 		LeaderElectionReleaseOnCancel: true,
-		LeaseDuration:                 Pointer(time.Minute),
-		RenewDeadline:                 Pointer(10 * time.Second),
-		RetryPeriod:                   Pointer(5 * time.Second),
+		LeaseDuration:                 new(time.Minute),
+		RenewDeadline:                 new(10 * time.Second),
+		RetryPeriod:                   new(5 * time.Second),
 		HealthProbeBindAddress:        ":9090",
 		Cache: cache.Options{
 			DefaultNamespaces: map[string]cache.Config{ns: {}},

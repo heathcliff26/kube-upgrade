@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 	appv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	controllerFake "sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -54,9 +53,7 @@ func TestReconcile(t *testing.T) {
 		{
 			Name: "InitialReconcile",
 			Plan: api.KubeUpgradePlan{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "upgrade-plan",
-				},
+				Name: "upgrade-plan",
 				Spec: api.KubeUpgradeSpec{
 					KubernetesVersion: "v1.31.0",
 					Groups: map[string]api.KubeUpgradePlanGroup{
@@ -88,9 +85,7 @@ func TestReconcile(t *testing.T) {
 		{
 			Name: "2ndReconcile",
 			Plan: api.KubeUpgradePlan{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "upgrade-plan",
-				},
+				Name: "upgrade-plan",
 				Spec: api.KubeUpgradeSpec{
 					KubernetesVersion: "v1.31.0",
 					Groups: map[string]api.KubeUpgradePlanGroup{
@@ -138,9 +133,7 @@ func TestReconcile(t *testing.T) {
 		{
 			Name: "3rdReconcile",
 			Plan: api.KubeUpgradePlan{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "upgrade-plan",
-				},
+				Name: "upgrade-plan",
 				Spec: api.KubeUpgradeSpec{
 					KubernetesVersion: "v1.31.0",
 					Groups: map[string]api.KubeUpgradePlanGroup{
@@ -196,9 +189,7 @@ func TestReconcile(t *testing.T) {
 		{
 			Name: "4thReconcile",
 			Plan: api.KubeUpgradePlan{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "upgrade-plan",
-				},
+				Name: "upgrade-plan",
 				Spec: api.KubeUpgradeSpec{
 					KubernetesVersion: "v1.31.0",
 					Groups: map[string]api.KubeUpgradePlanGroup{
@@ -258,9 +249,7 @@ func TestReconcile(t *testing.T) {
 		{
 			Name: "NewUpdate",
 			Plan: api.KubeUpgradePlan{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "upgrade-plan",
-				},
+				Name: "upgrade-plan",
 				Spec: api.KubeUpgradeSpec{
 					KubernetesVersion: "v1.31.0",
 					Groups: map[string]api.KubeUpgradePlanGroup{
@@ -306,9 +295,7 @@ func TestReconcile(t *testing.T) {
 		{
 			Name: "Update2ndReconcile",
 			Plan: api.KubeUpgradePlan{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "upgrade-plan",
-				},
+				Name: "upgrade-plan",
 				Spec: api.KubeUpgradeSpec{
 					KubernetesVersion: "v1.31.0",
 					Groups: map[string]api.KubeUpgradePlanGroup{
@@ -354,9 +341,7 @@ func TestReconcile(t *testing.T) {
 		{
 			Name: "Update3rdReconcile",
 			Plan: api.KubeUpgradePlan{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "upgrade-plan",
-				},
+				Name: "upgrade-plan",
 				Spec: api.KubeUpgradeSpec{
 					KubernetesVersion: "v1.31.0",
 					Groups: map[string]api.KubeUpgradePlanGroup{
@@ -402,9 +387,7 @@ func TestReconcile(t *testing.T) {
 		{
 			Name: "LabelSelectorWithExpression",
 			Plan: api.KubeUpgradePlan{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "upgrade-plan",
-				},
+				Name: "upgrade-plan",
 				Spec: api.KubeUpgradeSpec{
 					KubernetesVersion: "v1.31.0",
 					Groups: map[string]api.KubeUpgradePlanGroup{
@@ -436,9 +419,7 @@ func TestReconcile(t *testing.T) {
 		{
 			Name: "GroupHasErrorNode",
 			Plan: api.KubeUpgradePlan{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "upgrade-plan",
-				},
+				Name: "upgrade-plan",
 				Spec: api.KubeUpgradeSpec{
 					KubernetesVersion: "v1.31.0",
 					Groups: map[string]api.KubeUpgradePlanGroup{
@@ -493,11 +474,9 @@ func TestReconcile(t *testing.T) {
 
 func TestReconcileNodes(t *testing.T) {
 	nodeControl := &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: nodeControlName,
-			Labels: map[string]string{
-				labelControl: labelValue,
-			},
+		Name: nodeControlName,
+		Labels: map[string]string{
+			labelControl: labelValue,
 		},
 		Status: corev1.NodeStatus{
 			NodeInfo: corev1.NodeSystemInfo{
@@ -567,9 +546,7 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 			assert := assert.New(t)
 
 			plan := &api.KubeUpgradePlan{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "upgrade-plan",
-				},
+				Name: "upgrade-plan",
 				Spec: api.KubeUpgradeSpec{
 					KubernetesVersion: "v1.31.0",
 					Groups:            make(map[string]api.KubeUpgradePlanGroup, 3),
@@ -625,9 +602,7 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 		assert := assert.New(t)
 
 		plan := &api.KubeUpgradePlan{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "upgrade-plan",
-			},
+			Name: "upgrade-plan",
 			Spec: api.KubeUpgradeSpec{
 				KubernetesVersion: "v1.31.0",
 				Groups: map[string]api.KubeUpgradePlanGroup{
@@ -657,9 +632,7 @@ func TestReconcileUpgradedDaemons(t *testing.T) {
 		api.SetObjectDefaults_UpgradedConfig(cfg)
 
 		plan := &api.KubeUpgradePlan{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "upgrade-plan",
-			},
+			Name: "upgrade-plan",
 			Spec: api.KubeUpgradeSpec{
 				KubernetesVersion: "v1.31.0",
 				Groups: map[string]api.KubeUpgradePlanGroup{
@@ -687,31 +660,25 @@ func createFakeController(annotationsControl, annotationsCompute, annotationsInf
 	scheme, _ := newScheme()
 
 	nodeControl := &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: nodeControlName,
-			Labels: map[string]string{
-				labelControl: labelValue,
-			},
-			Annotations: annotationsControl,
+		Name: nodeControlName,
+		Labels: map[string]string{
+			labelControl: labelValue,
 		},
+		Annotations: annotationsControl,
 	}
 	nodeCompute := &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: nodeComputeName,
-			Labels: map[string]string{
-				labelCompute: labelValue,
-			},
-			Annotations: annotationsCompute,
+		Name: nodeComputeName,
+		Labels: map[string]string{
+			labelCompute: labelValue,
 		},
+		Annotations: annotationsCompute,
 	}
 	nodeInfra := &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: nodeInfraName,
-			Labels: map[string]string{
-				labelInfra: labelValue,
-			},
-			Annotations: annotationsInfra,
+		Name: nodeInfraName,
+		Labels: map[string]string{
+			labelInfra: labelValue,
 		},
+		Annotations: annotationsInfra,
 	}
 
 	fakeCtrlClient := controllerFake.NewClientBuilder().

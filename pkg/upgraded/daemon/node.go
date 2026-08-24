@@ -27,7 +27,7 @@ func (d *daemon) watchForNodeUpgrade() {
 
 	informer := factory.Core().V1().Nodes().Informer()
 	_, err := informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-		UpdateFunc: func(_, newObj interface{}) {
+		UpdateFunc: func(_, newObj any) {
 			node := newObj.(*corev1.Node)
 			if !nodeNeedsUpgrade(node) && d.nodeHasCorrectStream(node) {
 				return

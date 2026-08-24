@@ -35,11 +35,6 @@ func GetNamespace() (string, error) {
 	return ns, nil
 }
 
-// Return a pointer to the variable value
-func Pointer[T any](v T) *T {
-	return &v
-}
-
 // Check if the given group needs to wait on another one
 func groupWaitForDependency(deps []string, status map[string]string) bool {
 	for _, d := range deps {
