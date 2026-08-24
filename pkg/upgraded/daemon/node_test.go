@@ -1,10 +1,13 @@
 package daemon
 
 import (
+	"context"
 	"net/http"
 	"testing"
 	"time"
 
+	fleetlock "github.com/heathcliff26/fleetlock/pkg/client"
+	fleetfake "github.com/heathcliff26/fleetlock/pkg/fake"
 	"github.com/heathcliff26/kube-upgrade/pkg/constants"
 	"github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm"
 	rpmostree "github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree"
@@ -298,4 +301,366 @@ func newTestDoNodeUpgradeSetup(t *testing.T, nodeStatus string) (*daemon, *corev
 	}
 
 	return d, node
+}
+
+func TestNodeKubeadmUpgrade(t *testing.T) {
+	oldK8sTmpDir := kubernetesTMPDir
+	kubernetesTMPDir = "/not/a/valid/path"
+	t.Cleanup(func() {
+		kubernetesTMPDir = oldK8sTmpDir
+	})
+
+	t.Run("SuccessApply", func(t *testing.T) {
+		assert := assert.New(t)
+
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "testnode",
+				Annotations: map[string]string{
+					constants.NodeKubernetesVersion: "v1.31.0",
+				},
+			},
+		}
+
+		configMap := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "kubeadm-config",
+				Namespace: "kube-system",
+			},
+			Data: map[string]string{
+				"ClusterConfiguration": "kubernetesVersion: v1.30.4\n",
+			},
+		}
+
+		d, _ := newTestNodeKubeadmUpgradeSetup(t, "testdata/fake-kubeadm.sh", node, configMap)
+
+		err := d.nodeKubeadmUpgrade("v1.31.0")
+
+		assert.NoError(err)
+		node, _ = d.client.CoreV1().Nodes().Get(t.Context(), "testnode", metav1.GetOptions{})
+		assert.Equal(constants.NodeUpgradeStatusUpgrading, node.Annotations[constants.NodeUpgradeStatus])
+	})
+
+	t.Run("SuccessNode", func(t *testing.T) {
+		assert := assert.New(t)
+
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "testnode",
+				Annotations: map[string]string{
+					constants.NodeKubernetesVersion: "v1.31.0",
+				},
+			},
+		}
+
+		configMap := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "kubeadm-config",
+				Namespace: "kube-system",
+			},
+			Data: map[string]string{
+				"ClusterConfiguration": "kubernetesVersion: v1.31.0\n",
+			},
+		}
+
+		d, _ := newTestNodeKubeadmUpgradeSetup(t, "testdata/fake-kubeadm.sh", node, configMap)
+
+		err := d.nodeKubeadmUpgrade("v1.31.0")
+
+		assert.NoError(err)
+		node, _ = d.client.CoreV1().Nodes().Get(t.Context(), "testnode", metav1.GetOptions{})
+		assert.Equal(constants.NodeUpgradeStatusUpgrading, node.Annotations[constants.NodeUpgradeStatus])
+	})
+
+	t.Run("FailedFetchConfigMap", func(t *testing.T) {
+		assert := assert.New(t)
+
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "testnode",
+				Annotations: map[string]string{
+					constants.NodeKubernetesVersion: "v1.31.0",
+				},
+			},
+		}
+
+		d, _ := newTestNodeKubeadmUpgradeSetup(t, "testdata/fake-kubeadm.sh", node, nil)
+
+		err := d.nodeKubeadmUpgrade("v1.31.0")
+
+		assert.Error(err)
+		assert.ErrorContains(err, "failed to fetch kubeadm-config")
+		node, _ = d.client.CoreV1().Nodes().Get(t.Context(), "testnode", metav1.GetOptions{})
+		assert.Equal(constants.NodeUpgradeStatusError, node.Annotations[constants.NodeUpgradeStatus])
+	})
+
+	t.Run("ConfigMapNoData", func(t *testing.T) {
+		assert := assert.New(t)
+
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "testnode",
+				Annotations: map[string]string{
+					constants.NodeKubernetesVersion: "v1.31.0",
+				},
+			},
+		}
+
+		configMap := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "kubeadm-config",
+				Namespace: "kube-system",
+			},
+		}
+
+		d, _ := newTestNodeKubeadmUpgradeSetup(t, "testdata/fake-kubeadm.sh", node, configMap)
+
+		err := d.nodeKubeadmUpgrade("v1.31.0")
+
+		assert.Error(err)
+		assert.ErrorContains(err, "kubeadm configmap contains no data")
+		node, _ = d.client.CoreV1().Nodes().Get(t.Context(), "testnode", metav1.GetOptions{})
+		assert.Equal(constants.NodeUpgradeStatusError, node.Annotations[constants.NodeUpgradeStatus])
+	})
+
+	t.Run("ConfigMapInvalidYAML", func(t *testing.T) {
+		assert := assert.New(t)
+
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "testnode",
+				Annotations: map[string]string{
+					constants.NodeKubernetesVersion: "v1.31.0",
+				},
+			},
+		}
+
+		configMap := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "kubeadm-config",
+				Namespace: "kube-system",
+			},
+			Data: map[string]string{
+				"ClusterConfiguration": "not: valid: yaml: [",
+			},
+		}
+
+		d, _ := newTestNodeKubeadmUpgradeSetup(t, "testdata/fake-kubeadm.sh", node, configMap)
+
+		err := d.nodeKubeadmUpgrade("v1.31.0")
+
+		assert.Error(err)
+		assert.ErrorContains(err, "failed to parse kubeadm-config")
+		node, _ = d.client.CoreV1().Nodes().Get(t.Context(), "testnode", metav1.GetOptions{})
+		assert.Equal(constants.NodeUpgradeStatusError, node.Annotations[constants.NodeUpgradeStatus])
+	})
+
+	t.Run("KubeadmApplyFails", func(t *testing.T) {
+		assert := assert.New(t)
+
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "testnode",
+				Annotations: map[string]string{
+					constants.NodeKubernetesVersion: "v1.31.0",
+				},
+			},
+		}
+
+		configMap := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "kubeadm-config",
+				Namespace: "kube-system",
+			},
+			Data: map[string]string{
+				"ClusterConfiguration": "kubernetesVersion: v1.30.4\n",
+			},
+		}
+
+		d, _ := newTestNodeKubeadmUpgradeSetup(t, "testdata/fake-kubeadm-fail.sh", node, configMap)
+
+		err := d.nodeKubeadmUpgrade("v1.31.0")
+
+		assert.Error(err)
+		assert.ErrorContains(err, "failed run kubeadm")
+		node, _ = d.client.CoreV1().Nodes().Get(t.Context(), "testnode", metav1.GetOptions{})
+		assert.Equal(constants.NodeUpgradeStatusError, node.Annotations[constants.NodeUpgradeStatus])
+	})
+
+	t.Run("KubeadmNodeFails", func(t *testing.T) {
+		assert := assert.New(t)
+
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "testnode",
+				Annotations: map[string]string{
+					constants.NodeKubernetesVersion: "v1.31.0",
+				},
+			},
+		}
+
+		configMap := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "kubeadm-config",
+				Namespace: "kube-system",
+			},
+			Data: map[string]string{
+				"ClusterConfiguration": "kubernetesVersion: v1.31.0\n",
+			},
+		}
+
+		d, _ := newTestNodeKubeadmUpgradeSetup(t, "testdata/fake-kubeadm-fail.sh", node, configMap)
+
+		err := d.nodeKubeadmUpgrade("v1.31.0")
+
+		assert.Error(err)
+		assert.ErrorContains(err, "failed run kubeadm")
+		node, _ = d.client.CoreV1().Nodes().Get(t.Context(), "testnode", metav1.GetOptions{})
+		assert.Equal(constants.NodeUpgradeStatusError, node.Annotations[constants.NodeUpgradeStatus])
+	})
+}
+
+func newTestNodeKubeadmUpgradeSetup(t *testing.T, kubeadmPath string, node *corev1.Node, configMap *corev1.ConfigMap) (*daemon, *corev1.Node) {
+	t.Helper()
+	require := require.New(t)
+
+	client := fake.NewClientset()
+	if node != nil {
+		_, err := client.CoreV1().Nodes().Create(t.Context(), node, metav1.CreateOptions{})
+		require.NoError(err, "Failed to create node")
+	}
+	if configMap != nil {
+		_, err := client.CoreV1().ConfigMaps("kube-system").Create(t.Context(), configMap, metav1.CreateOptions{})
+		require.NoError(err, "Failed to create configmap")
+	}
+
+	kubeadmCMD, err := kubeadm.NewFromPath("", kubeadmPath)
+	require.NoError(err, "Failed to create kubeadm command")
+
+	d := &daemon{
+		ctx:     t.Context(),
+		client:  client,
+		node:    "testnode",
+		kubeadm: kubeadmCMD,
+	}
+
+	if node != nil {
+		return d, node
+	}
+	return d, nil
+}
+
+func TestWatchForNodeUpgrade(t *testing.T) {
+	t.Run("NodeUpdateTriggersUpgrade", func(t *testing.T) {
+		assert := assert.New(t)
+		require := require.New(t)
+
+		client := fake.NewClientset()
+
+		node := &corev1.Node{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "testnode",
+				Annotations: map[string]string{
+					constants.NodeKubernetesVersion: "v1.31.0",
+					constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusPending,
+				},
+			},
+		}
+		_, err := client.CoreV1().Nodes().Create(t.Context(), node, metav1.CreateOptions{})
+		require.NoError(err)
+
+		configMap := &corev1.ConfigMap{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "kubeadm-config",
+				Namespace: "kube-system",
+			},
+			Data: map[string]string{
+				"ClusterConfiguration": "kubernetesVersion: v1.30.4\n",
+			},
+		}
+		_, err = client.CoreV1().ConfigMaps("kube-system").Create(t.Context(), configMap, metav1.CreateOptions{})
+		require.NoError(err)
+
+		srv := fleetfake.NewFakeServer(t, http.StatusOK, "")
+		srv.Group = "default"
+		t.Cleanup(func() {
+			srv.Close()
+		})
+
+		fleetlockClient, err := fleetlock.NewClient(srv.URL(), "default")
+		require.NoError(err)
+
+		rpmOstreeCMD, err := rpmostree.New("testdata/exit-0.sh")
+		require.NoError(err)
+
+		kubeadmCMD, err := kubeadm.NewFromPath("", "testdata/fake-kubeadm.sh")
+		require.NoError(err)
+
+		ctx, cancel := context.WithCancel(t.Context())
+		t.Cleanup(cancel)
+
+		d := &daemon{
+			ctx:            ctx,
+			cancel:         cancel,
+			client:         client,
+			node:           "testnode",
+			fleetlock:      fleetlockClient,
+			rpmostree:      rpmOstreeCMD,
+			kubeadm:        kubeadmCMD,
+			bootedImageRef: "ostree-unverified-registry:registry.example.com/fcos-k8s:v1.31.0",
+			stream:         "registry.example.com/fcos-k8s",
+			retryInterval:  time.Millisecond,
+		}
+
+		go func() {
+			d.watchForNodeUpgrade()
+		}()
+
+		time.Sleep(100 * time.Millisecond)
+
+		node, _ = client.CoreV1().Nodes().Get(t.Context(), "testnode", metav1.GetOptions{})
+		node.Annotations[constants.NodeUpgradeStatus] = constants.NodeUpgradeStatusPending
+		_, err = client.CoreV1().Nodes().Update(t.Context(), node, metav1.UpdateOptions{})
+		require.NoError(err)
+
+		assert.Eventually(func() bool {
+			n, err := client.CoreV1().Nodes().Get(t.Context(), "testnode", metav1.GetOptions{})
+			if err != nil {
+				return false
+			}
+			return n.Annotations[constants.NodeUpgradeStatus] == constants.NodeUpgradeStatusCompleted
+		}, time.Second*5, time.Millisecond*10)
+
+		cancel()
+	})
+
+	t.Run("ContextCancellationStopsInformer", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(t.Context())
+		t.Cleanup(cancel)
+
+		d := &daemon{
+			ctx:           ctx,
+			cancel:        cancel,
+			client:        fake.NewClientset(),
+			node:          "testnode",
+			retryInterval: time.Millisecond,
+		}
+
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			d.watchForNodeUpgrade()
+		}()
+
+		time.Sleep(100 * time.Millisecond)
+
+		cancel()
+
+		select {
+		case <-done:
+			// Success
+		case <-time.After(time.Second):
+			t.Fatal("watchForNodeUpgrade did not stop after context cancellation")
+		}
+	})
 }

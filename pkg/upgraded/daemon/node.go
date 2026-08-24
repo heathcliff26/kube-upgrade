@@ -17,7 +17,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-const kubernetesTMPDir = "/etc/kubernetes/tmp"
+var kubernetesTMPDir = "/etc/kubernetes/tmp"
 
 // Watch for node upgrades and perform them if necessary
 func (d *daemon) watchForNodeUpgrade() {
@@ -29,7 +29,10 @@ func (d *daemon) watchForNodeUpgrade() {
 	_, err := informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		UpdateFunc: func(_, newObj interface{}) {
 			node := newObj.(*corev1.Node)
-			d.checkNodeStatus(node)
+			if !nodeNeedsUpgrade(node) && d.nodeHasCorrectStream(node) {
+				return
+			}
+			d.doNodeUpgradeWithRetry(nil)
 		},
 	})
 	if err != nil {
@@ -45,15 +48,6 @@ func (d *daemon) watchForNodeUpgrade() {
 	}
 	slog.Info("Watching for new kubernetes upgrades")
 	informer.Run(d.ctx.Done())
-}
-
-// Check if we need to upgrade the node and trigger the upgrade if needed
-func (d *daemon) checkNodeStatus(node *corev1.Node) {
-	if !nodeNeedsUpgrade(node) && d.nodeHasCorrectStream(node) {
-		return
-	}
-
-	d.doNodeUpgradeWithRetry(nil)
 }
 
 // Update the node until it succeeds
