@@ -71,12 +71,6 @@ func TestGetNamespace(t *testing.T) {
 	})
 }
 
-func TestPointer(t *testing.T) {
-	s := "test"
-	p := Pointer(s)
-	assert.Equal(t, &s, p, "Should return pointer to variable with the same value")
-}
-
 func TestGroupWaitForDependency(t *testing.T) {
 	tMatrix := []struct {
 		Name   string

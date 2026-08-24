@@ -55,7 +55,7 @@ func run() {
 	}
 }
 
-func fatalf(format string, args ...interface{}) {
+func fatalf(format string, args ...any) {
 	slog.Error(fmt.Sprintf(format, args...))
 	os.Exit(1)
 }

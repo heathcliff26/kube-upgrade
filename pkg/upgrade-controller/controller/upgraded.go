@@ -27,19 +27,15 @@ func (c *controller) NewUpgradedDaemonSet(plan, group string) *appv1.DaemonSet {
 	labels := upgradedLabels(plan, group)
 
 	ds := &appv1.DaemonSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("upgraded-%s", group),
-			Namespace: c.namespace,
-			Labels:    labels,
-		},
+		Name:      fmt.Sprintf("upgraded-%s", group),
+		Namespace: c.namespace,
+		Labels:    labels,
 		Spec: appv1.DaemonSetSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: labels,
 			},
 			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: labels,
-				},
+				Labels: labels,
 				Spec: corev1.PodSpec{
 					// Need to run with host PIDs for rpm-ostree to work.
 					// Otherwise it won't see the caller process PID.
@@ -59,8 +55,8 @@ func (c *controller) NewUpgradedDaemonSet(plan, group string) *appv1.DaemonSet {
 								},
 							},
 							SecurityContext: &corev1.SecurityContext{
-								Privileged:             Pointer(true),
-								ReadOnlyRootFilesystem: Pointer(true),
+								Privileged:             new(true),
+								ReadOnlyRootFilesystem: new(true),
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{
@@ -85,19 +81,13 @@ func (c *controller) NewUpgradedDaemonSet(plan, group string) *appv1.DaemonSet {
 					Volumes: []corev1.Volume{
 						{
 							Name: "config",
-							VolumeSource: corev1.VolumeSource{
-								ConfigMap: &corev1.ConfigMapVolumeSource{
-									LocalObjectReference: corev1.LocalObjectReference{
-										Name: fmt.Sprintf("upgraded-%s", group),
-									},
-								},
+							ConfigMap: &corev1.ConfigMapVolumeSource{
+								Name: fmt.Sprintf("upgraded-%s", group),
 							},
 						},
 						{
-							Name: "tmp",
-							VolumeSource: corev1.VolumeSource{
-								EmptyDir: &corev1.EmptyDirVolumeSource{},
-							},
+							Name:     "tmp",
+							EmptyDir: &corev1.EmptyDirVolumeSource{},
 						},
 					},
 				},
@@ -124,11 +114,9 @@ func (c *controller) NewUpgradedConfigMap(plan, group string, cfg *api.UpgradedC
 	labels := upgradedLabels(plan, group)
 
 	return &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("upgraded-%s", group),
-			Namespace: c.namespace,
-			Labels:    labels,
-		},
+		Name:      fmt.Sprintf("upgraded-%s", group),
+		Namespace: c.namespace,
+		Labels:    labels,
 		Data: map[string]string{
 			upgradedconfig.DefaultConfigFile: string(data),
 		},
@@ -253,10 +241,8 @@ func (c *controller) reconcileUpgradedDaemonSet(ctx context.Context, plan *api.K
 func attachVolumeMountHostPath(ds *appv1.DaemonSet, name, hostPath, mountPath string) {
 	ds.Spec.Template.Spec.Volumes = append(ds.Spec.Template.Spec.Volumes, corev1.Volume{
 		Name: name,
-		VolumeSource: corev1.VolumeSource{
-			HostPath: &corev1.HostPathVolumeSource{
-				Path: hostPath,
-			},
+		HostPath: &corev1.HostPathVolumeSource{
+			Path: hostPath,
 		},
 	})
 	ds.Spec.Template.Spec.Containers[0].VolumeMounts = append(ds.Spec.Template.Spec.Containers[0].VolumeMounts, corev1.VolumeMount{
@@ -274,7 +260,7 @@ func upgradedLabels(planName, groupName string) map[string]string {
 
 // Create a hash from a list of objects by serializing them together as a JSON array and hashing the result.
 // All provided objects are marshaled as a single JSON array, so the hash depends on their order and content.
-func createHash(obj ...interface{}) (string, error) {
+func createHash(obj ...any) (string, error) {
 	data, err := json.Marshal(obj)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal object for hashing: %v", err)

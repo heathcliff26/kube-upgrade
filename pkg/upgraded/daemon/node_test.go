@@ -54,11 +54,9 @@ func TestDoNodeUpgrade(t *testing.T) {
 			fleetlock: client,
 		}
 		node := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "testnode",
-				Annotations: map[string]string{
-					constants.NodeKubernetesVersion: "v1.31.0",
-				},
+			Name: "testnode",
+			Annotations: map[string]string{
+				constants.NodeKubernetesVersion: "v1.31.0",
 			},
 		}
 
@@ -132,20 +130,16 @@ func TestUpdateNodeStatus(t *testing.T) {
 		{
 			Name: "Success",
 			Node: &corev1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "testnode",
-					Annotations: map[string]string{
-						constants.NodeUpgradeStatus: "unset",
-					},
+				Name: "testnode",
+				Annotations: map[string]string{
+					constants.NodeUpgradeStatus: "unset",
 				},
 			},
 		},
 		{
 			Name: "NoAnnotations",
 			Node: &corev1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "testnode",
-				},
+				Name: "testnode",
 			},
 		},
 		{
@@ -186,9 +180,7 @@ func TestUpdateNodeStatus(t *testing.T) {
 func TestAnnotateNodeWithUpgradedVersion(t *testing.T) {
 	ctx := t.Context()
 	node := &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "testnode",
-		},
+		Name: "testnode",
 	}
 	d := &daemon{
 		ctx:    ctx,
@@ -262,11 +254,9 @@ func TestNodeHasCorrectStream(t *testing.T) {
 				stream:         tCase.Stream,
 			}
 			node := &corev1.Node{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "testnode",
-					Annotations: map[string]string{
-						constants.NodeKubernetesVersion: tCase.Version,
-					},
+				Name: "testnode",
+				Annotations: map[string]string{
+					constants.NodeKubernetesVersion: tCase.Version,
 				},
 			}
 
@@ -284,12 +274,10 @@ func newTestDoNodeUpgradeSetup(t *testing.T, nodeStatus string) (*daemon, *corev
 	})
 
 	node := &corev1.Node{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "testnode",
-			Annotations: map[string]string{
-				constants.NodeKubernetesVersion: "v1.35.0",
-				constants.NodeUpgradeStatus:     nodeStatus,
-			},
+		Name: "testnode",
+		Annotations: map[string]string{
+			constants.NodeKubernetesVersion: "v1.35.0",
+			constants.NodeUpgradeStatus:     nodeStatus,
 		},
 	}
 
@@ -314,19 +302,15 @@ func TestNodeKubeadmUpgrade(t *testing.T) {
 		assert := assert.New(t)
 
 		node := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "testnode",
-				Annotations: map[string]string{
-					constants.NodeKubernetesVersion: "v1.31.0",
-				},
+			Name: "testnode",
+			Annotations: map[string]string{
+				constants.NodeKubernetesVersion: "v1.31.0",
 			},
 		}
 
 		configMap := &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "kubeadm-config",
-				Namespace: "kube-system",
-			},
+			Name:      "kubeadm-config",
+			Namespace: "kube-system",
 			Data: map[string]string{
 				"ClusterConfiguration": "kubernetesVersion: v1.30.4\n",
 			},
@@ -345,19 +329,15 @@ func TestNodeKubeadmUpgrade(t *testing.T) {
 		assert := assert.New(t)
 
 		node := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "testnode",
-				Annotations: map[string]string{
-					constants.NodeKubernetesVersion: "v1.31.0",
-				},
+			Name: "testnode",
+			Annotations: map[string]string{
+				constants.NodeKubernetesVersion: "v1.31.0",
 			},
 		}
 
 		configMap := &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "kubeadm-config",
-				Namespace: "kube-system",
-			},
+			Name:      "kubeadm-config",
+			Namespace: "kube-system",
 			Data: map[string]string{
 				"ClusterConfiguration": "kubernetesVersion: v1.31.0\n",
 			},
@@ -376,11 +356,9 @@ func TestNodeKubeadmUpgrade(t *testing.T) {
 		assert := assert.New(t)
 
 		node := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "testnode",
-				Annotations: map[string]string{
-					constants.NodeKubernetesVersion: "v1.31.0",
-				},
+			Name: "testnode",
+			Annotations: map[string]string{
+				constants.NodeKubernetesVersion: "v1.31.0",
 			},
 		}
 
@@ -398,19 +376,15 @@ func TestNodeKubeadmUpgrade(t *testing.T) {
 		assert := assert.New(t)
 
 		node := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "testnode",
-				Annotations: map[string]string{
-					constants.NodeKubernetesVersion: "v1.31.0",
-				},
+			Name: "testnode",
+			Annotations: map[string]string{
+				constants.NodeKubernetesVersion: "v1.31.0",
 			},
 		}
 
 		configMap := &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "kubeadm-config",
-				Namespace: "kube-system",
-			},
+			Name:      "kubeadm-config",
+			Namespace: "kube-system",
 		}
 
 		d, _ := newTestNodeKubeadmUpgradeSetup(t, "testdata/fake-kubeadm.sh", node, configMap)
@@ -427,19 +401,15 @@ func TestNodeKubeadmUpgrade(t *testing.T) {
 		assert := assert.New(t)
 
 		node := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "testnode",
-				Annotations: map[string]string{
-					constants.NodeKubernetesVersion: "v1.31.0",
-				},
+			Name: "testnode",
+			Annotations: map[string]string{
+				constants.NodeKubernetesVersion: "v1.31.0",
 			},
 		}
 
 		configMap := &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "kubeadm-config",
-				Namespace: "kube-system",
-			},
+			Name:      "kubeadm-config",
+			Namespace: "kube-system",
 			Data: map[string]string{
 				"ClusterConfiguration": "not: valid: yaml: [",
 			},
@@ -459,19 +429,15 @@ func TestNodeKubeadmUpgrade(t *testing.T) {
 		assert := assert.New(t)
 
 		node := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "testnode",
-				Annotations: map[string]string{
-					constants.NodeKubernetesVersion: "v1.31.0",
-				},
+			Name: "testnode",
+			Annotations: map[string]string{
+				constants.NodeKubernetesVersion: "v1.31.0",
 			},
 		}
 
 		configMap := &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "kubeadm-config",
-				Namespace: "kube-system",
-			},
+			Name:      "kubeadm-config",
+			Namespace: "kube-system",
 			Data: map[string]string{
 				"ClusterConfiguration": "kubernetesVersion: v1.30.4\n",
 			},
@@ -491,19 +457,15 @@ func TestNodeKubeadmUpgrade(t *testing.T) {
 		assert := assert.New(t)
 
 		node := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "testnode",
-				Annotations: map[string]string{
-					constants.NodeKubernetesVersion: "v1.31.0",
-				},
+			Name: "testnode",
+			Annotations: map[string]string{
+				constants.NodeKubernetesVersion: "v1.31.0",
 			},
 		}
 
 		configMap := &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "kubeadm-config",
-				Namespace: "kube-system",
-			},
+			Name:      "kubeadm-config",
+			Namespace: "kube-system",
 			Data: map[string]string{
 				"ClusterConfiguration": "kubernetesVersion: v1.31.0\n",
 			},
@@ -558,22 +520,18 @@ func TestWatchForNodeUpgrade(t *testing.T) {
 		client := fake.NewClientset()
 
 		node := &corev1.Node{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "testnode",
-				Annotations: map[string]string{
-					constants.NodeKubernetesVersion: "v1.31.0",
-					constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusPending,
-				},
+			Name: "testnode",
+			Annotations: map[string]string{
+				constants.NodeKubernetesVersion: "v1.31.0",
+				constants.NodeUpgradeStatus:     constants.NodeUpgradeStatusPending,
 			},
 		}
 		_, err := client.CoreV1().Nodes().Create(t.Context(), node, metav1.CreateOptions{})
 		require.NoError(err)
 
 		configMap := &corev1.ConfigMap{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "kubeadm-config",
-				Namespace: "kube-system",
-			},
+			Name:      "kubeadm-config",
+			Namespace: "kube-system",
 			Data: map[string]string{
 				"ClusterConfiguration": "kubernetesVersion: v1.30.4\n",
 			},
