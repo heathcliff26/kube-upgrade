@@ -85,9 +85,9 @@
 				
 				<option value="file14">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/config.go (93.9%)</option>
 				
-				<option value="file15">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (56.0%)</option>
+				<option value="file15">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (54.0%)</option>
 				
-				<option value="file16">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/node.go (87.7%)</option>
+				<option value="file16">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/node.go (89.2%)</option>
 				
 				<option value="file17">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/stream.go (100.0%)</option>
 				
@@ -1533,10 +1533,10 @@ func (d *daemon) WatchConfigFile() {
 
 // Get the current stream
 func (d *daemon) Stream() string {
-        <span class="cov8" title="17">d.configLock.RLock()
+        <span class="cov8" title="18">d.configLock.RLock()
         defer d.configLock.RUnlock()
 </span>
-        <span class="cov8" title="17">return d.stream
+        <span class="cov8" title="18">return d.stream
 </span>}
 
 // Get the fleetlock client
@@ -1557,10 +1557,10 @@ func (d *daemon) CheckInterval() time.Duration {
 
 // Get the retry interval
 func (d *daemon) RetryInterval() time.Duration {
-        <span class="cov10" title="33">d.configLock.RLock()
+        <span class="cov10" title="32">d.configLock.RLock()
         defer d.configLock.RUnlock()
 </span>
-        <span class="cov10" title="33">return d.retryInterval
+        <span class="cov10" title="32">return d.retryInterval
 </span>}
 </pre>
 		
@@ -1618,22 +1618,22 @@ type daemon struct {
 
 // Create a new daemon
 func NewDaemon(cfgPath string) (*daemon, error) {
-        <span class="cov3" title="3">cfg, err := config.LoadConfig(cfgPath)
+        <span class="cov4" title="3">cfg, err := config.LoadConfig(cfgPath)
         if err != nil </span>{
                 <span class="cov0" title="0">return nil, fmt.Errorf("failed to load config: %v", err)
 </span>        }
-        <span class="cov3" title="3">if cfgPath == "" </span>{
+        <span class="cov4" title="3">if cfgPath == "" </span>{
                 <span class="cov0" title="0">cfgPath = config.DefaultConfigPath
 </span>        }
 
         // Hardcoded path, as it will be executed in a container
-        <span class="cov3" title="3">rpmOstreeCMD, err := rpmostree.New(rpmOstreeCMDPath)
+        <span class="cov4" title="3">rpmOstreeCMD, err := rpmostree.New(rpmOstreeCMDPath)
         if err != nil </span>{
                 <span class="cov0" title="0">return nil, fmt.Errorf("failed to create rpm-ostree cmd wrapper: %v", err)
 </span>        }
-        <span class="cov3" title="3">var kubeadmCMD *kubeadm.KubeadmCMD
+        <span class="cov4" title="3">var kubeadmCMD *kubeadm.KubeadmCMD
         if cfg.KubeadmPath != "" </span>{
-                <span class="cov3" title="3">kubeadmCMD, err = kubeadm.NewFromPath(hostPrefix, cfg.KubeadmPath)
+                <span class="cov4" title="3">kubeadmCMD, err = kubeadm.NewFromPath(hostPrefix, cfg.KubeadmPath)
                 if err != nil </span>{
                         <span class="cov1" title="1">return nil, fmt.Errorf("failed to create kubeadm cmd wrapper: %v", err)
 </span>                }
@@ -1683,10 +1683,10 @@ func NewDaemon(cfgPath string) (*daemon, error) {
 
 // Retries the given function until it succeeds
 func (d *daemon) retry(f func() bool) {
-        <span class="cov7" title="12">for !f() </span>{
-                <span class="cov10" title="28">select </span>{
+        <span class="cov8" title="13">for !f() </span>{
+                <span class="cov10" title="27">select </span>{
                 case &lt;-d.ctx.Done():
-                        <span class="cov4" title="4">return</span>
+                        <span class="cov4" title="3">return</span>
                 case &lt;-time.After(d.RetryInterval()):<span class="cov9" title="24"></span>
                 }
         }
@@ -1694,13 +1694,13 @@ func (d *daemon) retry(f func() bool) {
 
 // Will try to release the lock until successful
 func (d *daemon) releaseLock() {
-        <span class="cov3" title="3">d.retry(func() bool </span>{
-                <span class="cov3" title="3">err := d.Fleetlock().Release()
+        <span class="cov4" title="3">d.retry(func() bool </span>{
+                <span class="cov4" title="3">err := d.Fleetlock().Release()
                 if err == nil </span>{
-                        <span class="cov2" title="2">return true
+                        <span class="cov4" title="3">return true
 </span>                }
 
-                <span class="cov1" title="1">slog.Warn("Failed to release lock", "err", err)
+                <span class="cov0" title="0">slog.Warn("Failed to release lock", "err", err)
                 return false</span>
         })
 }
@@ -1804,11 +1804,11 @@ func (d *daemon) watchForNodeUpgrade() {
         <span class="cov2" title="2">informer := factory.Core().V1().Nodes().Informer()
         _, err := informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
                 UpdateFunc: func(_, newObj any) </span>{
-                        <span class="cov1" title="1">node := newObj.(*corev1.Node)
+                        <span class="cov3" title="3">node := newObj.(*corev1.Node)
                         if !nodeNeedsUpgrade(node) &amp;&amp; d.nodeHasCorrectStream(node) </span>{
-                                <span class="cov0" title="0">return
+                                <span class="cov1" title="1">return
 </span>                        }
-                        <span class="cov1" title="1">d.doNodeUpgradeWithRetry(nil)</span>
+                        <span class="cov2" title="2">d.doNodeUpgradeWithRetry(nil)</span>
                 },
         })
         <span class="cov2" title="2">if err != nil </span>{
@@ -1828,10 +1828,10 @@ func (d *daemon) watchForNodeUpgrade() {
 
 // Update the node until it succeeds
 func (d *daemon) doNodeUpgradeWithRetry(node *corev1.Node) {
-        <span class="cov2" title="2">d.retry(func() bool </span>{
-                <span class="cov8" title="19">err := d.doNodeUpgrade(node)
+        <span class="cov3" title="3">d.retry(func() bool </span>{
+                <span class="cov8" title="20">err := d.doNodeUpgrade(node)
                 if err == nil </span>{
-                        <span class="cov1" title="1">return true
+                        <span class="cov2" title="2">return true
 </span>                }
                 <span class="cov7" title="18">slog.Error("Failed to upgrade node", "err", err, slog.String("node", d.node))
                 return false</span>
@@ -1840,18 +1840,18 @@ func (d *daemon) doNodeUpgradeWithRetry(node *corev1.Node) {
 
 // Update the node by first rebasing to a new version and then upgrading kubernetes
 func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
-        <span class="cov8" title="23">d.upgrade.Lock()
+        <span class="cov8" title="24">d.upgrade.Lock()
         defer d.upgrade.Unlock()
 </span>
-        <span class="cov8" title="23">var err error
+        <span class="cov8" title="24">var err error
         if node == nil </span>{
                 // Need to fetch fresh data here, as the informer might called with a stale node version
-                <span class="cov8" title="19">node, err = d.getNode()
+                <span class="cov8" title="20">node, err = d.getNode()
                 if err != nil </span>{
                         <span class="cov7" title="18">return fmt.Errorf("failed to get node data from server: %v", err)
 </span>                }
-                <span class="cov1" title="1">if !nodeNeedsUpgrade(node) </span>{
-                        <span class="cov0" title="0">return nil
+                <span class="cov2" title="2">if !nodeNeedsUpgrade(node) </span>{
+                        <span class="cov1" title="1">return nil
 </span>                }
         }
 
@@ -1966,7 +1966,7 @@ func (d *daemon) updateNodeStatus(status string) error {
 
 // Retrieve the node from the API
 func (d *daemon) getNode() (*corev1.Node, error) {
-        <span class="cov10" title="42">return d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
+        <span class="cov10" title="43">return d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
 </span>}
 
 // Return the given error, but also set the node status to error
@@ -1994,16 +1994,16 @@ func (d *daemon) annotateNodeWithUpgradedVersion(node *corev1.Node) (*corev1.Nod
 
 // Check if the current image stream matches the requested one
 func (d *daemon) nodeHasCorrectStream(node *corev1.Node) bool {
-        <span class="cov5" title="7">if node.Annotations == nil </span>{
+        <span class="cov5" title="8">if node.Annotations == nil </span>{
                 <span class="cov0" title="0">return true
 </span>        }
 
-        <span class="cov5" title="7">version := node.Annotations[constants.NodeKubernetesVersion]
+        <span class="cov5" title="8">version := node.Annotations[constants.NodeKubernetesVersion]
         if version == "" </span>{
                 <span class="cov0" title="0">return true
 </span>        }
 
-        <span class="cov5" title="7">return strings.HasSuffix(d.bootedImageRef, d.Stream()+":"+version)</span>
+        <span class="cov5" title="8">return strings.HasSuffix(d.bootedImageRef, d.Stream()+":"+version)</span>
 }
 </pre>
 		
@@ -2095,17 +2095,17 @@ const NodeNameEnv = "NODE_NAME"
 // Return the node name by reading NODE_NAME environment variable.
 // Return an error if it doesn't match the given machineID.
 func nodeName(client kubernetes.Interface, machineID string) (string, error) {
-        <span class="cov9" title="5">name := os.Getenv(NodeNameEnv)
+        <span class="cov7" title="5">name := os.Getenv(NodeNameEnv)
         if name == "" </span>{
-                <span class="cov4" title="2">return "", fmt.Errorf("NODE_NAME environment variable is empty")
+                <span class="cov3" title="2">return "", fmt.Errorf("NODE_NAME environment variable is empty")
 </span>        }
 
-        <span class="cov6" title="3">node, err := client.CoreV1().Nodes().Get(context.Background(), name, metav1.GetOptions{})
+        <span class="cov5" title="3">node, err := client.CoreV1().Nodes().Get(context.Background(), name, metav1.GetOptions{})
         if err != nil </span>{
                 <span class="cov1" title="1">return "", fmt.Errorf("failed to get node %s: %v", name, err)
 </span>        }
 
-        <span class="cov4" title="2">if node.Status.NodeInfo.MachineID != machineID </span>{
+        <span class="cov3" title="2">if node.Status.NodeInfo.MachineID != machineID </span>{
                 <span class="cov1" title="1">return "", fmt.Errorf("node '%s' machineID '%s' does not match host machineID '%s'", name, node.Status.NodeInfo.MachineID, machineID)
 </span>        }
 
@@ -2114,26 +2114,26 @@ func nodeName(client kubernetes.Interface, machineID string) (string, error) {
 
 // Check if the node needs to upgrade it's kubernetes version
 func nodeNeedsUpgrade(node *corev1.Node) bool {
-        <span class="cov10" title="6">if node.Annotations == nil </span>{
+        <span class="cov10" title="9">if node.Annotations == nil </span>{
                 <span class="cov1" title="1">return false
 </span>        }
-        <span class="cov9" title="5">status := node.Annotations[constants.NodeUpgradeStatus]
+        <span class="cov9" title="8">status := node.Annotations[constants.NodeUpgradeStatus]
         if status == constants.NodeUpgradeStatusCompleted </span>{
-                <span class="cov1" title="1">return false
+                <span class="cov5" title="3">return false
 </span>        }
-        <span class="cov7" title="4">if _, ok := node.Annotations[constants.NodeKubernetesVersion]; !ok </span>{
+        <span class="cov7" title="5">if _, ok := node.Annotations[constants.NodeKubernetesVersion]; !ok </span>{
                 <span class="cov1" title="1">slog.Warn("Missing version annotation on node", slog.String("node", node.GetName()), slog.String("annotation", constants.NodeKubernetesVersion))
                 return false
 </span>        }
-        <span class="cov6" title="3">return true</span>
+        <span class="cov6" title="4">return true</span>
 }
 
 // Delete the specified directory if it exists
 func deleteDir(path string) error {
-        <span class="cov9" title="5">if _, err := os.Stat(path); !os.IsNotExist(err) </span>{
+        <span class="cov7" title="5">if _, err := os.Stat(path); !os.IsNotExist(err) </span>{
                 <span class="cov1" title="1">return os.RemoveAll(path)
 </span>        }
-        <span class="cov7" title="4">return nil</span>
+        <span class="cov6" title="4">return nil</span>
 }
 </pre>
 		
