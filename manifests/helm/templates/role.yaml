@@ -79,4 +79,4 @@ rules:
   - create
   - get
   - update
-{{- end }}
+{{- end -}}
