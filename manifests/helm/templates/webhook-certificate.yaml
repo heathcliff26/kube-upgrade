@@ -1,4 +1,4 @@
-{{- if .Values.webhooks.enabled }}
+{{- if .Values.webhooks.enabled -}}
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.heathcliff.eu/cert-manager.io/issuer_v1.json
 apiVersion: cert-manager.io/v1
@@ -27,4 +27,4 @@ spec:
     kind: Issuer
     name: {{ include "kube-upgrade.fullname" . }}-selfsigned
   secretName: {{ include "kube-upgrade.fullname" . }}-webhook-cert
-{{- end }}
+{{- end -}}

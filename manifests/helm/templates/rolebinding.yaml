@@ -1,5 +1,4 @@
-{{- if .Values.rbac.create -}}
-{{- if .Values.serviceAccount.create -}}
+{{- if and .Values.rbac.create .Values.serviceAccount.create -}}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -30,5 +29,4 @@ roleRef:
   kind: Role
   name: {{ include "kube-upgrade.fullname" . }}
   apiGroup: rbac.authorization.k8s.io
-{{- end }}
-{{- end }}
+{{- end -}}

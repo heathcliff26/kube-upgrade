@@ -35,7 +35,7 @@ cat "${generated_dir}/role.yaml" \
     | sed 's/namespace: kube-upgrade/namespace: {{ .Release.Namespace }}/g' \
     | sed 's/name: upgrade-controller/name: {{ include "kube-upgrade.fullname" . }}\n  labels:\n    {{- include "kube-upgrade.labels" . | nindent 4 }}/g' \
     >> "${helm_dir}/role.yaml"
-echo "{{- end }}" >> "${helm_dir}/role.yaml"
+echo "{{- end -}}" >> "${helm_dir}/role.yaml"
 
 echo "Patching webhooks with placeholders"
 mv "${generated_dir}/manifests.yaml" "${generated_dir}/webhooks.yaml"
@@ -52,7 +52,7 @@ cat "${generated_dir}/webhooks.yaml" \
     | sed 's/PLACEHOLDER_NAMESPACE/{{ .Release.Namespace }}/g' \
     | sed 's/PLACEHOLDER_LABELS: "true"/{{- include "kube-upgrade.labels" . | nindent 4 }}/g' \
     >> "${helm_dir}/webhooks.yaml"
-echo "{{- end }}" >> "${helm_dir}/webhooks.yaml"
+echo "{{- end -}}" >> "${helm_dir}/webhooks.yaml"
 
 popd >/dev/null
 
