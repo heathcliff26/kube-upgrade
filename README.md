@@ -1,7 +1,7 @@
 [![CI](https://github.com/heathcliff26/kube-upgrade/actions/workflows/ci.yaml/badge.svg?event=push)](https://github.com/heathcliff26/kube-upgrade/actions/workflows/ci.yaml)
 [![Coverage Status](https://coveralls.io/repos/github/heathcliff26/kube-upgrade/badge.svg)](https://coveralls.io/github/heathcliff26/kube-upgrade)
 [![Editorconfig Check](https://github.com/heathcliff26/kube-upgrade/actions/workflows/editorconfig-check.yaml/badge.svg?event=push)](https://github.com/heathcliff26/kube-upgrade/actions/workflows/editorconfig-check.yaml)
-[![Generate go test cover report](https://github.com/heathcliff26/kube-upgrade/actions/workflows/go-testcover-report.yaml/badge.svg)](https://github.com/heathcliff26/kube-upgrade/actions/workflows/go-testcover-report.yaml)
+[![Coverprofiles](https://github.com/heathcliff26/kube-upgrade/actions/workflows/coverprofiles.yaml/badge.svg)](https://github.com/heathcliff26/kube-upgrade/actions/workflows/coverprofiles.yaml)
 
 # kube-upgrade
 Kubernetes controller and daemon for managing cluster updates.
