@@ -57,13 +57,13 @@
 				
 				<option value="file0">github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3/defaults.go (100.0%)</option>
 				
-				<option value="file1">github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3/register.go (94.4%)</option>
+				<option value="file1">github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3/register.go (83.3%)</option>
 				
 				<option value="file2">github.com/heathcliff26/kube-upgrade/pkg/apis/kubeupgrade/v1alpha3/validation.go (100.0%)</option>
 				
 				<option value="file3">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/config.go (100.0%)</option>
 				
-				<option value="file4">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (65.0%)</option>
+				<option value="file4">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (61.9%)</option>
 				
 				<option value="file5">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/errors.go (50.0%)</option>
 				
@@ -71,23 +71,23 @@
 				
 				<option value="file7">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/mutatingwebhook.go (100.0%)</option>
 				
-				<option value="file8">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/upgraded.go (87.3%)</option>
+				<option value="file8">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/upgraded.go (81.2%)</option>
 				
-				<option value="file9">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/utils.go (95.1%)</option>
+				<option value="file9">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/utils.go (94.2%)</option>
 				
 				<option value="file10">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/validatingwebhook.go (96.2%)</option>
 				
-				<option value="file11">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/root.go (28.6%)</option>
+				<option value="file11">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/root.go (21.1%)</option>
 				
-				<option value="file12">github.com/heathcliff26/kube-upgrade/pkg/upgraded/config/config.go (97.9%)</option>
+				<option value="file12">github.com/heathcliff26/kube-upgrade/pkg/upgraded/config/config.go (97.6%)</option>
 				
 				<option value="file13">github.com/heathcliff26/kube-upgrade/pkg/upgraded/config/errors.go (50.0%)</option>
 				
-				<option value="file14">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/config.go (93.9%)</option>
+				<option value="file14">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/config.go (90.2%)</option>
 				
-				<option value="file15">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (56.0%)</option>
+				<option value="file15">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/daemon.go (59.1%)</option>
 				
-				<option value="file16">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/node.go (87.7%)</option>
+				<option value="file16">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/node.go (86.1%)</option>
 				
 				<option value="file17">github.com/heathcliff26/kube-upgrade/pkg/upgraded/daemon/stream.go (100.0%)</option>
 				
@@ -95,17 +95,17 @@
 				
 				<option value="file19">github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm/kubeadm.go (100.0%)</option>
 				
-				<option value="file20">github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm/utils.go (86.7%)</option>
+				<option value="file20">github.com/heathcliff26/kube-upgrade/pkg/upgraded/kubeadm/utils.go (80.0%)</option>
 				
-				<option value="file21">github.com/heathcliff26/kube-upgrade/pkg/upgraded/root.go (23.5%)</option>
+				<option value="file21">github.com/heathcliff26/kube-upgrade/pkg/upgraded/root.go (16.1%)</option>
 				
-				<option value="file22">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/rpm-ostree.go (92.2%)</option>
+				<option value="file22">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/rpm-ostree.go (88.6%)</option>
 				
 				<option value="file23">github.com/heathcliff26/kube-upgrade/pkg/upgraded/rpm-ostree/utils.go (100.0%)</option>
 				
-				<option value="file24">github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils/utils.go (95.2%)</option>
+				<option value="file24">github.com/heathcliff26/kube-upgrade/pkg/upgraded/utils/utils.go (94.4%)</option>
 				
-				<option value="file25">github.com/heathcliff26/kube-upgrade/pkg/version/version.go (84.6%)</option>
+				<option value="file25">github.com/heathcliff26/kube-upgrade/pkg/version/version.go (81.0%)</option>
 				
 				</select>
 			</div>
@@ -154,23 +154,23 @@ func SetObjectDefaults_KubeUpgradeSpec(spec *KubeUpgradeSpec) {
 }
 
 func SetObjectDefaults_UpgradedConfig(cfg *UpgradedConfig) {
-        <span class="cov10" title="53">if cfg.Stream == "" </span>{
-                <span class="cov9" title="50">cfg.Stream = DefaultUpgradedStream
+        <span class="cov10" title="54">if cfg.Stream == "" </span>{
+                <span class="cov9" title="51">cfg.Stream = DefaultUpgradedStream
 </span>        }
-        <span class="cov10" title="53">if cfg.FleetlockGroup == "" </span>{
-                <span class="cov10" title="53">cfg.FleetlockGroup = DefaultUpgradedFleetlockGroup
+        <span class="cov10" title="54">if cfg.FleetlockGroup == "" </span>{
+                <span class="cov10" title="54">cfg.FleetlockGroup = DefaultUpgradedFleetlockGroup
 </span>        }
-        <span class="cov10" title="53">if cfg.CheckInterval == "" </span>{
-                <span class="cov9" title="51">cfg.CheckInterval = DefaultUpgradedCheckInterval
+        <span class="cov10" title="54">if cfg.CheckInterval == "" </span>{
+                <span class="cov9" title="52">cfg.CheckInterval = DefaultUpgradedCheckInterval
 </span>        }
-        <span class="cov10" title="53">if cfg.RetryInterval == "" </span>{
-                <span class="cov9" title="51">cfg.RetryInterval = DefaultUpgradedRetryInterval
+        <span class="cov10" title="54">if cfg.RetryInterval == "" </span>{
+                <span class="cov9" title="52">cfg.RetryInterval = DefaultUpgradedRetryInterval
 </span>        }
-        <span class="cov10" title="53">if cfg.LogLevel == "" </span>{
-                <span class="cov10" title="53">cfg.LogLevel = DefaultUpgradedLogLevel
+        <span class="cov10" title="54">if cfg.LogLevel == "" </span>{
+                <span class="cov10" title="54">cfg.LogLevel = DefaultUpgradedLogLevel
 </span>        }
-        <span class="cov10" title="53">if cfg.KubeletConfig == "" </span>{
-                <span class="cov10" title="53">cfg.KubeletConfig = DefaultUpgradedKubeletConfig
+        <span class="cov10" title="54">if cfg.KubeletConfig == "" </span>{
+                <span class="cov10" title="54">cfg.KubeletConfig = DefaultUpgradedKubeletConfig
 </span>        }
 }
 </pre>
@@ -1329,11 +1329,11 @@ func init() {
 
 // Parse a given string and set the resulting log level
 func setLogLevel(level string) error {
-        <span class="cov10" title="19">switch strings.ToLower(level) </span>{
+        <span class="cov10" title="20">switch strings.ToLower(level) </span>{
         case "debug":
                 <span class="cov4" title="3">logLevel.Set(slog.LevelDebug)</span>
         case "info":
-                <span class="cov8" title="10">logLevel.Set(slog.LevelInfo)</span>
+                <span class="cov8" title="11">logLevel.Set(slog.LevelInfo)</span>
         case "warn":
                 <span class="cov3" title="2">logLevel.Set(slog.LevelWarn)</span>
         case "error":
@@ -1341,11 +1341,11 @@ func setLogLevel(level string) error {
         default:
                 <span class="cov3" title="2">return NewErrUnknownLogLevel(level)</span>
         }
-        <span class="cov9" title="17">return nil</span>
+        <span class="cov9" title="18">return nil</span>
 }
 
 func DefaultConfig() *api.UpgradedConfig {
-        <span class="cov10" title="19">cfg := &amp;api.UpgradedConfig{}
+        <span class="cov10" title="20">cfg := &amp;api.UpgradedConfig{}
         api.SetObjectDefaults_UpgradedConfig(cfg)
         return cfg
 </span>}
@@ -1355,54 +1355,54 @@ func DefaultConfig() *api.UpgradedConfig {
 // When no config is found in the default path, it returns the default config.
 // Returns error when the given config is invalid.
 func LoadConfig(path string) (*api.UpgradedConfig, error) {
-        <span class="cov9" title="17">c := DefaultConfig()
+        <span class="cov9" title="18">c := DefaultConfig()
 </span>
-        <span class="cov9" title="17">if path == "" </span>{
+        <span class="cov9" title="18">if path == "" </span>{
                 <span class="cov0" title="0">path = DefaultConfigPath
 </span>        }
 
         // #nosec G304: File will be passed by controller
-        <span class="cov9" title="17">f, err := os.ReadFile(path)
+        <span class="cov9" title="18">f, err := os.ReadFile(path)
         if err != nil </span>{
                 <span class="cov3" title="2">return nil, err
 </span>        }
 
-        <span class="cov9" title="15">err = yaml.Unmarshal(f, &amp;c)
+        <span class="cov9" title="16">err = yaml.Unmarshal(f, &amp;c)
         if err != nil </span>{
                 <span class="cov1" title="1">return nil, err
 </span>        }
 
-        <span class="cov9" title="14">err = ValidateConfig(c)
+        <span class="cov9" title="15">err = ValidateConfig(c)
         if err != nil </span>{
                 <span class="cov5" title="5">return nil, err
 </span>        }
 
-        <span class="cov7" title="9">err = setLogLevel(c.LogLevel)
+        <span class="cov7" title="10">err = setLogLevel(c.LogLevel)
         if err != nil </span>{
                 <span class="cov1" title="1">return nil, err
 </span>        }
 
-        <span class="cov7" title="8">return c, nil</span>
+        <span class="cov7" title="9">return c, nil</span>
 }
 
 // Validates the given config to ensure all required fields are set.
 func ValidateConfig(cfg *api.UpgradedConfig) error {
-        <span class="cov9" title="14">if cfg == nil </span>{
+        <span class="cov9" title="15">if cfg == nil </span>{
                 <span class="cov1" title="1">return fmt.Errorf("invalid config, config is nil")
 </span>        }
-        <span class="cov8" title="13">if cfg.Stream == "" </span>{
+        <span class="cov8" title="14">if cfg.Stream == "" </span>{
                 <span class="cov1" title="1">return fmt.Errorf("invalid config, missing stream")
 </span>        }
-        <span class="cov8" title="12">if cfg.FleetlockURL == "" </span>{
+        <span class="cov8" title="13">if cfg.FleetlockURL == "" </span>{
                 <span class="cov1" title="1">return fmt.Errorf("invalid config, missing fleetlockUrl")
 </span>        }
-        <span class="cov8" title="11">if cfg.FleetlockGroup == "" </span>{
+        <span class="cov8" title="12">if cfg.FleetlockGroup == "" </span>{
                 <span class="cov1" title="1">return fmt.Errorf("invalid config, missing fleetlockGroup")
 </span>        }
-        <span class="cov8" title="10">if cfg.KubeletConfig == "" </span>{
+        <span class="cov8" title="11">if cfg.KubeletConfig == "" </span>{
                 <span class="cov1" title="1">return fmt.Errorf("invalid config, missing kubeletConfig")
 </span>        }
-        <span class="cov7" title="9">return nil</span>
+        <span class="cov7" title="10">return nil</span>
 }
 </pre>
 		
@@ -1439,43 +1439,43 @@ import (
 
 // Reload the daemon configuration from it's config file
 func (d *daemon) UpdateFromConfigFile() error {
-        <span class="cov4" title="4">slog.Info("Attempting to update daemon configuration from config file", slog.String("path", d.cfgPath))
+        <span class="cov5" title="5">slog.Info("Attempting to update daemon configuration from config file", slog.String("path", d.cfgPath))
 </span>
-        <span class="cov4" title="4">cfg, err := config.LoadConfig(d.cfgPath)
+        <span class="cov5" title="5">cfg, err := config.LoadConfig(d.cfgPath)
         if err != nil </span>{
                 <span class="cov1" title="1">return fmt.Errorf("failed to load config from file: %v", err)
 </span>        }
 
-        <span class="cov3" title="3">return d.updateFromConfig(cfg)</span>
+        <span class="cov4" title="4">return d.updateFromConfig(cfg)</span>
 }
 
 // Update the daemon configuration from the provided config object.
 // Ensures that no changes will be made if there are errors in the config.
 func (d *daemon) updateFromConfig(cfg *api.UpgradedConfig) error {
-        <span class="cov6" title="8">checkInterval, err := time.ParseDuration(cfg.CheckInterval)
+        <span class="cov6" title="9">checkInterval, err := time.ParseDuration(cfg.CheckInterval)
         if err != nil </span>{
                 <span class="cov1" title="1">return fmt.Errorf("failed to parse check interval \"%s\": %v", cfg.CheckInterval, err)
 </span>        }
-        <span class="cov6" title="7">retryInterval, err := time.ParseDuration(cfg.RetryInterval)
+        <span class="cov6" title="8">retryInterval, err := time.ParseDuration(cfg.RetryInterval)
         if err != nil </span>{
                 <span class="cov1" title="1">return fmt.Errorf("failed to parse retry interval \"%s\": %v", cfg.RetryInterval, err)
 </span>        }
 
-        <span class="cov5" title="6">fleetlockClient, err := fleetlock.NewClient(cfg.FleetlockURL, cfg.FleetlockGroup)
+        <span class="cov6" title="7">fleetlockClient, err := fleetlock.NewClient(cfg.FleetlockURL, cfg.FleetlockGroup)
         if err != nil </span>{
                 <span class="cov1" title="1">return fmt.Errorf("failed to create fleetlock client with url '%s' and group '%s': %v", cfg.FleetlockURL, cfg.FleetlockGroup, err)
 </span>        }
 
-        <span class="cov5" title="5">d.configLock.Lock()
+        <span class="cov5" title="6">d.configLock.Lock()
         defer d.configLock.Unlock()
 </span>
-        <span class="cov5" title="5">d.stream = cfg.Stream
+        <span class="cov5" title="6">d.stream = cfg.Stream
         d.fleetlock = fleetlockClient
         d.checkInterval = checkInterval
         d.retryInterval = retryInterval
         d.allowUnsignedOstreeImages = cfg.AllowUnsignedOstreeImages
 </span>
-        <span class="cov5" title="5">slog.Info("Finished updating configuration")
+        <span class="cov5" title="6">slog.Info("Finished updating configuration")
         return nil</span>
 }
 
@@ -1500,20 +1500,20 @@ func (d *daemon) WatchConfigFile() {
         <span class="cov3" title="3">slog.Info("Started watching the config file for changes", slog.String("path", d.cfgPath))
 </span>
         <span class="cov3" title="3">for </span>{
-                <span class="cov4" title="4">select </span>{
+                <span class="cov5" title="5">select </span>{
                 case event, ok := &lt;-d.configWatcher.Events:
-                        <span class="cov1" title="1">if !ok </span>{
+                        <span class="cov2" title="2">if !ok </span>{
                                 <span class="cov0" title="0">slog.Info("Config file watcher events channel closed")
                                 return
 </span>                        }
                         // Ignore chmod, rename and remove events, they are not relevant
-                        <span class="cov1" title="1">if event.Has(fsnotify.Chmod | fsnotify.Rename | fsnotify.Remove) </span>{
+                        <span class="cov2" title="2">if event.Has(fsnotify.Chmod | fsnotify.Rename | fsnotify.Remove) </span>{
                                 <span class="cov0" title="0">continue</span>
                         }
-                        <span class="cov1" title="1">slog.Debug("Received event on config file directory", slog.String("Op", event.Op.String()), slog.String("name", event.Name))
+                        <span class="cov2" title="2">slog.Debug("Received event on config file directory", slog.String("Op", event.Op.String()), slog.String("name", event.Name))
 </span>                        // Check if the event is for our config file or the ..data symlink
-                        <span class="cov1" title="1">if event.Name == d.cfgPath || event.Name == filepath.Join(filepath.Dir(d.cfgPath), "..data") </span>{
-                                <span class="cov1" title="1">err := d.UpdateFromConfigFile()
+                        <span class="cov2" title="2">if event.Name == d.cfgPath || event.Name == filepath.Join(filepath.Dir(d.cfgPath), "..data") </span>{
+                                <span class="cov2" title="2">err := d.UpdateFromConfigFile()
                                 if err != nil </span>{
                                         <span class="cov0" title="0">slog.Error("Failed to update configuration from config file", slog.String("path", d.cfgPath), slog.String("error", err.Error()))
 </span>                                }
