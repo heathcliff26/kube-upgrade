@@ -1461,7 +1461,7 @@ func (d *daemon) updateFromConfig(cfg *api.UpgradedConfig) error {
                 <span class="cov1" title="1">return fmt.Errorf("failed to parse retry interval \"%s\": %v", cfg.RetryInterval, err)
 </span>        }
 
-        <span class="cov5" title="7">fleetlockClient, err := fleetlock.NewClient(cfg.FleetlockURL, cfg.FleetlockGroup)
+        <span class="cov6" title="7">fleetlockClient, err := fleetlock.NewClient(cfg.FleetlockURL, cfg.FleetlockGroup)
         if err != nil </span>{
                 <span class="cov1" title="1">return fmt.Errorf("failed to create fleetlock client with url '%s' and group '%s': %v", cfg.FleetlockURL, cfg.FleetlockGroup, err)
 </span>        }
@@ -1557,10 +1557,10 @@ func (d *daemon) CheckInterval() time.Duration {
 
 // Get the retry interval
 func (d *daemon) RetryInterval() time.Duration {
-        <span class="cov10" title="34">d.configLock.RLock()
+        <span class="cov10" title="33">d.configLock.RLock()
         defer d.configLock.RUnlock()
 </span>
-        <span class="cov10" title="34">return d.retryInterval
+        <span class="cov10" title="33">return d.retryInterval
 </span>}
 </pre>
 		
@@ -1684,10 +1684,10 @@ func NewDaemon(cfgPath string) (*daemon, error) {
 // Retries the given function until it succeeds
 func (d *daemon) retry(f func() bool) {
         <span class="cov7" title="12">for !f() </span>{
-                <span class="cov10" title="29">select </span>{
+                <span class="cov10" title="28">select </span>{
                 case &lt;-d.ctx.Done():
                         <span class="cov4" title="4">return</span>
-                case &lt;-time.After(d.RetryInterval()):<span class="cov9" title="25"></span>
+                case &lt;-time.After(d.RetryInterval()):<span class="cov9" title="24"></span>
                 }
         }
 }
@@ -1829,26 +1829,26 @@ func (d *daemon) watchForNodeUpgrade() {
 // Update the node until it succeeds
 func (d *daemon) doNodeUpgradeWithRetry(node *corev1.Node) {
         <span class="cov2" title="2">d.retry(func() bool </span>{
-                <span class="cov8" title="20">err := d.doNodeUpgrade(node)
+                <span class="cov8" title="19">err := d.doNodeUpgrade(node)
                 if err == nil </span>{
                         <span class="cov1" title="1">return true
 </span>                }
-                <span class="cov8" title="19">slog.Error("Failed to upgrade node", "err", err, slog.String("node", d.node))
+                <span class="cov7" title="18">slog.Error("Failed to upgrade node", "err", err, slog.String("node", d.node))
                 return false</span>
         })
 }
 
 // Update the node by first rebasing to a new version and then upgrading kubernetes
 func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
-        <span class="cov8" title="24">d.upgrade.Lock()
+        <span class="cov8" title="23">d.upgrade.Lock()
         defer d.upgrade.Unlock()
 </span>
-        <span class="cov8" title="24">var err error
+        <span class="cov8" title="23">var err error
         if node == nil </span>{
                 // Need to fetch fresh data here, as the informer might called with a stale node version
-                <span class="cov8" title="20">node, err = d.getNode()
+                <span class="cov8" title="19">node, err = d.getNode()
                 if err != nil </span>{
-                        <span class="cov8" title="19">return fmt.Errorf("failed to get node data from server: %v", err)
+                        <span class="cov7" title="18">return fmt.Errorf("failed to get node data from server: %v", err)
 </span>                }
                 <span class="cov1" title="1">if !nodeNeedsUpgrade(node) </span>{
                         <span class="cov0" title="0">return nil
@@ -1966,7 +1966,7 @@ func (d *daemon) updateNodeStatus(status string) error {
 
 // Retrieve the node from the API
 func (d *daemon) getNode() (*corev1.Node, error) {
-        <span class="cov10" title="43">return d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
+        <span class="cov10" title="42">return d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
 </span>}
 
 // Return the given error, but also set the node status to error
