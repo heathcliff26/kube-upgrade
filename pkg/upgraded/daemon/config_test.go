@@ -121,6 +121,7 @@ func TestUpdateFromConfig(t *testing.T) {
 		}()
 
 		select {
+		//nolint:errcheck
 		case <-done:
 			t.Fatal("UpdateFromConfig should be blocked by lock")
 		case <-time.After(100 * time.Millisecond):
