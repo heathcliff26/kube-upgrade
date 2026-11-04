@@ -45,7 +45,8 @@ helm template "${base_dir}/manifests/helm" \
     | grep -v '# Source: kube-upgrade/templates' \
     | grep -v 'helm.sh/chart: kube-upgrade' \
     | grep -v 'app.kubernetes.io/managed-by: Helm' \
-    | sed "s/v0.0.0/${TAG}/g" >> "${upgrade_controller_file}"
+    | sed "s/v0.0.0/${TAG}/g" \
+    | sed '/^$/N;/^\n---$/s/^\n//' >> "${upgrade_controller_file}"
 
 echo "Fetching latest kubernetes version"
 # shellcheck disable=SC2155
