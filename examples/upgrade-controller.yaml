@@ -488,38 +488,6 @@ spec:
             defaultMode: 420
             secretName: kube-upgrade-webhook-cert
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.heathcliff.eu/cert-manager.io/certificate_v1.json
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: kube-upgrade-webhook-cert
-  namespace: kube-upgrade
-  labels:
-    app.kubernetes.io/name: kube-upgrade
-    app.kubernetes.io/instance: kube-upgrade
-    app.kubernetes.io/version: "latest"
-spec:
-  dnsNames:
-  - "kube-upgrade-webhooks.kube-upgrade.svc"
-  - "kube-upgrade-webhooks.kube-upgrade.svc.cluster.local"
-  issuerRef:
-    kind: Issuer
-    name: kube-upgrade-selfsigned
-  secretName: kube-upgrade-webhook-cert
----
-# yaml-language-server: $schema=https://kubernetes-schemas.heathcliff.eu/cert-manager.io/issuer_v1.json
-apiVersion: cert-manager.io/v1
-kind: Issuer
-metadata:
-  name: kube-upgrade-selfsigned
-  namespace: kube-upgrade
-  labels:
-    app.kubernetes.io/name: kube-upgrade
-    app.kubernetes.io/instance: kube-upgrade
-    app.kubernetes.io/version: "latest"
-spec:
-  selfSigned: {}
----
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
@@ -583,3 +551,35 @@ webhooks:
         resources:
           - kubeupgradeplans
     sideEffects: None
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.heathcliff.eu/cert-manager.io/certificate_v1.json
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: kube-upgrade-webhook-cert
+  namespace: kube-upgrade
+  labels:
+    app.kubernetes.io/name: kube-upgrade
+    app.kubernetes.io/instance: kube-upgrade
+    app.kubernetes.io/version: "latest"
+spec:
+  dnsNames:
+  - "kube-upgrade-webhooks.kube-upgrade.svc"
+  - "kube-upgrade-webhooks.kube-upgrade.svc.cluster.local"
+  issuerRef:
+    kind: Issuer
+    name: kube-upgrade-selfsigned
+  secretName: kube-upgrade-webhook-cert
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.heathcliff.eu/cert-manager.io/issuer_v1.json
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: kube-upgrade-selfsigned
+  namespace: kube-upgrade
+  labels:
+    app.kubernetes.io/name: kube-upgrade
+    app.kubernetes.io/instance: kube-upgrade
+    app.kubernetes.io/version: "latest"
+spec:
+  selfSigned: {}
