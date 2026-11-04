@@ -26,7 +26,7 @@ push-upgrade-controller: build-upgrade-controller
 	podman push $(REPOSITORY)/kube-upgrade-controller:$(TAG)
 
 # Run unit-tests
-test: tools
+test: cosign
 	hack/unit-test.sh
 
 # Run end-to-end tests
@@ -77,10 +77,17 @@ gosec:
 clean:
 	hack/clean.sh
 
+.ONESHELL:
+# Install cosign
+cosign:
+	[ -f bin/cosign ] && exit
+	mkdir -p bin
+	curl -fsSL -o bin/cosign https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-$$(go env GOARCH)
+	chmod +x bin/cosign
+
 # Install the tools required for building the app
 tools:
 	GOBIN="$(shell pwd)/bin" go install tool
-	GOBIN="$(shell pwd)/bin" go install github.com/sigstore/cosign/v3/cmd/cosign@latest
 
 # Show this help message
 help:
@@ -110,6 +117,7 @@ help:
 	fmt \
 	gosec \
 	clean \
+	cosign \
 	tools \
 	help \
 	$(NULL)
