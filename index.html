@@ -255,17 +255,17 @@ func ValidateObject_KubeUpgradeSpec(spec KubeUpgradeSpec) error {
                 <span class="cov1" title="1">return fmt.Errorf("need at least one node group for upgrades")
 </span>        }
         <span class="cov9" title="17">for name, group := range spec.Groups </span>{
-                <span class="cov9" title="22">for _, dependency := range group.DependsOn </span>{
+                <span class="cov9" title="21">for _, dependency := range group.DependsOn </span>{
                         <span class="cov6" title="6">if _, ok := spec.Groups[dependency]; !ok </span>{
                                 <span class="cov1" title="1">return fmt.Errorf("group \"%s\" depends on non-existing group \"%s\"", name, dependency)
 </span>                        }
                 }
 
-                <span class="cov9" title="21">if len(group.Labels) &lt; 1 </span>{
+                <span class="cov9" title="20">if len(group.Labels) &lt; 1 </span>{
                         <span class="cov1" title="1">return fmt.Errorf("group \"%s\" needs at least one label selector", name)
 </span>                }
 
-                <span class="cov9" title="20">if group.Upgraded != nil </span>{
+                <span class="cov9" title="19">if group.Upgraded != nil </span>{
                         <span class="cov4" title="3">err := ValidateObject_UpgradedConfig(*group.Upgraded)
                         if err != nil </span>{
                                 <span class="cov1" title="1">return fmt.Errorf("group \"%s\" has an invalid upgraded config: %v", name, err)
@@ -1557,10 +1557,10 @@ func (d *daemon) CheckInterval() time.Duration {
 
 // Get the retry interval
 func (d *daemon) RetryInterval() time.Duration {
-        <span class="cov10" title="33">d.configLock.RLock()
+        <span class="cov10" title="31">d.configLock.RLock()
         defer d.configLock.RUnlock()
 </span>
-        <span class="cov10" title="33">return d.retryInterval
+        <span class="cov10" title="31">return d.retryInterval
 </span>}
 </pre>
 		
@@ -1618,22 +1618,22 @@ type daemon struct {
 
 // Create a new daemon
 func NewDaemon(cfgPath string) (*daemon, error) {
-        <span class="cov3" title="3">cfg, err := config.LoadConfig(cfgPath)
+        <span class="cov4" title="3">cfg, err := config.LoadConfig(cfgPath)
         if err != nil </span>{
                 <span class="cov0" title="0">return nil, fmt.Errorf("failed to load config: %v", err)
 </span>        }
-        <span class="cov3" title="3">if cfgPath == "" </span>{
+        <span class="cov4" title="3">if cfgPath == "" </span>{
                 <span class="cov0" title="0">cfgPath = config.DefaultConfigPath
 </span>        }
 
         // Hardcoded path, as it will be executed in a container
-        <span class="cov3" title="3">rpmOstreeCMD, err := rpmostree.New(rpmOstreeCMDPath)
+        <span class="cov4" title="3">rpmOstreeCMD, err := rpmostree.New(rpmOstreeCMDPath)
         if err != nil </span>{
                 <span class="cov0" title="0">return nil, fmt.Errorf("failed to create rpm-ostree cmd wrapper: %v", err)
 </span>        }
-        <span class="cov3" title="3">var kubeadmCMD *kubeadm.KubeadmCMD
+        <span class="cov4" title="3">var kubeadmCMD *kubeadm.KubeadmCMD
         if cfg.KubeadmPath != "" </span>{
-                <span class="cov3" title="3">kubeadmCMD, err = kubeadm.NewFromPath(hostPrefix, cfg.KubeadmPath)
+                <span class="cov4" title="3">kubeadmCMD, err = kubeadm.NewFromPath(hostPrefix, cfg.KubeadmPath)
                 if err != nil </span>{
                         <span class="cov1" title="1">return nil, fmt.Errorf("failed to create kubeadm cmd wrapper: %v", err)
 </span>                }
@@ -1684,18 +1684,18 @@ func NewDaemon(cfgPath string) (*daemon, error) {
 // Retries the given function until it succeeds
 func (d *daemon) retry(f func() bool) {
         <span class="cov7" title="12">for !f() </span>{
-                <span class="cov10" title="28">select </span>{
+                <span class="cov10" title="26">select </span>{
                 case &lt;-d.ctx.Done():
                         <span class="cov4" title="4">return</span>
-                case &lt;-time.After(d.RetryInterval()):<span class="cov9" title="24"></span>
+                case &lt;-time.After(d.RetryInterval()):<span class="cov9" title="22"></span>
                 }
         }
 }
 
 // Will try to release the lock until successful
 func (d *daemon) releaseLock() {
-        <span class="cov3" title="3">d.retry(func() bool </span>{
-                <span class="cov3" title="3">err := d.Fleetlock().Release()
+        <span class="cov4" title="3">d.retry(func() bool </span>{
+                <span class="cov4" title="3">err := d.Fleetlock().Release()
                 if err == nil </span>{
                         <span class="cov2" title="2">return true
 </span>                }
@@ -1829,26 +1829,26 @@ func (d *daemon) watchForNodeUpgrade() {
 // Update the node until it succeeds
 func (d *daemon) doNodeUpgradeWithRetry(node *corev1.Node) {
         <span class="cov2" title="2">d.retry(func() bool </span>{
-                <span class="cov8" title="19">err := d.doNodeUpgrade(node)
+                <span class="cov7" title="17">err := d.doNodeUpgrade(node)
                 if err == nil </span>{
                         <span class="cov1" title="1">return true
 </span>                }
-                <span class="cov7" title="18">slog.Error("Failed to upgrade node", "err", err, slog.String("node", d.node))
+                <span class="cov7" title="16">slog.Error("Failed to upgrade node", "err", err, slog.String("node", d.node))
                 return false</span>
         })
 }
 
 // Update the node by first rebasing to a new version and then upgrading kubernetes
 func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
-        <span class="cov8" title="23">d.upgrade.Lock()
+        <span class="cov8" title="21">d.upgrade.Lock()
         defer d.upgrade.Unlock()
 </span>
-        <span class="cov8" title="23">var err error
+        <span class="cov8" title="21">var err error
         if node == nil </span>{
                 // Need to fetch fresh data here, as the informer might called with a stale node version
-                <span class="cov8" title="19">node, err = d.getNode()
+                <span class="cov7" title="17">node, err = d.getNode()
                 if err != nil </span>{
-                        <span class="cov7" title="18">return fmt.Errorf("failed to get node data from server: %v", err)
+                        <span class="cov7" title="16">return fmt.Errorf("failed to get node data from server: %v", err)
 </span>                }
                 <span class="cov1" title="1">if !nodeNeedsUpgrade(node) </span>{
                         <span class="cov0" title="0">return nil
@@ -1966,7 +1966,7 @@ func (d *daemon) updateNodeStatus(status string) error {
 
 // Retrieve the node from the API
 func (d *daemon) getNode() (*corev1.Node, error) {
-        <span class="cov10" title="42">return d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
+        <span class="cov10" title="40">return d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
 </span>}
 
 // Return the given error, but also set the node status to error
