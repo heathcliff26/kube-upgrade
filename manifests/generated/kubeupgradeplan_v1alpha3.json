@@ -85,6 +85,10 @@
                     "format": "go-duration",
                     "type": "string"
                   },
+                  "disableStreamUpgrade": {
+                    "description": "Disable upgrades directly from stream. With this enabled, upgraded will not pull the latest version for a tag.\nInstead it will only upgrade when changing the kubernetes version.\nIt is recommended to keep this off, and only temporarily enable it if there is a problem.",
+                    "type": "boolean"
+                  },
                   "fleetlockGroup": {
                     "description": "The group to use for fleetlock",
                     "example": "control-plane;compute",
@@ -159,6 +163,10 @@
               "example": "3h;24h;30m",
               "format": "go-duration",
               "type": "string"
+            },
+            "disableStreamUpgrade": {
+              "description": "Disable upgrades directly from stream. With this enabled, upgraded will not pull the latest version for a tag.\nInstead it will only upgrade when changing the kubernetes version.\nIt is recommended to keep this off, and only temporarily enable it if there is a problem.",
+              "type": "boolean"
             },
             "fleetlockGroup": {
               "description": "The group to use for fleetlock",

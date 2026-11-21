@@ -7,3 +7,4 @@ retryInterval: "2m"
 kubeletConfig: "testdata/kubeconfig"
 kubeadmPath: "testdata/exit-0.sh"
 allowUnsignedOstreeImages: true
+disableStreamUpgrade: true

@@ -135,6 +135,11 @@ type UpgradedConfig struct {
 	// Allow unsigned ostree images for rebase. It is recommended to use signed images instead.
 	// +optional
 	AllowUnsignedOstreeImages bool `json:"allowUnsignedOstreeImages,omitempty"`
+
+	// Disable upgrades directly from stream. With this enabled, upgraded will not pull the latest version for a tag.
+	// Instead it will only upgrade when changing the kubernetes version.
+	// It is recommended to keep this off, and only temporarily enable it if there is a problem.
+	DisableStreamUpgrade bool `json:"disableStreamUpgrade,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
