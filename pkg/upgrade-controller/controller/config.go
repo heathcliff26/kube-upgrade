@@ -36,6 +36,12 @@ func combineConfig(global api.UpgradedConfig, group *api.UpgradedConfig) *api.Up
 	if group.KubeadmPath != "" {
 		cfg.KubeadmPath = group.KubeadmPath
 	}
+	if group.AllowUnsignedOstreeImages {
+		cfg.AllowUnsignedOstreeImages = true
+	}
+	if group.DisableStreamUpgrade {
+		cfg.DisableStreamUpgrade = true
+	}
 
 	return &cfg
 }

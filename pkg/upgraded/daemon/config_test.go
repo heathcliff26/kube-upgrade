@@ -35,6 +35,7 @@ func TestUpdateFromConfigFile(t *testing.T) {
 		assert.Equal(10*time.Minute, d.CheckInterval(), "Check interval should match")
 		assert.Equal(2*time.Minute, d.RetryInterval(), "Retry interval should match")
 		assert.True(d.allowUnsignedOstreeImages, "Allow unsigned ostree images should match")
+		assert.True(d.disableStreamUpgrade, "Stream upgrades should be disabled")
 	})
 }
 

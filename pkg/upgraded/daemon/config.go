@@ -49,6 +49,7 @@ func (d *daemon) updateFromConfig(cfg *api.UpgradedConfig) error {
 	d.checkInterval = checkInterval
 	d.retryInterval = retryInterval
 	d.allowUnsignedOstreeImages = cfg.AllowUnsignedOstreeImages
+	d.disableStreamUpgrade = cfg.DisableStreamUpgrade
 
 	slog.Info("Finished updating configuration")
 	return nil

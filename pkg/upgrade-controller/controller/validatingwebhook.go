@@ -30,14 +30,23 @@ func (*planValidatingHook) validate(plan *api.KubeUpgradePlan) (admission.Warnin
 	}
 
 	allowUnsignedOstreeImages := plan.Spec.Upgraded.AllowUnsignedOstreeImages
+	disableStreamUpgrade := plan.Spec.Upgraded.DisableStreamUpgrade
 	for _, group := range plan.Spec.Groups {
-		if group.Upgraded != nil && group.Upgraded.AllowUnsignedOstreeImages {
+		if group.Upgraded == nil {
+			continue
+		}
+		if group.Upgraded.AllowUnsignedOstreeImages && !allowUnsignedOstreeImages {
 			allowUnsignedOstreeImages = true
-			break
+		}
+		if group.Upgraded.DisableStreamUpgrade && !disableStreamUpgrade {
+			disableStreamUpgrade = true
 		}
 	}
 	if allowUnsignedOstreeImages {
 		warnings = append(warnings, "AllowUnsignedOstreeImages is set to true, this lowers security. Consider signing your custom images with cosign.")
+	}
+	if disableStreamUpgrade {
+		warnings = append(warnings, "Automatic stream upgrades are disabled. Re-enable as soon as the problem is fixed.")
 	}
 
 	return warnings, nil

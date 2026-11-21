@@ -33,6 +33,7 @@ type daemon struct {
 	checkInterval             time.Duration
 	retryInterval             time.Duration
 	allowUnsignedOstreeImages bool
+	disableStreamUpgrade      bool
 
 	rpmostree *rpmostree.RPMOStreeCMD
 	kubeadm   *kubeadm.KubeadmCMD

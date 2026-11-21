@@ -18,10 +18,11 @@ import (
 
 func TestWatchForUpgrade(t *testing.T) {
 	tMatrix := []struct {
-		Name            string
-		CheckExitCode   string
-		UpgradeExitCode string
-		ExpectedCalls   string
+		Name                 string
+		CheckExitCode        string
+		UpgradeExitCode      string
+		ExpectedCalls        string
+		DisableStreamUpgrade bool
 	}{
 		{
 			Name:          "NoUpgrade",
@@ -42,6 +43,12 @@ func TestWatchForUpgrade(t *testing.T) {
 			Name:          "CheckFail",
 			CheckExitCode: "1",
 			ExpectedCalls: "upgrade --check\nupgrade --check\n",
+		},
+		{
+			Name:                 "UpgradeDisabled",
+			CheckExitCode:        "0",
+			ExpectedCalls:        "upgrade --check\n",
+			DisableStreamUpgrade: true,
 		},
 	}
 
@@ -67,12 +74,13 @@ func TestWatchForUpgrade(t *testing.T) {
 
 			ctx, cancel := context.WithCancel(context.Background())
 			d := &daemon{
-				rpmostree:     rpmOstreeCMD,
-				checkInterval: 300 * time.Millisecond,
-				retryInterval: 100 * time.Millisecond,
-				ctx:           ctx,
-				cancel:        cancel,
-				fleetlock:     client,
+				rpmostree:            rpmOstreeCMD,
+				checkInterval:        300 * time.Millisecond,
+				retryInterval:        100 * time.Millisecond,
+				ctx:                  ctx,
+				cancel:               cancel,
+				fleetlock:            client,
+				disableStreamUpgrade: tCase.DisableStreamUpgrade,
 			}
 
 			done := make(chan struct{})

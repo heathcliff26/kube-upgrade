@@ -22,6 +22,14 @@ func (d *daemon) watchForUpgrade() {
 			return false
 		})
 
+		d.configLock.RLock()
+		defer d.configLock.RUnlock()
+
+		if d.disableStreamUpgrade && needUpgrade {
+			slog.Warn("New upgrade is available, but stream upgrades have been disabled")
+			needUpgrade = false
+		}
+
 		if needUpgrade {
 			slog.Info("New upgrade is necessary, trying to start update")
 			d.retry(func() bool {

@@ -228,6 +228,29 @@ func TestValidate(t *testing.T) {
 		assert.NoError(err, "Plan should be valid")
 		assert.Contains(warn, msg, "Should contain unsigned ostree images warning")
 	})
+	t.Run("DisableStreamUpgrade", func(t *testing.T) {
+		assert := assert.New(t)
+		msg := "Automatic stream upgrades are disabled. Re-enable as soon as the problem is fixed."
+		plan := minimumValidPlan.DeepCopy()
+		plan.Spec.Upgraded.DisableStreamUpgrade = true
+
+		warn, err := (&planValidatingHook{}).validate(plan)
+
+		assert.NoError(err, "Plan should be valid")
+		assert.Contains(warn, msg, "Should contain upgrades disabled warning")
+
+		plan.Spec.Upgraded.DisableStreamUpgrade = false
+		group := plan.Spec.Groups["control-plane"]
+		group.Upgraded = &api.UpgradedConfig{
+			DisableStreamUpgrade: true,
+		}
+		plan.Spec.Groups["control-plane"] = group
+
+		warn, err = (&planValidatingHook{}).validate(plan)
+
+		assert.NoError(err, "Plan should be valid")
+		assert.Contains(warn, msg, "Should contain upgrades disabled warning")
+	})
 }
 
 func TestValidateCreate(t *testing.T) {
