@@ -319,7 +319,7 @@ func TestE2E(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			err = decoder.DeleteWithManifestDir(ctx, r, "tests/testdata", "minimal-cr.yaml", []resources.DeleteOption{})
+			err = decoder.DeleteWithManifestDir(ctx, r, "tests/testdata", "minimal-plan.yaml", []resources.DeleteOption{})
 			if err != nil {
 				t.Fatalf("Failed to delete minimal-plan: %v", err)
 			}
