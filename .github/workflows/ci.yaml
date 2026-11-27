@@ -96,7 +96,7 @@ jobs:
       contents: read
     with:
       cmd: "make test-e2e"
-      cache-name: "e2e"
+      cache: false
 
   build-daemon:
     uses: heathcliff26/ci/.github/workflows/build-container.yaml@main

@@ -1,96 +1,30 @@
 package e2e
 
 import (
-	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 	"testing"
 
+	"sigs.k8s.io/e2e-framework/klient/conf"
 	"sigs.k8s.io/e2e-framework/pkg/env"
 	"sigs.k8s.io/e2e-framework/pkg/envconf"
-	"sigs.k8s.io/e2e-framework/pkg/envfuncs"
-	"sigs.k8s.io/e2e-framework/pkg/utils"
-	"sigs.k8s.io/e2e-framework/support/kind"
 )
-
-const namespace = "kube-upgrade"
-
-const certManagerVersion = "v1.19.1"
 
 var testenv env.Environment
 
 func TestMain(m *testing.M) {
-	testenv = env.New()
-	clusterName := envconf.RandomName("kube-upgrade-e2e", 24)
-
-	tmpDir := filepath.Join(os.TempDir(), clusterName)
-	err := os.MkdirAll(tmpDir, 0755)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	fmt.Printf("Using temporary directory %s\n", tmpDir)
-
-	os.Setenv("KUBECONFIG", filepath.Join(tmpDir, "kubeconfig"))
-
-	err = os.Chdir("../..")
+	err := os.Chdir("../..")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	err = utils.RunCommandWithSeperatedOutputContext(context.Background(), "make REPOSITORY=localhost TAG="+clusterName+" build", os.Stdout, os.Stderr)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	err = utils.RunCommandWithSeperatedOutputContext(context.Background(), "make REPOSITORY=localhost TAG="+clusterName+" manifests", os.Stdout, os.Stderr)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	imageArchive := filepath.Join(tmpDir, "kube-upgrade-images.tar")
-
-	err = utils.RunCommandWithSeperatedOutputContext(context.Background(), fmt.Sprintf("podman save -o %s localhost/kube-upgrade-controller:%s localhost/kube-upgraded:%s", imageArchive, clusterName, clusterName), os.Stdout, os.Stderr)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	testenv.Setup(
-		envfuncs.CreateCluster(kind.NewProvider(), clusterName),
-		envfuncs.LoadImageArchiveToCluster(clusterName, imageArchive),
-	)
-	testenv.Finish(
-		envfuncs.ExportClusterLogs(clusterName, "./logs"),
-		envfuncs.DestroyCluster(clusterName),
-	)
+	path := conf.ResolveKubeConfigFile()
+	cfg := envconf.NewWithKubeConfig(path)
+	testenv = env.NewWithConfig(cfg)
 
 	exitCode := testenv.Run(m)
 	if exitCode != 0 {
 		fmt.Printf("Failed e2e testsuite with exit code %d\n", exitCode)
 	}
-
-	fmt.Print("\nRunning cleanup\n\n")
-
-	fmt.Printf("Deleting kind cluster %s\n", clusterName)
-	err = utils.RunCommandWithSeperatedOutputContext(context.Background(), "kind delete cluster --name "+clusterName, os.Stdout, os.Stderr)
-	if err != nil {
-		fmt.Println(err)
-		exitCode = 1
-	}
-
-	fmt.Printf("Removing temporary directory '%s'\n", tmpDir)
-	err = os.RemoveAll(tmpDir)
-	if err != nil {
-		fmt.Printf("Failed to remove temporary directory '%s': %v\n", tmpDir, err)
-		exitCode = 1
-	}
-
-	fmt.Println("")
-
-	os.Exit(exitCode)
 }
