@@ -89,7 +89,7 @@ func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
 	}
 
 	if phase != constants.NodeUpgradeStatusRebasing {
-		if d.kubeadm == nil {
+		if d.kubeadm == nil || (!d.fixedKubeadm && d.kubeadm.Version() != version) {
 			d.kubeadm, err = kubeadm.NewFromVersion(hostPrefix, version)
 			if err != nil {
 				return d.returnNodeUpgradeError(fmt.Errorf("failed to download kubeadm: %v", err))
