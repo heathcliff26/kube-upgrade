@@ -82,12 +82,21 @@ jobs:
       cache: false
       cmd: "make validate"
 
+  integration:
+    uses: heathcliff26/ci/.github/workflows/golang-unit-tests.yaml@main
+    permissions:
+      contents: read
+    with:
+      cmd: "make test-integration"
+      cache-name: "integration"
+
   e2e:
     uses: heathcliff26/ci/.github/workflows/golang-unit-tests.yaml@main
     permissions:
       contents: read
     with:
       cmd: "make test-e2e"
+      cache-name: "e2e"
 
   build-daemon:
     uses: heathcliff26/ci/.github/workflows/build-container.yaml@main
@@ -95,6 +104,7 @@ jobs:
       - lint
       - unit-tests
       - validate
+      - integration
       - e2e
     permissions:
       contents: read
@@ -113,6 +123,7 @@ jobs:
       - lint
       - unit-tests
       - validate
+      - integration
       - e2e
     permissions:
       contents: read
