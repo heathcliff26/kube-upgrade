@@ -63,7 +63,7 @@
 				
 				<option value="file3">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/config.go (100.0%)</option>
 				
-				<option value="file4">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (61.9%)</option>
+				<option value="file4">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/controller.go (59.3%)</option>
 				
 				<option value="file5">github.com/heathcliff26/kube-upgrade/pkg/upgrade-controller/controller/errors.go (50.0%)</option>
 				
@@ -390,8 +390,8 @@ import (
 
 const (
         defaultUpgradedImage = "ghcr.io/heathcliff26/kube-upgraded"
-        upgradedImageEnv     = "UPGRADED_IMAGE"
-        upgradedTagEnv       = "UPGRADED_TAG"
+        UpgradedImageEnv     = "UPGRADED_IMAGE"
+        UpgradedTagEnv       = "UPGRADED_TAG"
 )
 
 type controller struct {
@@ -461,6 +461,26 @@ func NewController(name string) (*controller, error) {
 }
 
 func (c *controller) Run() error {
+        <span class="cov0" title="0">err := c.setupWithManager()
+        if err != nil </span>{
+                <span class="cov0" title="0">return err
+</span>        }
+
+        <span class="cov0" title="0">return c.manager.Start(signals.SetupSignalHandler())</span>
+}
+
+// SetupWithManager registers the controller and admission webhooks with a manager.
+func SetupWithManager(mgr manager.Manager, namespace string) error {
+        <span class="cov0" title="0">c := &amp;controller{
+                Client:        mgr.GetClient(),
+                manager:       mgr,
+                namespace:     namespace,
+                upgradedImage: GetUpgradedImage(),
+</span>        }
+        <span class="cov0" title="0">return c.setupWithManager()
+</span>}
+
+func (c *controller) setupWithManager() error {
         <span class="cov0" title="0">err := ctrl.NewControllerManagedBy(c.manager).
                 For(&amp;api.KubeUpgradePlan{}).
                 Owns(&amp;appv1.DaemonSet{}).
@@ -480,7 +500,7 @@ func (c *controller) Run() error {
                 <span class="cov0" title="0">return err
 </span>        }
 
-        <span class="cov0" title="0">return c.manager.Start(signals.SetupSignalHandler())</span>
+        <span class="cov0" title="0">return nil</span>
 }
 
 func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (res ctrl.Result, err error) {
@@ -1129,10 +1149,10 @@ func createStatusSummary(status map[string]string) string {
 
 // Return the upgraded image to use based on environment variables
 func GetUpgradedImage() string {
-        <span class="cov4" title="4">logger := slog.With("env", upgradedImageEnv)
+        <span class="cov4" title="4">logger := slog.With("env", UpgradedImageEnv)
 </span>
-        <span class="cov4" title="4">image := os.Getenv(upgradedImageEnv)
-        tag := os.Getenv(upgradedTagEnv)
+        <span class="cov4" title="4">image := os.Getenv(UpgradedImageEnv)
+        tag := os.Getenv(UpgradedTagEnv)
         if image == "" </span>{
                 <span class="cov2" title="2">logger.Info("Upgraded image is not set, falling back to default", "image", defaultUpgradedImage)
                 image = defaultUpgradedImage
@@ -1476,7 +1496,7 @@ func (d *daemon) updateFromConfig(cfg *api.UpgradedConfig) error {
                 <span class="cov1" title="1">return fmt.Errorf("failed to parse retry interval \"%s\": %v", cfg.RetryInterval, err)
 </span>        }
 
-        <span class="cov6" title="7">fleetlockClient, err := fleetlock.NewClient(cfg.FleetlockURL, cfg.FleetlockGroup)
+        <span class="cov5" title="7">fleetlockClient, err := fleetlock.NewClient(cfg.FleetlockURL, cfg.FleetlockGroup)
         if err != nil </span>{
                 <span class="cov1" title="1">return fmt.Errorf("failed to create fleetlock client with url '%s' and group '%s': %v", cfg.FleetlockURL, cfg.FleetlockGroup, err)
 </span>        }
@@ -1549,10 +1569,10 @@ func (d *daemon) WatchConfigFile() {
 
 // Get the current stream
 func (d *daemon) Stream() string {
-        <span class="cov8" title="17">d.configLock.RLock()
+        <span class="cov8" title="16">d.configLock.RLock()
         defer d.configLock.RUnlock()
 </span>
-        <span class="cov8" title="17">return d.stream
+        <span class="cov8" title="16">return d.stream
 </span>}
 
 // Get the fleetlock client
@@ -1573,10 +1593,10 @@ func (d *daemon) CheckInterval() time.Duration {
 
 // Get the retry interval
 func (d *daemon) RetryInterval() time.Duration {
-        <span class="cov10" title="32">d.configLock.RLock()
+        <span class="cov10" title="34">d.configLock.RLock()
         defer d.configLock.RUnlock()
 </span>
-        <span class="cov10" title="32">return d.retryInterval
+        <span class="cov10" title="34">return d.retryInterval
 </span>}
 </pre>
 		
@@ -1635,22 +1655,22 @@ type daemon struct {
 
 // Create a new daemon
 func NewDaemon(cfgPath string) (*daemon, error) {
-        <span class="cov4" title="3">cfg, err := config.LoadConfig(cfgPath)
+        <span class="cov3" title="3">cfg, err := config.LoadConfig(cfgPath)
         if err != nil </span>{
                 <span class="cov0" title="0">return nil, fmt.Errorf("failed to load config: %v", err)
 </span>        }
-        <span class="cov4" title="3">if cfgPath == "" </span>{
+        <span class="cov3" title="3">if cfgPath == "" </span>{
                 <span class="cov0" title="0">cfgPath = config.DefaultConfigPath
 </span>        }
 
         // Hardcoded path, as it will be executed in a container
-        <span class="cov4" title="3">rpmOstreeCMD, err := rpmostree.New(rpmOstreeCMDPath)
+        <span class="cov3" title="3">rpmOstreeCMD, err := rpmostree.New(rpmOstreeCMDPath)
         if err != nil </span>{
                 <span class="cov0" title="0">return nil, fmt.Errorf("failed to create rpm-ostree cmd wrapper: %v", err)
 </span>        }
-        <span class="cov4" title="3">var kubeadmCMD *kubeadm.KubeadmCMD
+        <span class="cov3" title="3">var kubeadmCMD *kubeadm.KubeadmCMD
         if cfg.KubeadmPath != "" </span>{
-                <span class="cov4" title="3">kubeadmCMD, err = kubeadm.NewFromPath(hostPrefix, cfg.KubeadmPath)
+                <span class="cov3" title="3">kubeadmCMD, err = kubeadm.NewFromPath(hostPrefix, cfg.KubeadmPath)
                 if err != nil </span>{
                         <span class="cov1" title="1">return nil, fmt.Errorf("failed to create kubeadm cmd wrapper: %v", err)
 </span>                }
@@ -1700,19 +1720,19 @@ func NewDaemon(cfgPath string) (*daemon, error) {
 
 // Retries the given function until it succeeds
 func (d *daemon) retry(f func() bool) {
-        <span class="cov8" title="13">for !f() </span>{
-                <span class="cov10" title="27">select </span>{
+        <span class="cov7" title="13">for !f() </span>{
+                <span class="cov10" title="29">select </span>{
                 case &lt;-d.ctx.Done():
                         <span class="cov4" title="4">return</span>
-                case &lt;-time.After(d.RetryInterval()):<span class="cov9" title="23"></span>
+                case &lt;-time.After(d.RetryInterval()):<span class="cov9" title="25"></span>
                 }
         }
 }
 
 // Will try to release the lock until successful
 func (d *daemon) releaseLock() {
-        <span class="cov4" title="3">d.retry(func() bool </span>{
-                <span class="cov4" title="3">err := d.Fleetlock().Release()
+        <span class="cov3" title="3">d.retry(func() bool </span>{
+                <span class="cov3" title="3">err := d.Fleetlock().Release()
                 if err == nil </span>{
                         <span class="cov2" title="2">return true
 </span>                }
@@ -1846,26 +1866,26 @@ func (d *daemon) watchForNodeUpgrade() {
 // Update the node until it succeeds
 func (d *daemon) doNodeUpgradeWithRetry(node *corev1.Node) {
         <span class="cov2" title="2">d.retry(func() bool </span>{
-                <span class="cov8" title="18">err := d.doNodeUpgrade(node)
+                <span class="cov8" title="20">err := d.doNodeUpgrade(node)
                 if err == nil </span>{
                         <span class="cov1" title="1">return true
 </span>                }
-                <span class="cov7" title="17">slog.Error("Failed to upgrade node", "err", err, slog.String("node", d.node))
+                <span class="cov8" title="19">slog.Error("Failed to upgrade node", "err", err, slog.String("node", d.node))
                 return false</span>
         })
 }
 
 // Update the node by first rebasing to a new version and then upgrading kubernetes
 func (d *daemon) doNodeUpgrade(node *corev1.Node) error {
-        <span class="cov8" title="22">d.upgrade.Lock()
+        <span class="cov8" title="24">d.upgrade.Lock()
         defer d.upgrade.Unlock()
 </span>
-        <span class="cov8" title="22">var err error
+        <span class="cov8" title="24">var err error
         if node == nil </span>{
                 // Need to fetch fresh data here, as the informer might called with a stale node version
-                <span class="cov8" title="18">node, err = d.getNode()
+                <span class="cov8" title="20">node, err = d.getNode()
                 if err != nil </span>{
-                        <span class="cov7" title="17">return fmt.Errorf("failed to get node data from server: %v", err)
+                        <span class="cov8" title="19">return fmt.Errorf("failed to get node data from server: %v", err)
 </span>                }
                 <span class="cov1" title="1">if !nodeNeedsUpgrade(node) </span>{
                         <span class="cov0" title="0">return nil
@@ -1983,7 +2003,7 @@ func (d *daemon) updateNodeStatus(status string) error {
 
 // Retrieve the node from the API
 func (d *daemon) getNode() (*corev1.Node, error) {
-        <span class="cov10" title="41">return d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
+        <span class="cov10" title="43">return d.client.CoreV1().Nodes().Get(d.ctx, d.node, metav1.GetOptions{})
 </span>}
 
 // Return the given error, but also set the node status to error
