@@ -8,7 +8,13 @@ ARG TARGETARCH
 
 WORKDIR /app
 
-COPY . ./
+COPY go.mod go.sum ./
+COPY vendor/ ./vendor/
+
+COPY hack/build.sh ./hack/build.sh
+
+COPY cmd/ ./cmd/
+COPY pkg/ ./pkg/
 
 RUN GOOS=linux GOARCH="${TARGETARCH}" hack/build.sh upgrade-controller
 
