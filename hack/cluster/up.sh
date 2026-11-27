@@ -49,8 +49,19 @@ podman run --rm -i \
     -p -o "vm/control.ign" -s "vm/control.bu" -d ./ignition
 popd
 
+if [ "${CI}" == "true" ]; then
+    echo "Running in ci, need to install qemu"
+    sudo apt-get update
+    sudo apt-get install -y qemu-system-x86
+    # Fixing /dev/kvm permissions
+    echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+    sudo udevadm control --reload-rules
+    sudo udevadm trigger --name-match=kvm
+fi
+
 echo "Starting VM"
-qemu-kvm -m 4096 -cpu host -smp 4 -snapshot -daemonize -enable-kvm \
+qemu="qemu-system-$(uname -m)"
+"${qemu}" -m 4096 -cpu host -smp 4 -snapshot -daemonize -enable-kvm \
     -display none \
     -pidfile "${pid_file}" \
     -chardev file,id=serial0,path="${vm_dir}/console.log" \
@@ -105,6 +116,10 @@ kubectl patch deployment -n kube-system coredns --type='json' -p='[
         }
     }
 ]'
+# Ensure kubeadm does not touch coredns during upgrades
+kubectl get configmap kubeadm-config -n kube-system -o yaml \
+    | yq '.data.ClusterConfiguration |= ((. | from_yaml) | .dns.disabled = true | to_yaml)' \
+    | kubectl apply -f -
 
 echo "Fixing cni0 network interface"
 # The interface has sometimes the wrong ip, causing problems.

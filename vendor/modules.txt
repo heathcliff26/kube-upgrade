@@ -174,13 +174,7 @@ github.com/stretchr/testify/internal/spew
 github.com/stretchr/testify/require
 # github.com/vladimirvivien/gexe v0.5.0
 ## explicit; go 1.23
-github.com/vladimirvivien/gexe
-github.com/vladimirvivien/gexe/exec
-github.com/vladimirvivien/gexe/fs
 github.com/vladimirvivien/gexe/http
-github.com/vladimirvivien/gexe/net
-github.com/vladimirvivien/gexe/prog
-github.com/vladimirvivien/gexe/str
 github.com/vladimirvivien/gexe/vars
 # github.com/x448/float16 v0.8.4
 ## explicit; go 1.11
@@ -1014,15 +1008,10 @@ sigs.k8s.io/e2e-framework/klient/wait
 sigs.k8s.io/e2e-framework/klient/wait/conditions
 sigs.k8s.io/e2e-framework/pkg/env
 sigs.k8s.io/e2e-framework/pkg/envconf
-sigs.k8s.io/e2e-framework/pkg/envfuncs
 sigs.k8s.io/e2e-framework/pkg/featuregate
 sigs.k8s.io/e2e-framework/pkg/features
 sigs.k8s.io/e2e-framework/pkg/flags
 sigs.k8s.io/e2e-framework/pkg/types
-sigs.k8s.io/e2e-framework/pkg/utils
-sigs.k8s.io/e2e-framework/support
-sigs.k8s.io/e2e-framework/support/kind
-sigs.k8s.io/e2e-framework/third_party/kind
 # sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730
 ## explicit; go 1.23
 sigs.k8s.io/json

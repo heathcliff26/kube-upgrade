@@ -3,14 +3,19 @@
 apiVersion: kubeupgrade.heathcliff.eu/v1alpha3
 kind: KubeUpgradePlan
 metadata:
-  name: minimal-plan
+  name: upgrade-plan
 spec:
-  kubernetesVersion: "v1.31.0"
+  kubernetesVersion: v1.36.7
   upgraded:
-    fleetlockUrl: https://fleetlock.example.com
+    fleetlockUrl: http://fleetlock.kube-upgrade.svc.cluster.local
+    retryInterval: 10s
   groups:
     control-plane:
       labels:
         node-role.kubernetes.io/control-plane: "true"
+      tolerations:
+        - key: "node-role.kubernetes.io/control-plane"
+          operator: "Exists"
+          effect: "NoSchedule"
       upgraded:
         fleetlockGroup: control-plane
