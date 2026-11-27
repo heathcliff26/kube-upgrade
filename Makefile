@@ -73,8 +73,20 @@ fmt:
 gosec:
 	gosec -exclude-generated ./...
 
+# Start a new kubernetes cluster
+cluster-up:
+	hack/cluster/up.sh
+
+# Start a new kubernetes cluster
+cluster-sync: cluster-up
+	hack/cluster/sync.sh
+
+# Teardown running kubernetes cluster
+cluster-down:
+	hack/cluster/down.sh
+
 # Remove build artifacts and temporary files
-clean:
+clean: cluster-down
 	hack/clean.sh
 
 .ONESHELL:
@@ -116,6 +128,9 @@ help:
 	validate \
 	fmt \
 	gosec \
+	cluster-up \
+	cluster-sync \
+	cluster-down \
 	clean \
 	cosign \
 	tools \
