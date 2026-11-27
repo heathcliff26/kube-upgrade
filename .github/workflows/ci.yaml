@@ -43,7 +43,7 @@ on:
       - "go.sum"
       - "*.go"
       - "**/*.go"
-      - "cmd/**/Dockerfile"
+      - "cmd/**/Containerfile"
   pull_request:
     branches: ["main"]
   merge_group:
@@ -111,7 +111,7 @@ jobs:
       packages: write
     with:
       app: kube-upgraded
-      dockerfile: cmd/upgraded/Dockerfile
+      dockerfile: cmd/upgraded/Containerfile
       tag: "${{ inputs.tag == '' && 'rolling' || inputs.tag }}"
       tags: "${{ inputs.latest == true && 'type=raw,value=latest' || '' }}"
       dry-run: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' || inputs.dry-run == 'true' }}
@@ -130,7 +130,7 @@ jobs:
       packages: write
     with:
       app: kube-upgrade-controller
-      dockerfile: cmd/upgrade-controller/Dockerfile
+      dockerfile: cmd/upgrade-controller/Containerfile
       tag: "${{ inputs.tag == '' && 'rolling' || inputs.tag }}"
       tags: "${{ inputs.latest == true && 'type=raw,value=latest' || '' }}"
       dry-run: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' || inputs.dry-run == 'true' }}

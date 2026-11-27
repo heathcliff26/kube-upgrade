@@ -8,11 +8,11 @@ build: build-upgraded build-upgrade-controller
 
 # Build the upgraded container image
 build-upgraded:
-	podman build -t $(REPOSITORY)/kube-upgraded:$(TAG) -f cmd/upgraded/Dockerfile .
+	podman build -t $(REPOSITORY)/kube-upgraded:$(TAG) -f cmd/upgraded/Containerfile .
 
 # Build the upgrade controller container image
 build-upgrade-controller:
-	podman build -t $(REPOSITORY)/kube-upgrade-controller:$(TAG) -f cmd/upgrade-controller/Dockerfile .
+	podman build -t $(REPOSITORY)/kube-upgrade-controller:$(TAG) -f cmd/upgrade-controller/Containerfile .
 
 # Build and push all images
 push: push-upgraded push-upgrade-controller
