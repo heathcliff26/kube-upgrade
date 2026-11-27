@@ -80,23 +80,37 @@ fi
 
 export KUBECONFIG=${kubeconfig_file}
 
+echo "Patching kubeconfig"
+kubectl config set clusters.kubernetes.server https://localhost:6443
+
 echo "Making node schedulable"
 kubectl taint nodes control-0 node-role.kubernetes.io/control-plane:NoSchedule-
 
 echo "Fixing node label"
 kubectl label node control-0 --overwrite node-role.kubernetes.io/control-plane=true
 
+echo "Creating CNI"
+kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+kubectl rollout status -n kube-flannel daemonset kube-flannel-ds --timeout 5m
+# Since we are single node, coredns needs to keep running on the node even during the upgrade
+# This will also restart the pods, which is needed after the CNI is deployed.
+kubectl patch deployment -n kube-system coredns --type='json' -p='[
+    {
+        "op": "add",
+        "path": "/spec/template/spec/tolerations/-",
+        "value": {
+        "key": "node.kubernetes.io/unschedulable",
+        "operator": "Exists",
+        "effect": "NoSchedule"
+        }
+    }
+]'
+
 echo "Fixing cni0 network interface"
 # The interface has sometimes the wrong ip, causing problems.
 # Remove it, as flannel does not need it.
 "${script_dir}/ssh.sh" sudo ip link set cni0 down
 "${script_dir}/ssh.sh" sudo ip link delete cni0
-
-echo "Creating CNI"
-kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
-kubectl rollout status -n kube-flannel daemonset kube-flannel-ds --timeout 5m
-# Need to restart coredns after deploying CNI plugin
-kubectl rollout restart -n kube-system deployment coredns
 
 echo "Deploying cert-manager"
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.21.3/cert-manager.yaml

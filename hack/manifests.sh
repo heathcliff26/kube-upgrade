@@ -7,6 +7,7 @@ base_dir="$(dirname "${BASH_SOURCE[0]}" | xargs realpath)/.."
 export REPOSITORY="${REPOSITORY:-ghcr.io/heathcliff26}"
 export TAG="${TAG:-latest}"
 export KUBE_UPGRADE_NAMESPACE="${KUBE_UPGRADE_NAMESPACE:-kube-upgrade}"
+export FLEETLOCK_ENABLED="${FLEETLOCK_ENABLED:-false}"
 
 output_dir="${base_dir}/manifests/release"
 upgrade_controller_file="${output_dir}/upgrade-controller.yaml"
@@ -40,6 +41,7 @@ helm template "${base_dir}/manifests/helm" \
     --set upgradeController.tag="${TAG}" \
     --set upgraded.repository="${REPOSITORY}/kube-upgraded" \
     --set upgraded.tag="${TAG}" \
+    --set fleetlock.enabled="${FLEETLOCK_ENABLED}" \
     --name-template kube-upgrade \
     --namespace "${KUBE_UPGRADE_NAMESPACE}" \
     | grep -v '# Source: kube-upgrade/templates' \

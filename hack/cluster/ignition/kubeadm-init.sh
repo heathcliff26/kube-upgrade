@@ -2,7 +2,7 @@
 
 set -e
 
-kubeadm init --pod-network-cidr=10.244.0.0/16 --control-plane-endpoint localhost:6443 --node-name control-0
+kubeadm init --pod-network-cidr=10.244.0.0/16 --node-name control-0 --apiserver-cert-extra-sans localhost --apiserver-cert-extra-sans 127.0.0.1
 mkdir -p /home/core/.kube
 cp -f -i /etc/kubernetes/admin.conf /home/core/.kube/config
 chown core:core /home/core/.kube/config
