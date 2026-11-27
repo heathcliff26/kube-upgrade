@@ -1,0 +1,79 @@
+variant: fcos
+version: 1.5.0
+passwd:
+  users:
+    - name: core
+      ssh_authorized_keys:
+      - SSH_PUBLIC_KEY
+systemd:
+  units:
+    # Disable zincati, as the upgrade will be handled by upgraded
+    - name: zincati.service
+      enabled: false
+        # Rebase to k8s image
+    - name: rebase-k8s.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Fetch and deploy target image
+        # Only run on the firstboot
+        ConditionFirstBoot=true
+        After=network-online.target
+        [Service]
+        # This ordering is important
+        After=coreos-ignition-firstboot-complete.service
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=rpm-ostree rebase --reboot ostree-image-signed:docker://ghcr.io/heathcliff26/fcos-k8s:v1.36.7
+        [Install]
+        WantedBy=multi-user.target
+    # Run kubeadm init/join on firstboot
+    - name: kubeadm-init.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Run kubeadm init/join on firstboot
+        Before=systemd-user-sessions.service
+        Wants=network-online.target
+        After=network-online.target
+        After=var-mnt-share.mount
+        Wants=crio.service
+        After=crio.service
+        ConditionPathExists=!/var/lib/%N.stamp
+        ConditionPathExists=/usr/bin/kubeadm
+        ConditionPathExists=/usr/bin/kubelet
+        ConditionPathExists=/usr/bin/kubectl
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=/usr/local/bin/kubeadm-init.sh
+        ExecStart=/bin/touch /var/lib/%N.stamp
+
+        [Install]
+        WantedBy=multi-user.target
+    # Mount shared folder
+    - name: var-mnt-share.mount
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Mount shared directory
+
+        [Mount]
+        What=shared
+        Where=/var/mnt/share
+        Type=9p
+        Options=trans=virtio,version=9p2000.L
+
+        [Install]
+        WantedBy=multi-user.target
+storage:
+  files:
+    - path: /usr/local/bin/kubeadm-init.sh
+      mode: 0755
+      contents:
+        local: kubeadm-init.sh
+    - path: /etc/containers/policy.json
+      mode: 0644
+      contents:
+        local: policy.json
