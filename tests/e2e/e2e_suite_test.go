@@ -261,7 +261,7 @@ func TestE2E(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			err = decoder.ApplyWithManifestDir(ctx, r, "tests/testdata", "invalid-plan.yaml", []resources.CreateOption{})
+			err = decoder.ApplyWithManifestDir(ctx, r, "tests/e2e/testdata", "invalid-plan.yaml", []resources.CreateOption{})
 			assert.ErrorContains(t, err, "admission webhook \"kubeupgrade.heathcliff.eu\" denied the request", "Plan should be rejected by webhook")
 
 			return ctx
@@ -274,7 +274,7 @@ func TestE2E(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			err = decoder.ApplyWithManifestDir(ctx, r, "tests/testdata", "minimal-plan.yaml", []resources.CreateOption{})
+			err = decoder.ApplyWithManifestDir(ctx, r, "tests/e2e/testdata", "minimal-plan.yaml", []resources.CreateOption{})
 			if err != nil {
 				t.Fatalf("Failed to apply minimal-plan manifest: %v", err)
 			}
@@ -319,7 +319,7 @@ func TestE2E(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			err = decoder.DeleteWithManifestDir(ctx, r, "tests/testdata", "minimal-plan.yaml", []resources.DeleteOption{})
+			err = decoder.DeleteWithManifestDir(ctx, r, "tests/e2e/testdata", "minimal-plan.yaml", []resources.DeleteOption{})
 			if err != nil {
 				t.Fatalf("Failed to delete minimal-plan: %v", err)
 			}

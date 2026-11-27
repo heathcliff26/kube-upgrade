@@ -34,7 +34,7 @@ func TestMain(m *testing.M) {
 
 	os.Setenv("KUBECONFIG", filepath.Join(tmpDir, "kubeconfig"))
 
-	err = os.Chdir("..")
+	err = os.Chdir("../..")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
