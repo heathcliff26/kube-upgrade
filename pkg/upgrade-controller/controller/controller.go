@@ -22,8 +22,8 @@ import (
 
 const (
 	defaultUpgradedImage = "ghcr.io/heathcliff26/kube-upgraded"
-	upgradedImageEnv     = "UPGRADED_IMAGE"
-	upgradedTagEnv       = "UPGRADED_TAG"
+	UpgradedImageEnv     = "UPGRADED_IMAGE"
+	UpgradedTagEnv       = "UPGRADED_TAG"
 )
 
 type controller struct {
@@ -93,6 +93,26 @@ func NewController(name string) (*controller, error) {
 }
 
 func (c *controller) Run() error {
+	err := c.setupWithManager()
+	if err != nil {
+		return err
+	}
+
+	return c.manager.Start(signals.SetupSignalHandler())
+}
+
+// SetupWithManager registers the controller and admission webhooks with a manager.
+func SetupWithManager(mgr manager.Manager, namespace string) error {
+	c := &controller{
+		Client:        mgr.GetClient(),
+		manager:       mgr,
+		namespace:     namespace,
+		upgradedImage: GetUpgradedImage(),
+	}
+	return c.setupWithManager()
+}
+
+func (c *controller) setupWithManager() error {
 	err := ctrl.NewControllerManagedBy(c.manager).
 		For(&api.KubeUpgradePlan{}).
 		Owns(&appv1.DaemonSet{}).
@@ -112,7 +132,7 @@ func (c *controller) Run() error {
 		return err
 	}
 
-	return c.manager.Start(signals.SetupSignalHandler())
+	return nil
 }
 
 func (c *controller) Reconcile(ctx context.Context, req ctrl.Request) (res ctrl.Result, err error) {

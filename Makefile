@@ -33,6 +33,10 @@ test: cosign
 test-e2e:
 	go test -count=1 -v ./tests/e2e/...
 
+# Run integration tests using envtest
+test-integration:
+	go test -count=1 -v ./tests/integration/...
+
 # Update project dependencies
 update-deps:
 	hack/update-deps.sh
@@ -106,6 +110,7 @@ help:
 	push-upgrade-controller \
 	test \
 	test-e2e \
+	test-integration \
 	update-deps \
 	update-external-scripts \
 	coverprofile \

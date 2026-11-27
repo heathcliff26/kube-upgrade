@@ -84,10 +84,10 @@ func createStatusSummary(status map[string]string) string {
 
 // Return the upgraded image to use based on environment variables
 func GetUpgradedImage() string {
-	logger := slog.With("env", upgradedImageEnv)
+	logger := slog.With("env", UpgradedImageEnv)
 
-	image := os.Getenv(upgradedImageEnv)
-	tag := os.Getenv(upgradedTagEnv)
+	image := os.Getenv(UpgradedImageEnv)
+	tag := os.Getenv(UpgradedTagEnv)
 	if image == "" {
 		logger.Info("Upgraded image is not set, falling back to default", "image", defaultUpgradedImage)
 		image = defaultUpgradedImage
