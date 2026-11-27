@@ -215,10 +215,10 @@ func TestGetUpgradedImage(t *testing.T) {
 	for _, tCase := range tMatrix {
 		t.Run(tCase.Name, func(t *testing.T) {
 			if tCase.ImageEnv != "" {
-				t.Setenv(upgradedImageEnv, tCase.ImageEnv)
+				t.Setenv(UpgradedImageEnv, tCase.ImageEnv)
 			}
 			if tCase.TagEnv != "" {
-				t.Setenv(upgradedTagEnv, tCase.TagEnv)
+				t.Setenv(UpgradedTagEnv, tCase.TagEnv)
 			}
 
 			assert.Equal(t, tCase.Expected, GetUpgradedImage(), "Upgraded image should match expected value")
