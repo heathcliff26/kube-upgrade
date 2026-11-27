@@ -83,3 +83,7 @@ rbac:
 fleetlock:
   # Deploy fleetlock server
   enabled: false
+  # Override name to get example fleetlock name.
+  # For normal behaviour, set these values to empty.
+  nameOverride: "fleetlock"
+  fullnameOverride: "fleetlock"
