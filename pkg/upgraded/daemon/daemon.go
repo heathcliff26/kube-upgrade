@@ -35,8 +35,9 @@ type daemon struct {
 	allowUnsignedOstreeImages bool
 	disableStreamUpgrade      bool
 
-	rpmostree *rpmostree.RPMOStreeCMD
-	kubeadm   *kubeadm.KubeadmCMD
+	rpmostree    *rpmostree.RPMOStreeCMD
+	kubeadm      *kubeadm.KubeadmCMD
+	fixedKubeadm bool
 
 	node           string
 	bootedImageRef string
@@ -101,8 +102,9 @@ func NewDaemon(cfgPath string) (*daemon, error) {
 	d := &daemon{
 		cfgPath: cfgPath,
 
-		rpmostree: rpmOstreeCMD,
-		kubeadm:   kubeadmCMD,
+		rpmostree:    rpmOstreeCMD,
+		kubeadm:      kubeadmCMD,
+		fixedKubeadm: cfg.KubeadmPath != "",
 
 		node:           node,
 		bootedImageRef: bootedImageRef,

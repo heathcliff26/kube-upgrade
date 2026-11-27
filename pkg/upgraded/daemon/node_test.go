@@ -500,10 +500,11 @@ func newTestNodeKubeadmUpgradeSetup(t *testing.T, kubeadmPath string, node *core
 	require.NoError(err, "Failed to create kubeadm command")
 
 	d := &daemon{
-		ctx:     t.Context(),
-		client:  client,
-		node:    "testnode",
-		kubeadm: kubeadmCMD,
+		ctx:          t.Context(),
+		client:       client,
+		node:         "testnode",
+		kubeadm:      kubeadmCMD,
+		fixedKubeadm: true,
 	}
 
 	if node != nil {
@@ -565,6 +566,7 @@ func TestWatchForNodeUpgrade(t *testing.T) {
 			fleetlock:      fleetlockClient,
 			rpmostree:      rpmOstreeCMD,
 			kubeadm:        kubeadmCMD,
+			fixedKubeadm:   true,
 			bootedImageRef: "ostree-unverified-registry:registry.example.com/fcos-k8s:v1.31.0",
 			stream:         "registry.example.com/fcos-k8s",
 			retryInterval:  time.Millisecond,
